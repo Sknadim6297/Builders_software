@@ -1,9 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import SidebarLayout from '@/Layouts/SidebarLayout';
+import Pagination from '@/Components/Pagination';
+import { PlusIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon, FunnelIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
-export default function Index({ services, flash }) {
+export default function Index({ services, flash, filters }) {
     const [isDeleting, setIsDeleting] = useState(null);
+    const [search, setSearch] = useState(filters?.search || '');
+    const [fromDate, setFromDate] = useState(filters?.from_date || '');
+    const [toDate, setToDate] = useState(filters?.to_date || '');
+    const [showFilters, setShowFilters] = useState(false);
 
     // Show flash messages as toasts
     useEffect(() => {
@@ -21,6 +27,33 @@ export default function Index({ services, flash }) {
         }
     }, [flash]);
 
+    const handleSearch = () => {
+        router.get(route('services.index'), {
+            search: search,
+            from_date: fromDate,
+            to_date: toDate
+        }, {
+            preserveState: true,
+            replace: true
+        });
+    };
+
+    const handleReset = () => {
+        setSearch('');
+        setFromDate('');
+        setToDate('');
+        router.get(route('services.index'), {}, {
+            preserveState: true,
+            replace: true
+        });
+    };
+
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
+
     const handleDelete = (service) => {
         if (confirm(`Are you sure you want to delete "${service.name}"?`)) {
             setIsDeleting(service.id);
@@ -37,9 +70,9 @@ export default function Index({ services, flash }) {
     };
 
     const formatPrice = (price) => {
-        return new Intl.NumberFormat('en-US', {
+        return new Intl.NumberFormat('en-IN', {
             style: 'currency',
-            currency: 'USD'
+            currency: 'INR'
         }).format(price);
     };
 
@@ -59,11 +92,89 @@ export default function Index({ services, flash }) {
                             href={route('services.create')}
                             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-medium transition duration-200 flex items-center space-x-2 shadow-lg"
                         >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
+                            <PlusIcon className="w-5 h-5" />
                             <span>Add New Service</span>
                         </Link>
+                    </div>
+                </div>
+
+                {/* Search and Filter Section */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+                    <div className="p-4">
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            {/* Search Input */}
+                            <div className="flex-1">
+                                <div className="relative">
+                                    <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search services..."
+                                        value={search}
+                                        onChange={(e) => setSearch(e.target.value)}
+                                        onKeyPress={handleKeyPress}
+                                        className="pl-10 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Filter Toggle */}
+                            <button
+                                onClick={() => setShowFilters(!showFilters)}
+                                className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
+                            >
+                                <FunnelIcon className="w-4 h-4 mr-2" />
+                                Filters
+                            </button>
+
+                            {/* Search Button */}
+                            <button
+                                onClick={handleSearch}
+                                className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                            >
+                                Search
+                            </button>
+
+                            {/* Reset Button */}
+                            {(search || fromDate || toDate) && (
+                                <button
+                                    onClick={handleReset}
+                                    className="inline-flex items-center px-4 py-2 bg-gray-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-600 focus:bg-gray-600 active:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                                >
+                                    <XMarkIcon className="w-4 h-4 mr-2" />
+                                    Reset
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Date Filters */}
+                        {showFilters && (
+                            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            From Date
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={fromDate}
+                                            onChange={(e) => setFromDate(e.target.value)}
+                                            className="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                            To Date
+                                        </label>
+                                        <input
+                                            type="date"
+                                            value={toDate}
+                                            onChange={(e) => setToDate(e.target.value)}
+                                            className="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -71,7 +182,7 @@ export default function Index({ services, flash }) {
                 
                 {/* Services Table */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors duration-200">
-                    {services.length === 0 ? (
+                    {services.data.length === 0 ? (
                         <div className="p-12 text-center">
                             <div className="mx-auto w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
                                 <svg className="w-12 h-12 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -80,75 +191,82 @@ export default function Index({ services, flash }) {
                                 </svg>
                             </div>
                             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No services found</h3>
-                            <p className="text-gray-500 dark:text-gray-400 mb-6">Get started by creating your first service.</p>
-                            <Link
-                                href={route('services.create')}
-                                className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition duration-200"
-                            >
-                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                </svg>
-                                Add New Service
-                            </Link>
+                            <p className="text-gray-500 dark:text-gray-400 mb-6">
+                                {(search || fromDate || toDate) ? 'Try adjusting your search criteria.' : 'Get started by creating your first service.'}
+                            </p>
+                            {!(search || fromDate || toDate) && (
+                                <Link
+                                    href={route('services.create')}
+                                    className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition duration-200"
+                                >
+                                    <PlusIcon className="w-4 h-4 mr-2" />
+                                    Add New Service
+                                </Link>
+                            )}
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                                 <thead className="bg-gray-50 dark:bg-gray-700">
                                     <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            S.No
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            Serv ID
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                             Service Name
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            Description
-                                        </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                             Price
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            Status
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            GST%
                                         </th>
-                                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            Final Price
+                                        </th>
+                                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                             Actions
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                    {services.map((service) => (
+                                    {services.data.map((service, index) => (
                                         <tr key={service.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
-                                            <td className="px-6 py-4 whitespace-nowrap">
+                                            <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                                                {services.from + index}
+                                            </td>
+                                            <td className="px-4 py-4 whitespace-nowrap">
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+                                                    {service.serv_id}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-4 whitespace-nowrap">
                                                 <div className="text-sm font-medium text-gray-900 dark:text-white">
                                                     {service.name}
                                                 </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="text-sm text-gray-600 dark:text-gray-400 max-w-xs">
-                                                    <div className="truncate" title={service.description}>
-                                                        {service.description}
-                                                    </div>
+                                                <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs" title={service.description}>
+                                                    {service.description}
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-semibold text-blue-600">
-                                                    {formatPrice(service.price)}
-                                                </div>
+                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-medium">
+                                                {formatPrice(service.price)}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                                    service.is_active 
-                                                        ? 'bg-green-100 text-green-800' 
-                                                        : 'bg-red-100 text-red-800'
-                                                }`}>
-                                                    {service.is_active ? 'Active' : 'Inactive'}
-                                                </span>
+                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                {service.gst_percentage ? `${service.gst_percentage}%` : 'N/A'}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <div className="flex items-center justify-end space-x-2">
+                                            <td className="px-4 py-4 whitespace-nowrap text-sm font-bold text-green-600 dark:text-green-400">
+                                                {formatPrice(service.final_price)}
+                                            </td>
+                                            <td className="px-4 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                                <div className="flex items-center justify-center space-x-2">
                                                     <Link
                                                         href={route('services.edit', service.id)}
-                                                        className="bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-2 rounded-lg text-sm font-medium transition duration-200 inline-flex items-center"
+                                                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
                                                     >
-                                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                         </svg>
                                                         Edit
@@ -156,12 +274,24 @@ export default function Index({ services, flash }) {
                                                     <button
                                                         onClick={() => handleDelete(service)}
                                                         disabled={isDeleting === service.id}
-                                                        className="bg-red-50 hover:bg-red-100 text-red-700 px-3 py-2 rounded-lg text-sm font-medium transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center"
+                                                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
-                                                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                        </svg>
-                                                        {isDeleting === service.id ? 'Deleting...' : 'Delete'}
+                                                        {isDeleting === service.id ? (
+                                                            <>
+                                                                <svg className="animate-spin -ml-1 mr-1 h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                                </svg>
+                                                                Deleting...
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                </svg>
+                                                                Delete
+                                                            </>
+                                                        )}
                                                     </button>
                                                 </div>
                                             </td>
@@ -170,6 +300,11 @@ export default function Index({ services, flash }) {
                                 </tbody>
                             </table>
                         </div>
+                    )}
+                    
+                    {/* Pagination */}
+                    {services.data.length > 0 && (
+                        <Pagination links={services.links} meta={services} />
                     )}
                 </div>
             </div>

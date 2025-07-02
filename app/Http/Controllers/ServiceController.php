@@ -11,12 +11,34 @@ class ServiceController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $services = Service::orderBy('created_at', 'desc')->get();
+        $query = Service::query();
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('serv_id', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        // Date range filtering
+        if ($request->filled('from_date')) {
+            $query->whereDate('created_at', '>=', $request->from_date);
+        }
+
+        if ($request->filled('to_date')) {
+            $query->whereDate('created_at', '<=', $request->to_date);
+        }
+
+        $services = $query->orderBy('created_at', 'desc')->paginate(10);
         
         return Inertia::render('Services/Index', [
-            'services' => $services
+            'services' => $services,
+            'filters' => $request->only(['search', 'from_date', 'to_date'])
         ]);
     }
 
@@ -37,6 +59,7 @@ class ServiceController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
+            'gst_percentage' => 'nullable|numeric|min:0|max:100',
             'is_active' => 'boolean'
         ]);
 
@@ -44,6 +67,7 @@ class ServiceController extends Controller
             'name' => $request->name,
             'description' => $request->description,
             'price' => $request->price,
+            'gst_percentage' => $request->gst_percentage,
             'is_active' => $request->is_active ?? true
         ]);
 
@@ -80,6 +104,7 @@ class ServiceController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
+            'gst_percentage' => 'nullable|numeric|min:0|max:100',
             'is_active' => 'boolean'
         ]);
 
@@ -87,6 +112,7 @@ class ServiceController extends Controller
             'name' => $request->name,
             'description' => $request->description,
             'price' => $request->price,
+            'gst_percentage' => $request->gst_percentage,
             'is_active' => $request->is_active ?? true
         ]);
 

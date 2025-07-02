@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\VendorController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -25,6 +27,12 @@ Route::middleware('auth')->group(function () {
     
     // Service routes
     Route::resource('services', ServiceController::class);
+    
+    // Customer routes
+    Route::resource('customers', CustomerController::class);
+    
+    // Vendor routes
+    Route::resource('vendors', VendorController::class);
 });
 
 require __DIR__.'/auth.php';

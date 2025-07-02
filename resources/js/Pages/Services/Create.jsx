@@ -1,156 +1,183 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import SidebarLayout from '@/Layouts/SidebarLayout';
-import InputError from '@/Components/InputError';
-import TextInput from '@/Components/TextInput';
-import PrimaryButton from '@/Components/PrimaryButton';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
-export default function Create() {
+export default function Create({ flash }) {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         description: '',
         price: '',
+        gst_percentage: '',
         is_active: true
     });
 
-    const submit = (e) => {
+    // Show flash messages as toasts
+    useEffect(() => {
+        if (flash?.success) {
+            window.showSuccess(flash.success);
+        }
+        if (flash?.error) {
+            window.showError(flash.error);
+        }
+        if (flash?.warning) {
+            window.showWarning(flash.warning);
+        }
+        if (flash?.info) {
+            window.showInfo(flash.info);
+        }
+    }, [flash]);
+
+    const handleSubmit = (e) => {
         e.preventDefault();
         post(route('services.store'), {
             onSuccess: () => {
-                window.showSuccess('Service created successfully!', {
-                    description: `"${data.name}" has been added to your services.`
-                });
+                window.showSuccess('Service created successfully!');
             },
             onError: () => {
-                window.showError('Failed to create service', {
-                    description: 'Please check the form and try again.'
-                });
+                window.showError('Please check the form for errors.');
             }
         });
     };
 
     return (
         <SidebarLayout>
-            <Head title="Add New Service" />
+            <Head title="Create Service" />
             
             <div className="p-6">
-                {/* Header */}
-                <div className="mb-8">
-                    <div className="flex items-center space-x-4">
-                        <Link
-                            href={route('services.index')}
-                            className="p-2 hover:bg-gray-100 rounded-lg transition duration-200"
-                        >
-                            <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-                            </svg>
-                        </Link>
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-900">Add New Service</h1>
-                            <p className="text-gray-600 mt-2">Create a new service for your billing system</p>
-                        </div>
+                <div className="flex items-center mb-6">
+                    <Link
+                        href={route('services.index')}
+                        className="mr-4 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                    >
+                        <ArrowLeftIcon className="w-6 h-6" />
+                    </Link>
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Create New Service</h1>
+                        <p className="text-gray-600 dark:text-gray-400 mt-1">Add a new service to your catalog</p>
                     </div>
                 </div>
 
-                {/* Form */}
-                <div className="max-w-2xl">
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                        <form onSubmit={submit} className="space-y-6">
+                <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <form onSubmit={handleSubmit} className="p-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Service Name */}
-                            <div>
-                                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                                    Service Name *
+                            <div className="md:col-span-2">
+                                <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Service Name <span className="text-red-500">*</span>
                                 </label>
-                                <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                    </div>
-                                    <TextInput
-                                        id="name"
-                                        type="text"
-                                        className="pl-10 block w-full border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
-                                        value={data.name}
-                                        onChange={(e) => setData('name', e.target.value)}
-                                        placeholder="Enter service name"
-                                        isFocused
-                                    />
-                                </div>
-                                <InputError message={errors.name} className="mt-2" />
+                                <input
+                                    id="name"
+                                    type="text"
+                                    value={data.name}
+                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                    onChange={(e) => setData('name', e.target.value)}
+                                    placeholder="Enter service name"
+                                    required
+                                />
+                                {errors.name && <div className="text-red-600 text-sm mt-1">{errors.name}</div>}
                             </div>
 
                             {/* Description */}
-                            <div>
-                                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                                    Description *
+                            <div className="md:col-span-2">
+                                <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Description <span className="text-red-500">*</span>
                                 </label>
                                 <textarea
                                     id="description"
-                                    rows={4}
-                                    className="bg-white text-black block w-full border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
                                     value={data.description}
+                                    rows={3}
+                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
                                     onChange={(e) => setData('description', e.target.value)}
                                     placeholder="Enter service description"
+                                    required
                                 />
-                                <InputError message={errors.description} className="mt-2" />
+                                {errors.description && <div className="text-red-600 text-sm mt-1">{errors.description}</div>}
                             </div>
 
                             {/* Price */}
                             <div>
-                                <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
-                                    Price *
+                                <label htmlFor="price" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Price <span className="text-red-500">*</span>
                                 </label>
-                                <div className="relative">
+                                <div className="relative mt-1">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <span className="text-gray-500 text-sm">$</span>
+                                        <span className="text-gray-500 dark:text-gray-400">₹</span>
                                     </div>
-                                    <TextInput
+                                    <input
                                         id="price"
                                         type="number"
                                         step="0.01"
                                         min="0"
-                                        className="pl-8 block w-full border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
                                         value={data.price}
+                                        className="pl-8 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
                                         onChange={(e) => setData('price', e.target.value)}
                                         placeholder="0.00"
+                                        required
                                     />
                                 </div>
-                                <InputError message={errors.price} className="mt-2" />
+                                {errors.price && <div className="text-red-600 text-sm mt-1">{errors.price}</div>}
+                            </div>
+
+                            {/* GST Percentage */}
+                            <div>
+                                <label htmlFor="gst_percentage" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    GST Percentage
+                                </label>
+                                <div className="relative mt-1">
+                                    <input
+                                        id="gst_percentage"
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        max="100"
+                                        value={data.gst_percentage}
+                                        className="block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                        onChange={(e) => setData('gst_percentage', e.target.value)}
+                                        placeholder="18.00"
+                                    />
+                                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                        <span className="text-gray-500 dark:text-gray-400">%</span>
+                                    </div>
+                                </div>
+                                <p className="text-sm text-gray-500 mt-1">Optional: Leave empty if no GST applicable</p>
+                                {errors.gst_percentage && <div className="text-red-600 text-sm mt-1">{errors.gst_percentage}</div>}
                             </div>
 
                             {/* Status */}
-                            <div>
-                                <label className="flex items-center">
+                            <div className="md:col-span-2">
+                                <div className="flex items-center">
                                     <input
+                                        id="is_active"
                                         type="checkbox"
-                                        className="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500"
                                         checked={data.is_active}
                                         onChange={(e) => setData('is_active', e.target.checked)}
+                                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                                     />
-                                    <span className="ml-2 text-sm text-gray-600">Service is active</span>
-                                </label>
+                                    <label htmlFor="is_active" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                                        Service is active
+                                    </label>
+                                </div>
+                                <p className="text-sm text-gray-500 mt-1">Uncheck to mark this service as inactive</p>
                             </div>
+                        </div>
 
-                            {/* Form Actions */}
-                            <div className="flex items-center justify-between pt-6 border-t border-gray-200">
-                                <Link
-                                    href={route('services.index')}
-                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200"
-                                >
-                                    Cancel
-                                </Link>
-                                
-                                <PrimaryButton 
-                                    disabled={processing}
-                                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200"
-                                >
-                                    {processing ? 'Creating...' : 'Create Service'}
-                                </PrimaryButton>
-                            </div>
-                        </form>
-                    </div>
+                        <div className="flex items-center justify-end mt-6 space-x-3">
+                            <Link
+                                href={route('services.index')}
+                                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                            >
+                                Cancel
+                            </Link>
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
+                            >
+                                {processing ? 'Creating...' : 'Create Service'}
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </SidebarLayout>

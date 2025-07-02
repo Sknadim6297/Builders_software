@@ -13,9 +13,12 @@ return new class extends Migration
     {
         Schema::create('services', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('serv_id')->unique(); // Auto-generated unique service ID
+            $table->string('name'); // Service Name
             $table->text('description');
-            $table->decimal('price', 10, 2);
+            $table->decimal('price', 10, 2); // Price
+            $table->decimal('gst_percentage', 5, 2)->nullable(); // GST% (Not required)
+            $table->decimal('final_price', 10, 2); // Final Price (calculated)
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
