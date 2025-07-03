@@ -1,79 +1,102 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { router } from '@inertiajs/react';
 import Header from '../Components/Header/Header';
 
 export default function SidebarLayout({ children }) {
-    const { auth } = usePage().props;
+    const { auth, permissions } = usePage().props;
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const toggleMobileSidebar = () => {
         setSidebarOpen(true);
     };
 
-    const navigation = [
-        {
-            name: 'Dashboard',
-            href: route('dashboard'),
-            icon: (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v14H8V5z" />
-                </svg>
-            ),
-            current: route().current('dashboard')
-        },
-        {
-            name: 'Customer Management',
-            href: route('customers.index'),
-            icon: (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                </svg>
-            ),
-            current: route().current('customers.*')
-        },
-        {
-            name: 'Vendor Management',
-            href: route('vendors.index'),
-            icon: (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-            ),
-            current: route().current('vendors.*')
-        },
-        {
-            name: 'Service Management',
-            href: route('services.index'),
-            icon: (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-            ),
-            current: route().current('services.*')
-        },
-        {
-            name: 'Admin User Creation',
-            href: '#',
-            icon: (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-            ),
-            current: route().current('admin-users.*')
-        },
-        {
-            name: 'Log Book of User & Admin Activity',
-            href: '#',
-            icon: (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-            ),
-            current: route().current('activity-logs.*')
+    // Create navigation based on user permissions
+    const navigation = useMemo(() => {
+        const allMenus = [
+            {
+                name: 'Dashboard',
+                href: route('dashboard'),
+                icon: (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v14H8V5z" />
+                    </svg>
+                ),
+                current: route().current('dashboard'),
+                permission: 'dashboard'
+            },
+            {
+                name: 'Customer Management',
+                href: route('customers.index'),
+                icon: (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    </svg>
+                ),
+                current: route().current('customers.*'),
+                permission: 'customers',
+
+            },
+            {
+                name: 'Vendor Management',
+                href: route('vendors.index'),
+                icon: (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                ),
+                current: route().current('vendors.*'),
+                permission: 'vendors',
+            },
+            {
+                name: 'Service Management',
+                href: route('services.index'),
+                icon: (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                ),
+                current: route().current('services.*'),
+                permission: 'services'
+            },
+            {
+                name: 'Admin User Creation',
+                href: route('admin-users.index'),
+                icon: (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                ),
+                current: route().current('admin-users.*'),
+                permission: 'admin_users',
+                disabled: true 
+            },
+            {
+                name: 'Log Book of User & Admin Activity',
+                href: route('activity-logs.index'),
+                icon: (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                ),
+                current: route().current('activity-logs.*'),
+                permission: 'activity_logs',
+                 disabled: true // This menu will be hidden
+            }
+        ];
+
+        // If user is super admin, show all menus (excluding disabled ones)
+        if (auth.user.is_super_admin) {
+            return allMenus.filter(menu => !menu.disabled);
         }
-    ];
+
+        // Otherwise, filter menus based on user permissions and exclude disabled ones
+        const userPermissions = permissions || [];
+        return allMenus.filter(menu => 
+            !menu.disabled && userPermissions.some(permission => permission.name === menu.permission)
+        );
+    }, [auth, permissions]);
 
     const handleLogout = () => {
         router.post(route('logout'));

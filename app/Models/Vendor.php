@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 
 class Vendor extends Model
 {
+    use LogsActivity;
     protected $fillable = [
         'vend_id',
         'name',
