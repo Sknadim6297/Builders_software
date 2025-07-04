@@ -11,6 +11,10 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
+Route::get('/csrf-token', function () {
+    return response()->json(['csrf_token' => csrf_token()]);
+})->name('csrf.token');
+
 Route::get('/', function () {
     if (Auth::check()) {
         return redirect()->route('dashboard');
@@ -55,6 +59,9 @@ Route::middleware('auth')->group(function () {
         Route::get('activity-logs/{activityLog}', [ActivityLogController::class, 'show'])->name('activity-logs.show');
         Route::post('activity-logs/export', [ActivityLogController::class, 'export'])->name('activity-logs.export');
         Route::delete('activity-logs/clear', [ActivityLogController::class, 'clear'])->name('activity-logs.clear');
+        Route::post('activity-logs/request-delete-otp', [ActivityLogController::class, 'requestDeleteOtp'])->name('activity-logs.request-delete-otp');
+        Route::post('activity-logs/verify-delete-otp', [ActivityLogController::class, 'verifyDeleteOtp'])->name('activity-logs.verify-delete-otp');
+        Route::delete('activity-logs/{activityLog}', [ActivityLogController::class, 'destroy'])->name('activity-logs.destroy');
     });
 });
 

@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -40,12 +41,26 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
-        Auth::guard('web')->logout();
+        try {
+            Auth::guard('web')->logout();
 
-        $request->session()->invalidate();
+            $request->session()->invalidate();
 
-        $request->session()->regenerateToken();
+            $request->session()->regenerateToken();
 
-        return redirect('/');
+            return redirect('/');
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            Log::error('Logout error: ' . $e->getMessage());
+            
+            // Force logout even if there's an error
+            Auth::guard('web')->logout();
+            
+            // Clear session data
+            $request->session()->flush();
+            $request->session()->regenerate();
+            
+            return redirect('/')->with('status', 'You have been logged out successfully.');
+        }
     }
 }

@@ -25,7 +25,21 @@ export default function Header({ onMobileSidebarToggle }) {
     }, []);
 
     const handleLogout = () => {
-        router.post(route('logout'));
+        router.post(route('logout'), {}, {
+            onBefore: () => {
+                // Ensure fresh CSRF token before logout
+                const token = document.head.querySelector('meta[name="csrf-token"]');
+                if (token && window.axios) {
+                    window.axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content;
+                }
+            },
+            onError: (errors) => {
+                // If CSRF error, refresh page and try again
+                if (errors && Object.keys(errors).length === 0) {
+                    window.location.reload();
+                }
+            }
+        });
     };
 
     const handleSearch = (e) => {

@@ -17,7 +17,22 @@ export default function Login({ status }) {
         e.preventDefault();
 
         post(route('login'), {
+            onBefore: () => {
+                // Ensure fresh CSRF token before login
+                const token = document.head.querySelector('meta[name="csrf-token"]');
+                if (token && window.axios) {
+                    window.axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content;
+                }
+            },
             onFinish: () => reset('password'),
+            onError: (errors) => {
+                // Handle specific error scenarios
+                if (Object.keys(errors).length === 0) {
+                    // This might be a CSRF issue, refresh page
+                    console.warn('Possible CSRF error during login, refreshing...');
+                    setTimeout(() => window.location.reload(), 1000);
+                }
+            }
         });
     };
 

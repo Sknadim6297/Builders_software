@@ -14,7 +14,9 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                sans: ['Lexend', ...defaultTheme.fontFamily.sans],
+                display: ['Lexend', ...defaultTheme.fontFamily.sans],
+                heading: ['Lexend', ...defaultTheme.fontFamily.sans],
             },
         },
     },
