@@ -58,13 +58,7 @@ export default function Index({ services, flash, filters }) {
         if (confirm(`Are you sure you want to delete "${service.name}"?`)) {
             setIsDeleting(service.id);
             router.delete(route('services.destroy', service.id), {
-                onFinish: () => setIsDeleting(null),
-                onSuccess: () => {
-                    window.showSuccess(`Service "${service.name}" deleted successfully!`);
-                },
-                onError: () => {
-                    window.showError('Failed to delete service. Please try again.');
-                }
+                onFinish: () => setIsDeleting(null)
             });
         }
     };

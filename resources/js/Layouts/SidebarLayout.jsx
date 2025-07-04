@@ -6,9 +6,21 @@ import Header from '../Components/Header/Header';
 export default function SidebarLayout({ children }) {
     const { auth, permissions } = usePage().props;
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [isAnimating, setIsAnimating] = useState(false);
 
     const toggleMobileSidebar = () => {
-        setSidebarOpen(true);
+        if (!sidebarOpen) {
+            setIsAnimating(true);
+            setSidebarOpen(true);
+            // Reset animation state after all animations complete
+            setTimeout(() => setIsAnimating(false), 600);
+        } else {
+            setSidebarOpen(false);
+        }
+    };
+
+    const closeMobileSidebar = () => {
+        setSidebarOpen(false);
     };
 
     // Create navigation based on user permissions
@@ -48,6 +60,7 @@ export default function SidebarLayout({ children }) {
                 ),
                 current: route().current('vendors.*'),
                 permission: 'vendors',
+                disabled: true
             },
             {
                 name: 'Service Management',
@@ -82,7 +95,7 @@ export default function SidebarLayout({ children }) {
                 ),
                 current: route().current('activity-logs.*'),
                 permission: 'activity_logs',
-                disabled: true
+                disabled: true,
 
             }
         ];
@@ -119,64 +132,182 @@ export default function SidebarLayout({ children }) {
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
             {/* Mobile sidebar */}
-            <div className={`fixed inset-0 flex z-40 md:hidden ${sidebarOpen ? '' : 'hidden'}`}>
-                <div className="fixed inset-0 bg-gray-600 bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-80 transition-opacity duration-200" onClick={() => setSidebarOpen(false)}></div>
-                <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white dark:bg-gray-800 shadow-xl transition-colors duration-200">
+            <div className={`fixed inset-0 flex z-40 md:hidden transition-all duration-500 ease-out ${
+                sidebarOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
+            }`}>
+                <div 
+                    className={`fixed inset-0 bg-gray-600/75 dark:bg-gray-900/80 backdrop-blur-sm transition-all duration-500 ease-out transform ${
+                        sidebarOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-110'
+                    }`} 
+                    onClick={closeMobileSidebar}
+                ></div>
+                <div className={`relative flex-1 flex flex-col max-w-xs w-full bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl shadow-2xl transition-all duration-500 ease-out transform ${
+                    sidebarOpen ? 'translate-x-0 scale-100 rotate-0' : '-translate-x-full scale-95 -rotate-1'
+                }`}>
+                    
+                    {/* Close button with enhanced animations */}
                     <div className="absolute top-0 right-0 -mr-12 pt-2">
                         <button
                             type="button"
-                            className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white dark:focus:ring-gray-300 transition-colors duration-200"
-                            onClick={() => setSidebarOpen(false)}
+                            className={`ml-1 flex items-center justify-center h-12 w-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-300 transform hover:scale-125 hover:rotate-180 hover:bg-white/20 ${
+                                sidebarOpen ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 translate-x-8 scale-75'
+                            }`}
+                            onClick={closeMobileSidebar}
+                            style={{ 
+                                transitionDelay: sidebarOpen ? '300ms' : '0ms',
+                                boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+                            }}
                         >
-                            <svg className="h-6 w-6 text-white dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg className="h-6 w-6 text-white drop-shadow-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                     </div>
-                    <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
-                        <div className="flex-shrink-0 flex items-center px-4">
-                            <div className="h-8 w-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
-                                <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto relative">
+                        {/* Logo/Brand section with enhanced animations */}
+                        <div className={`flex-shrink-0 flex items-center px-4 mb-8 transition-all duration-700 ease-out transform ${
+                            sidebarOpen ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-8 opacity-0 scale-90'
+                        }`} style={{ transitionDelay: sidebarOpen ? '200ms' : '0ms' }}>
+                            <div className={`h-10 w-10 bg-blue-700 rounded-xl flex items-center justify-center shadow-lg transform transition-all duration-500 hover:scale-110 hover:rotate-3 hover:shadow-xl ${
+                                sidebarOpen ? 'animate-pulse' : ''
+                            }`} style={{
+                                animation: sidebarOpen ? 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' : 'none',
+                                boxShadow: '0 10px 30px rgba(29, 78, 216, 0.3)'
+                            }}>
+                                <svg className="h-6 w-6 text-white drop-shadow-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 002 2z" />
                                 </svg>
                             </div>
-                            <span className="ml-3 text-xl font-bold text-gray-900 dark:text-white font-heading transition-colors duration-200">Billing System</span>
+                            <div className="ml-3 overflow-hidden">
+                                <span className={`text-xl font-bold text-gray-900 dark:text-white font-heading transition-all duration-500 ${
+                                    sidebarOpen ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
+                                }`} style={{ transitionDelay: sidebarOpen ? '400ms' : '0ms' }}>
+                                    Billing System
+                                </span>
+                            </div>
                         </div>
-                        <nav className="mt-5 px-2 space-y-1">
-                            {navigation.map((item) => (
-                                <Link
+                        
+                        {/* Floating particles effect */}
+                        <div className={`absolute inset-0 pointer-events-none transition-opacity duration-1000 ${
+                            sidebarOpen ? 'opacity-30' : 'opacity-0'
+                        }`}>
+                            {[...Array(6)].map((_, i) => (
+                                <div
+                                    key={i}
+                                    className="absolute w-1 h-1 bg-blue-400 rounded-full animate-ping"
+                                    style={{
+                                        left: `${20 + i * 15}%`,
+                                        top: `${30 + i * 10}%`,
+                                        animationDelay: `${i * 0.5}s`,
+                                        animationDuration: '3s'
+                                    }}
+                                />
+                            ))}
+                        </div>
+                        <nav className="mt-5 px-2 space-y-2 relative">
+                            {/* Navigation background glow */}
+                            <div className={`absolute inset-0 bg-blue-50/20 dark:bg-blue-900/10 rounded-2xl transition-all duration-700 ${
+                                sidebarOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+                            }`} style={{ transitionDelay: sidebarOpen ? '300ms' : '0ms' }}></div>
+                            
+                            {navigation.map((item, index) => (
+                                <div
                                     key={item.name}
-                                    href={item.href}
-                                    className={`${
-                                        item.current
-                                            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                                            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
-                                    } group flex items-center px-2 py-2 text-base font-medium rounded-md transition-all duration-200`}
+                                    className={`relative transition-all duration-600 ease-out transform ${
+                                        sidebarOpen 
+                                            ? 'translate-x-0 opacity-100 scale-100' 
+                                            : '-translate-x-12 opacity-0 scale-90'
+                                    }`}
+                                    style={{ 
+                                        transitionDelay: sidebarOpen ? `${(index + 2) * 100}ms` : '0ms' 
+                                    }}
                                 >
-                                    <div className="mr-4 flex-shrink-0">{item.icon}</div>
-                                    <span className="truncate">{item.name}</span>
-                                </Link>
+                                    {/* Menu item glow effect */}
+                                    <div className={`absolute inset-0 bg-blue-200/20 dark:bg-blue-600/20 rounded-xl blur-sm transition-all duration-300 ${
+                                        item.current ? 'opacity-100 scale-110' : 'opacity-0 scale-100'
+                                    }`}></div>
+                                    
+                                    <Link
+                                        href={item.href}
+                                        className={`${
+                                            item.current
+                                                ? 'bg-blue-700 text-white shadow-xl border border-blue-600/30'
+                                                : 'text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-gray-900 dark:hover:text-white border border-transparent hover:border-blue-200/50 dark:hover:border-blue-700/50'
+                                        } group relative flex items-center px-3 py-3 text-base font-medium rounded-xl transition-all duration-300 transform hover:scale-105 hover:translate-x-2 overflow-hidden backdrop-blur-sm`}
+                                        onClick={closeMobileSidebar}
+                                        style={{
+                                            boxShadow: item.current 
+                                                ? '0 8px 32px rgba(29, 78, 216, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)' 
+                                                : '0 2px 8px rgba(0, 0, 0, 0.05)'
+                                        }}
+                                    >
+                                        {/* Hover ripple effect */}
+                                        <div className="absolute inset-0 bg-blue-200/10 dark:bg-blue-600/10 translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-out"></div>
+                                        
+                                        <div className={`mr-4 flex-shrink-0 transform transition-all duration-300 group-hover:scale-125 group-hover:rotate-12 relative z-10 ${
+                                            item.current ? 'text-white drop-shadow-sm' : ''
+                                        }`}>
+                                            {item.icon}
+                                        </div>
+                                        <span className="truncate relative z-10 font-medium">{item.name}</span>
+                                        
+                                        {/* Active indicator with animation */}
+                                        <div className={`ml-auto relative z-10 transition-all duration-300 transform ${
+                                            item.current ? 'opacity-100 scale-100 translate-x-0' : 'opacity-0 scale-75 translate-x-4 group-hover:opacity-60 group-hover:scale-100 group-hover:translate-x-0'
+                                        }`}>
+                                            <div className={`w-2 h-2 rounded-full ${
+                                                item.current 
+                                                    ? 'bg-white shadow-lg animate-pulse' 
+                                                    : 'bg-blue-400 group-hover:bg-blue-500'
+                                            }`}></div>
+                                        </div>
+                                        
+                                        {/* Shine effect for active items */}
+                                        {item.current && (
+                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-1000 ease-out"></div>
+                                        )}
+                                    </Link>
+                                </div>
                             ))}
                         </nav>
                     </div>
-                    <div className="flex-shrink-0 flex border-t border-gray-200 dark:border-gray-700 p-4 transition-colors duration-200">
-                        <div className="flex items-center w-full">
-                            <div className="flex-shrink-0">
-                                <div className="h-8 w-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
-                                    <span className="text-sm font-medium text-white">{auth.user.name.charAt(0)}</span>
+                    <div className={`flex-shrink-0 flex border-t border-gray-200/50 dark:border-gray-700/50 p-4 bg-gray-50/50 dark:bg-gray-800/50 backdrop-blur-sm transition-all duration-700 ease-out transform ${
+                        sidebarOpen ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-8 opacity-0 scale-95'
+                    }`} style={{ transitionDelay: sidebarOpen ? '500ms' : '0ms' }}>
+                        <div className="flex items-center w-full group">
+                            <div className="flex-shrink-0 relative">
+                                {/* User avatar with animated border */}
+                                <div className="absolute inset-0 bg-blue-600 rounded-full animate-spin-slow opacity-75 blur-sm transition-all duration-500 group-hover:opacity-100 group-hover:blur-none"></div>
+                                <div className="h-12 w-12 bg-blue-700 rounded-full flex items-center justify-center shadow-lg transform transition-all duration-300 hover:scale-110 relative z-10 border-2 border-white/20">
+                                    <span className="text-base font-bold text-white drop-shadow-sm">{auth.user.name.charAt(0)}</span>
                                 </div>
+                                {/* Online indicator */}
+                                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-white shadow-lg animate-pulse"></div>
                             </div>
-                            <div className="ml-3 flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate transition-colors duration-200">{auth.user.name}</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400 truncate transition-colors duration-200">{auth.user.email}</p>
+                            <div className="ml-3 flex-1 min-w-0 overflow-hidden">
+                                <p className={`text-sm font-semibold text-gray-700 dark:text-gray-200 truncate transition-all duration-500 transform ${
+                                    sidebarOpen ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
+                                }`} style={{ transitionDelay: sidebarOpen ? '600ms' : '0ms' }}>
+                                    {auth.user.name}
+                                </p>
+                                <p className={`text-xs text-gray-500 dark:text-gray-400 truncate transition-all duration-500 transform ${
+                                    sidebarOpen ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
+                                }`} style={{ transitionDelay: sidebarOpen ? '700ms' : '0ms' }}>
+                                    {auth.user.email}
+                                </p>
                             </div>
                             <div className="flex items-center">
                                 <button
                                     onClick={handleLogout}
-                                    className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
+                                    className={`p-2 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-all duration-300 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transform hover:scale-110 hover:rotate-12 group relative overflow-hidden ${
+                                        sidebarOpen ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
+                                    }`}
+                                    style={{ transitionDelay: sidebarOpen ? '800ms' : '0ms' }}
                                     title="Sign out"
                                 >
-                                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    {/* Logout button hover effect */}
+                                    <div className="absolute inset-0 bg-gray-200/20 dark:bg-gray-600/20 rounded-xl scale-0 group-hover:scale-100 transition-transform duration-300"></div>
+                                    <svg className="h-5 w-5 relative z-10 drop-shadow-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                     </svg>
                                 </button>

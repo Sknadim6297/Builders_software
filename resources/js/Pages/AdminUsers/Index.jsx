@@ -20,14 +20,7 @@ export default function Index({ users, roles, filters }) {
 
     const handleDelete = (user) => {
         if (window.confirm(`Are you sure you want to delete ${user.name}?`)) {
-            router.delete(route('admin-users.destroy', user.id), {
-                onSuccess: () => {
-                    window.showSuccess('Admin user deleted successfully!');
-                },
-                onError: () => {
-                    window.showError('Failed to delete admin user.');
-                }
-            });
+            router.delete(route('admin-users.destroy', user.id));
         }
     };
 

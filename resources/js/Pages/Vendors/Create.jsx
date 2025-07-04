@@ -34,14 +34,7 @@ export default function Create({ flash }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('vendors.store'), {
-            onSuccess: () => {
-                window.showSuccess('Vendor created successfully!');
-            },
-            onError: () => {
-                window.showError('Please check the form for errors.');
-            }
-        });
+        post(route('vendors.store'));
     };
 
     return (

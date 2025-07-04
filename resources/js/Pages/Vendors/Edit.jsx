@@ -34,14 +34,7 @@ export default function Edit({ vendor, flash }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        put(route('vendors.update', vendor.id), {
-            onSuccess: () => {
-                window.showSuccess('Vendor updated successfully!');
-            },
-            onError: () => {
-                window.showError('Please check the form for errors.');
-            }
-        });
+        put(route('vendors.update', vendor.id));
     };
 
     const formatDate = (dateStr) => {

@@ -58,13 +58,7 @@ export default function Index({ vendors, flash, filters }) {
         if (confirm(`Are you sure you want to delete "${vendor.name}"?`)) {
             setIsDeleting(vendor.id);
             router.delete(route('vendors.destroy', vendor.id), {
-                onFinish: () => setIsDeleting(null),
-                onSuccess: () => {
-                    window.showSuccess(`Vendor "${vendor.name}" deleted successfully!`);
-                },
-                onError: () => {
-                    window.showError('Failed to delete vendor.');
-                }
+                onFinish: () => setIsDeleting(null)
             });
         }
     };

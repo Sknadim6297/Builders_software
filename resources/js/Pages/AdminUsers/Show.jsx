@@ -22,14 +22,7 @@ export default function Show({ user, flash }) {
 
     const handleDelete = () => {
         if (window.confirm('Are you sure you want to delete this admin user?')) {
-            router.delete(route('admin-users.destroy', user.id), {
-                onSuccess: () => {
-                    window.showSuccess('Admin user deleted successfully!');
-                },
-                onError: () => {
-                    window.showError('Failed to delete admin user.');
-                }
-            });
+            router.delete(route('admin-users.destroy', user.id));
         }
     };
 

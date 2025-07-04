@@ -45,11 +45,7 @@ export default function Create({ roles, permissions, flash }) {
 
         post(route('admin-users.store'), {
             onSuccess: () => {
-                window.showSuccess('Admin user created successfully!');
                 reset();
-            },
-            onError: () => {
-                window.showError('Please check the form for errors.');
             }
         });
     };

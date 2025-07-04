@@ -30,14 +30,7 @@ export default function Create({ flash }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('services.store'), {
-            onSuccess: () => {
-                window.showSuccess('Service created successfully!');
-            },
-            onError: () => {
-                window.showError('Please check the form for errors.');
-            }
-        });
+        post(route('services.store'));
     };
 
     return (

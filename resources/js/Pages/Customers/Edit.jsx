@@ -33,14 +33,7 @@ export default function Edit({ customer, flash }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        put(route('customers.update', customer.id), {
-            onSuccess: () => {
-                window.showSuccess('Customer updated successfully!');
-            },
-            onError: () => {
-                window.showError('Failed to update customer. Please check your inputs.');
-            },
-        });
+        put(route('customers.update', customer.id));
     };
 
     return (

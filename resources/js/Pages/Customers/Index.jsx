@@ -58,13 +58,7 @@ export default function Index({ customers, flash, filters }) {
         if (confirm(`Are you sure you want to delete "${customer.name}"?`)) {
             setIsDeleting(customer.id);
             router.delete(route('customers.destroy', customer.id), {
-                onFinish: () => setIsDeleting(null),
-                onSuccess: () => {
-                    window.showSuccess(`Customer "${customer.name}" deleted successfully!`);
-                },
-                onError: () => {
-                    window.showError('Failed to delete customer.');
-                }
+                onFinish: () => setIsDeleting(null)
             });
         }
     };

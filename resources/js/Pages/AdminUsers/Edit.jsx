@@ -45,17 +45,7 @@ export default function Edit({ user, roles, permissions, flash }) {
     const submit = (e) => {
         e.preventDefault();
 
-        put(route('admin-users.update', user.id), {
-            onSuccess: () => {
-                window.showSuccess('Admin user updated successfully!');
-            },
-            onError: (errors) => {
-                console.error('Validation errors:', errors);
-                if (errors.general) {
-                    window.showError(errors.general);
-                }
-            }
-        });
+        put(route('admin-users.update', user.id));
     };
 
     return (

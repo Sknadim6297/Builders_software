@@ -48,11 +48,7 @@ export default function Create({ flash }) {
 
         post(route('customers.store'), {
             onSuccess: () => {
-                window.showSuccess('Customer created successfully!');
                 reset();
-            },
-            onError: () => {
-                window.showError('Please check the form for errors.');
             }
         });
     };

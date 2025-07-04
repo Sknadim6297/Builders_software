@@ -30,14 +30,7 @@ export default function Edit({ service, flash }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        put(route('services.update', service.id), {
-            onSuccess: () => {
-                window.showSuccess('Service updated successfully!');
-            },
-            onError: () => {
-                window.showError('Please check the form for errors.');
-            }
-        });
+        put(route('services.update', service.id));
     };
 
     return (
