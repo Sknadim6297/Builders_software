@@ -46,6 +46,11 @@ Route::middleware('auth')->group(function () {
         Route::resource('vendors', VendorController::class);
     });
     
+    // Purchase Bills routes - require purchase_bills permission
+    Route::middleware('permission:purchase_bills')->group(function () {
+        Route::resource('purchase-bills', \App\Http\Controllers\PurchaseBillController::class);
+    });
+    
     // Admin User Management routes - require admin-users permission (only for super admin)
     Route::middleware('permission:admin-users')->group(function () {
         Route::resource('admin-users', AdminUserController::class)->parameters([

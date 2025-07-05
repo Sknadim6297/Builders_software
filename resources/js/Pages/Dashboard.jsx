@@ -319,59 +319,6 @@ export default function Dashboard() {
                         </div>
                     </div>
                 </div>
-
-                {/* Chart Section */}
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
-                    <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Revenue Overview</h2>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Monthly revenue trends and analytics</p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                </svg>
-                            </div>
-                            <select className="text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <option value="month">This Month</option>
-                                <option value="quarter">This Quarter</option>
-                                <option value="year">This Year</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div className="relative h-72 flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600">
-                        <div className="text-center">
-                            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                </svg>
-                            </div>
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                                Advanced Analytics Coming Soon
-                            </h3>
-                            <p className="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
-                                Interactive charts and detailed revenue analytics will be available in the next update. 
-                                Track your billing performance with advanced visualizations.
-                            </p>
-                            <div className="mt-6 flex items-center justify-center space-x-4">
-                                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                                    <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                                    Revenue Trends
-                                </div>
-                                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                                    Payment Analytics
-                                </div>
-                                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                                    <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
-                                    Service Performance
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </SidebarLayout>
     );
