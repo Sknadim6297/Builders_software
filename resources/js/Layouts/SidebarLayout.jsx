@@ -85,6 +85,17 @@ export default function SidebarLayout({ children }) {
                 permission: 'purchase_bills'
             },
             {
+                name: 'Stock Management',
+                href: route('stocks.index'),
+                icon: (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M9 9h.01M15 9h.01M9 12h.01M15 12h.01M9 15h.01M15 15h.01" />
+                    </svg>
+                ),
+                current: route().current('stocks.*'),
+                permission: 'stock_management'
+            },
+            {
                 name: 'Admin User Creation',
                 href: route('admin-users.index'),
                 icon: (
@@ -93,8 +104,7 @@ export default function SidebarLayout({ children }) {
                     </svg>
                 ),
                 current: route().current('admin-users.*'),
-                permission: 'admin_users',
-                disabled: true
+                permission: 'admin_users'
             },
             {
                 name: 'Log Book of User & Admin Activity',
@@ -105,8 +115,7 @@ export default function SidebarLayout({ children }) {
                     </svg>
                 ),
                 current: route().current('activity-logs.*'),
-                permission: 'activity_logs',
-                disabled: true,
+                permission: 'activity_logs'
 
             }
         ];

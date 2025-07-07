@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import SidebarLayout from '../../Layouts/SidebarLayout';
-import { PlusIcon, PencilIcon, EyeIcon, TrashIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, EyeIcon, TrashIcon, MagnifyingGlassIcon, ArrowDownTrayIcon, DocumentTextIcon, TableCellsIcon } from '@heroicons/react/24/outline';
 
 export default function Index({ auth, purchaseBills, filters, flash }) {
     const [search, setSearch] = useState(filters?.search || '');
@@ -36,6 +36,24 @@ export default function Index({ auth, purchaseBills, filters, flash }) {
         }
     };
 
+    const handleExportExcel = () => {
+        const params = new URLSearchParams();
+        if (filters?.search) {
+            params.append('search', filters.search);
+        }
+        params.append('export', 'excel');
+        window.open(`${route('purchase-bills.index')}?${params.toString()}`, '_blank');
+    };
+
+    const handleExportPDF = () => {
+        const params = new URLSearchParams();
+        if (filters?.search) {
+            params.append('search', filters.search);
+        }
+        params.append('export', 'pdf');
+        window.open(`${route('purchase-bills.index')}?${params.toString()}`, '_blank');
+    };
+
     return (
         <SidebarLayout>
             <Head title="Manage Purchase Bills" />
@@ -54,13 +72,36 @@ export default function Index({ auth, purchaseBills, filters, flash }) {
                                 </p>
                             </div>
                             <div className="mt-4 sm:mt-0">
-                                <Link
-                                    href={route('purchase-bills.create')}
-                                    className="inline-flex items-center px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-medium rounded-lg shadow-sm transition-colors duration-200"
-                                >
-                                    <PlusIcon className="w-5 h-5 mr-2" />
-                                    Create Purchase Bill
-                                </Link>
+                                <div className="flex items-center space-x-3">
+                                    {/* Export Buttons */}
+                                    <div className="flex items-center space-x-2">
+                                        <button
+                                            onClick={handleExportExcel}
+                                            className="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors duration-200"
+                                            title="Export to Excel"
+                                        >
+                                            <TableCellsIcon className="w-4 h-4 mr-1.5" />
+                                            Excel
+                                        </button>
+                                        <button
+                                            onClick={handleExportPDF}
+                                            className="inline-flex items-center px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors duration-200"
+                                            title="Export to PDF"
+                                        >
+                                            <DocumentTextIcon className="w-4 h-4 mr-1.5" />
+                                            PDF
+                                        </button>
+                                    </div>
+                                    
+                                    {/* Create Button */}
+                                    <Link
+                                        href={route('purchase-bills.create')}
+                                        className="inline-flex items-center px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-medium rounded-lg shadow-sm transition-colors duration-200"
+                                    >
+                                        <PlusIcon className="w-5 h-5 mr-2" />
+                                        Create Purchase Bill
+                                    </Link>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -120,9 +161,6 @@ export default function Index({ auth, purchaseBills, filters, flash }) {
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                             Total Amount
                                         </th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                            Status
-                                        </th>
                                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                             Actions
                                         </th>
@@ -146,17 +184,6 @@ export default function Index({ auth, purchaseBills, filters, flash }) {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                                                     ${parseFloat(bill.total || 0).toFixed(2)}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                                        bill.status === 'completed' 
-                                                            ? 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100'
-                                                            : bill.status === 'pending'
-                                                            ? 'bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-100'
-                                                            : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
-                                                    }`}>
-                                                        {bill.status || 'Draft'}
-                                                    </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                     <div className="flex items-center justify-end space-x-2">
@@ -187,7 +214,7 @@ export default function Index({ auth, purchaseBills, filters, flash }) {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="7" className="px-6 py-12 text-center">
+                                            <td colSpan="6" className="px-6 py-12 text-center">
                                                 <div className="flex flex-col items-center justify-center">
                                                     <svg className="w-12 h-12 text-gray-400 dark:text-gray-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

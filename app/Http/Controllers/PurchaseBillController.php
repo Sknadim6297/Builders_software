@@ -11,6 +11,11 @@ use Illuminate\Support\Facades\Log;
 use App\Models\PurchaseBill;
 use App\Models\Vendor;
 use App\Models\Customer;
+use App\Models\Stock;
+use App\Models\StockMovement;
+use App\Exports\PurchaseBillsExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PurchaseBillController extends Controller
 {
@@ -31,6 +36,22 @@ class PurchaseBillController extends Controller
                       $vendorQuery->where('name', 'like', "%{$search}%");
                   });
             });
+        }
+
+        // Handle export requests
+        if ($request->has('export')) {
+            $exportType = $request->get('export');
+            $search = $request->get('search');
+
+            if ($exportType === 'excel') {
+                return Excel::download(new PurchaseBillsExport($search), 'purchase-bills-' . date('Y-m-d') . '.xlsx');
+            }
+
+            if ($exportType === 'pdf') {
+                $purchaseBills = $query->get();
+                $pdf = Pdf::loadView('purchase-bills.pdf', compact('purchaseBills', 'search'));
+                return $pdf->download('purchase-bills-' . date('Y-m-d') . '.pdf');
+            }
         }
 
         $purchaseBills = $query->paginate(15)->withQueryString();
@@ -135,6 +156,9 @@ class PurchaseBillController extends Controller
                 }
                 $purchaseBill->update(['attachments' => $attachments]);
             }
+
+            // Update stock for each item
+            $this->updateStockFromPurchaseBill($purchaseBill, $items);
 
             DB::commit();
 
@@ -293,6 +317,54 @@ class PurchaseBillController extends Controller
 
         } catch (\Exception $e) {
             return back()->withErrors(['error' => 'Failed to delete purchase bill: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Update stock based on purchase bill items
+     */
+    private function updateStockFromPurchaseBill(PurchaseBill $purchaseBill, array $items)
+    {
+        foreach ($items as $item) {
+            $itemName = $item['product'] ?? ''; // Changed from 'name' to 'product'
+            $quantity = (float)($item['quantity'] ?? 0);
+            $unitCost = (float)($item['unit_price'] ?? 0); // Changed from 'unit_cost' to 'unit_price'
+            $unit = $item['measurement'] ?? 'pcs'; // Changed from 'unit' to 'measurement'
+            
+            if (empty($itemName) || $quantity <= 0) {
+                continue;
+            }
+
+            // Find or create stock item
+            $stock = Stock::firstOrCreate(
+                ['item_name' => $itemName],
+                [
+                    'item_description' => $item['description'] ?? '',
+                    'unit' => $unit,
+                    'quantity_on_hand' => 0,
+                    'unit_cost' => $unitCost,
+                    'total_value' => 0,
+                    'reorder_level' => 0,
+                    'supplier_info' => 'From Purchase Bill: ' . $purchaseBill->po_number,
+                    'last_updated_by' => Auth::id()
+                ]
+            );
+
+            // Update stock quantity
+            $stock->updateQuantity($quantity, $unitCost);
+
+            // Create stock movement record
+            StockMovement::create([
+                'stock_id' => $stock->id,
+                'movement_type' => 'in',
+                'quantity' => $quantity,
+                'unit_cost' => $unitCost,
+                'total_cost' => $quantity * $unitCost,
+                'reference_type' => 'purchase_bill',
+                'reference_id' => $purchaseBill->id,
+                'notes' => 'From Purchase Bill: ' . $purchaseBill->po_number,
+                'created_by' => Auth::id()
+            ]);
         }
     }
 }

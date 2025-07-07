@@ -51,6 +51,12 @@ Route::middleware('auth')->group(function () {
         Route::resource('purchase-bills', \App\Http\Controllers\PurchaseBillController::class);
     });
     
+    // Stock Management routes - require stock_management permission (Read-only)
+    Route::middleware('permission:stock_management')->group(function () {
+        Route::get('stocks', [\App\Http\Controllers\StockController::class, 'index'])->name('stocks.index');
+        Route::get('stocks/{stock}', [\App\Http\Controllers\StockController::class, 'show'])->name('stocks.show');
+    });
+    
     // Admin User Management routes - require admin-users permission (only for super admin)
     Route::middleware('permission:admin-users')->group(function () {
         Route::resource('admin-users', AdminUserController::class)->parameters([
