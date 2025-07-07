@@ -55,7 +55,7 @@ export default function Edit({ auth, stock, flash }) {
             <div className="py-6 bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-200">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* Header */}
-                    <div className="mb-8">
+                    <div className="mb-6 sm:mb-8">
                         <div className="flex items-center space-x-4">
                             <button
                                 onClick={() => router.visit(route('stocks.show', stock.id))}
@@ -64,23 +64,23 @@ export default function Edit({ auth, stock, flash }) {
                                 <ArrowLeftIcon className="w-6 h-6" />
                             </button>
                             <div>
-                                <h1 className="text-3xl font-bold text-gray-900 dark:text-white font-heading">
+                                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white font-heading">
                                     Edit Stock Item
                                 </h1>
-                                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                <p className="mt-1 sm:mt-2 text-sm text-gray-600 dark:text-gray-400">
                                     Update item information and settings
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-8">
+                    <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
                         {/* Item Information */}
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
-                            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Item Information</h2>
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 transition-colors duration-200">
+                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6">Item Information</h2>
                             
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="md:col-span-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                                <div className="sm:col-span-2">
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         Item Name *
                                     </label>
@@ -95,7 +95,7 @@ export default function Edit({ auth, stock, flash }) {
                                     {errors.item_name && <div className="text-red-500 text-sm mt-1">{errors.item_name}</div>}
                                 </div>
 
-                                <div className="md:col-span-2">
+                                <div className="sm:col-span-2">
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         Description
                                     </label>
@@ -136,7 +136,7 @@ export default function Edit({ auth, stock, flash }) {
                                         type="text"
                                         value={data.location}
                                         onChange={(e) => setData('location', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
                                         placeholder="Storage location"
                                     />
                                     {errors.location && <div className="text-red-500 text-sm mt-1">{errors.location}</div>}
@@ -145,10 +145,10 @@ export default function Edit({ auth, stock, flash }) {
                         </div>
 
                         {/* Current Stock Status */}
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
-                            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Current Stock Status</h2>
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 transition-colors duration-200">
+                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6">Current Stock Status</h2>
                             
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         Current Quantity
@@ -159,7 +159,7 @@ export default function Edit({ auth, stock, flash }) {
                                         readOnly
                                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white"
                                     />
-                                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
                                         Use stock adjustments to change quantity
                                     </p>
                                 </div>
@@ -174,12 +174,12 @@ export default function Edit({ auth, stock, flash }) {
                                         readOnly
                                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white"
                                     />
-                                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
                                         Updated automatically with purchases
                                     </p>
                                 </div>
 
-                                <div>
+                                <div className="sm:col-span-2 lg:col-span-1">
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         Total Value
                                     </label>
@@ -194,8 +194,8 @@ export default function Edit({ auth, stock, flash }) {
                         </div>
 
                         {/* Stock Settings */}
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
-                            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Stock Settings</h2>
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 transition-colors duration-200">
+                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6">Stock Settings</h2>
                             
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -211,15 +211,15 @@ export default function Edit({ auth, stock, flash }) {
                                     placeholder="0"
                                 />
                                 {errors.reorder_level && <div className="text-red-500 text-sm mt-1">{errors.reorder_level}</div>}
-                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
                                     Alert when stock falls below this level
                                 </p>
                             </div>
                         </div>
 
                         {/* Supplier Information */}
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
-                            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Supplier Information</h2>
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 transition-colors duration-200">
+                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6">Supplier Information</h2>
                             
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -237,18 +237,18 @@ export default function Edit({ auth, stock, flash }) {
                         </div>
 
                         {/* Submit Section */}
-                        <div className="flex justify-end space-x-4">
+                        <div className="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4">
                             <button
                                 type="button"
                                 onClick={() => router.visit(route('stocks.show', stock.id))}
-                                className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                                className="w-full sm:w-auto px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="px-6 py-2 bg-blue-700 hover:bg-blue-800 disabled:bg-blue-400 text-white rounded-lg transition-colors duration-200"
+                                className="w-full sm:w-auto px-6 py-2 bg-blue-700 hover:bg-blue-800 disabled:bg-blue-400 text-white rounded-lg transition-colors duration-200"
                             >
                                 {processing ? 'Updating...' : 'Update Stock Item'}
                             </button>

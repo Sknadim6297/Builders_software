@@ -349,7 +349,7 @@ export default function Edit({ auth, purchaseBill, vendors, customers, flash }) 
                                 <label htmlFor="attachments" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     Add Files to Purchase Order
                                 </label>
-                                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 hover:border-blue-400 dark:hover:border-blue-500 transition-colors duration-200">
+                                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 hover:border-primary-400 dark:hover:border-primary-500 transition-colors duration-200">
                                     <input
                                         type="file"
                                         id="attachments"
@@ -395,7 +395,7 @@ export default function Edit({ auth, purchaseBill, vendors, customers, flash }) 
                                 <button
                                     type="button"
                                     onClick={addItem}
-                                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-blue-700 hover:bg-blue-800 rounded-lg transition-colors duration-200"
+                                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-primary-700 hover:bg-primary-800 rounded-lg transition-colors duration-200"
                                 >
                                     <PlusIcon className="w-4 h-4 mr-2" />
                                     Add Item
@@ -623,7 +623,7 @@ export default function Edit({ auth, purchaseBill, vendors, customers, flash }) 
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="inline-flex items-center px-6 py-3 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                                className="inline-flex items-center px-6 py-3 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-primary-700 hover:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                             >
                                 {processing ? 'Updating...' : 'Update Purchase Bill'}
                             </button>

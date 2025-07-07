@@ -188,22 +188,29 @@ export default function SidebarLayout({ children }) {
                         <div className={`flex-shrink-0 flex items-center px-4 mb-8 transition-all duration-700 ease-out transform ${
                             sidebarOpen ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-8 opacity-0 scale-90'
                         }`} style={{ transitionDelay: sidebarOpen ? '200ms' : '0ms' }}>
-                            <div className={`h-10 w-10 bg-blue-700 rounded-xl flex items-center justify-center shadow-lg transform transition-all duration-500 hover:scale-110 hover:rotate-3 hover:shadow-xl ${
+                            <div className={`h-16 w-16 bg-white rounded-xl flex items-center justify-center shadow-lg transform transition-all duration-500 hover:scale-110 hover:rotate-3 hover:shadow-xl ${
                                 sidebarOpen ? 'animate-pulse' : ''
                             }`} style={{
                                 animation: sidebarOpen ? 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' : 'none',
-                                boxShadow: '0 10px 30px rgba(29, 78, 216, 0.3)'
+                                boxShadow: '0 10px 30px rgba(164, 125, 181, 0.3)'
                             }}>
-                                <svg className="h-6 w-6 text-white drop-shadow-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 002 2z" />
-                                </svg>
+                                <img 
+                                    src="/images/logo.png" 
+                                    alt="The Skin Studio" 
+                                    className="h-14 w-14 object-contain rounded-lg"
+                                />
                             </div>
                             <div className="ml-3 overflow-hidden">
-                                <span className={`text-xl font-bold text-gray-900 dark:text-white font-heading transition-all duration-500 ${
+                                <span className={`text-lg font-bold text-gray-900 dark:text-white font-heading transition-all duration-500 ${
                                     sidebarOpen ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
                                 }`} style={{ transitionDelay: sidebarOpen ? '400ms' : '0ms' }}>
-                                    Billing System
+                                    The Skin Studio
                                 </span>
+                                <p className={`text-xs text-gray-600 dark:text-gray-400 transition-all duration-500 ${
+                                    sidebarOpen ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
+                                }`} style={{ transitionDelay: sidebarOpen ? '500ms' : '0ms' }}>
+                                    Billing System
+                                </p>
                             </div>
                         </div>
                         
@@ -214,7 +221,7 @@ export default function SidebarLayout({ children }) {
                             {[...Array(6)].map((_, i) => (
                                 <div
                                     key={i}
-                                    className="absolute w-1 h-1 bg-blue-400 rounded-full animate-ping"
+                                    className="absolute w-1 h-1 bg-primary-400 rounded-full animate-ping"
                                     style={{
                                         left: `${20 + i * 15}%`,
                                         top: `${30 + i * 10}%`,
@@ -226,7 +233,7 @@ export default function SidebarLayout({ children }) {
                         </div>
                         <nav className="mt-5 px-2 space-y-2 relative">
                             {/* Navigation background glow */}
-                            <div className={`absolute inset-0 bg-blue-50/20 dark:bg-blue-900/10 rounded-2xl transition-all duration-700 ${
+                            <div className={`absolute inset-0 bg-primary-50/20 dark:bg-primary-900/10 rounded-2xl transition-all duration-700 ${
                                 sidebarOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
                             }`} style={{ transitionDelay: sidebarOpen ? '300ms' : '0ms' }}></div>
                             
@@ -243,7 +250,7 @@ export default function SidebarLayout({ children }) {
                                     }}
                                 >
                                     {/* Menu item glow effect */}
-                                    <div className={`absolute inset-0 bg-blue-200/20 dark:bg-blue-600/20 rounded-xl blur-sm transition-all duration-300 ${
+                                    <div className={`absolute inset-0 bg-primary-200/20 dark:bg-primary-600/20 rounded-xl blur-sm transition-all duration-300 ${
                                         item.current ? 'opacity-100 scale-110' : 'opacity-0 scale-100'
                                     }`}></div>
                                     
@@ -251,18 +258,18 @@ export default function SidebarLayout({ children }) {
                                         href={item.href}
                                         className={`${
                                             item.current
-                                                ? 'bg-blue-700 text-white shadow-xl border border-blue-600/30'
-                                                : 'text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-gray-900 dark:hover:text-white border border-transparent hover:border-blue-200/50 dark:hover:border-blue-700/50'
+                                                ? 'bg-primary-700 text-white shadow-xl border border-primary-600/30'
+                                                : 'text-gray-600 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-gray-900 dark:hover:text-white border border-transparent hover:border-primary-200/50 dark:hover:border-primary-700/50'
                                         } group relative flex items-center px-3 py-3 text-base font-medium rounded-xl transition-all duration-300 transform hover:scale-105 hover:translate-x-2 overflow-hidden backdrop-blur-sm`}
                                         onClick={closeMobileSidebar}
                                         style={{
                                             boxShadow: item.current 
-                                                ? '0 8px 32px rgba(29, 78, 216, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)' 
+                                                ? '0 8px 32px rgba(164, 125, 181, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)' 
                                                 : '0 2px 8px rgba(0, 0, 0, 0.05)'
                                         }}
                                     >
                                         {/* Hover ripple effect */}
-                                        <div className="absolute inset-0 bg-blue-200/10 dark:bg-blue-600/10 translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-out"></div>
+                                        <div className="absolute inset-0 bg-primary-200/10 dark:bg-primary-600/10 translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-out"></div>
                                         
                                         <div className={`mr-4 flex-shrink-0 transform transition-all duration-300 group-hover:scale-125 group-hover:rotate-12 relative z-10 ${
                                             item.current ? 'text-white drop-shadow-sm' : ''
@@ -278,7 +285,7 @@ export default function SidebarLayout({ children }) {
                                             <div className={`w-2 h-2 rounded-full ${
                                                 item.current 
                                                     ? 'bg-white shadow-lg animate-pulse' 
-                                                    : 'bg-blue-400 group-hover:bg-blue-500'
+                                                    : 'bg-primary-400 group-hover:bg-primary-500'
                                             }`}></div>
                                         </div>
                                         
@@ -297,8 +304,8 @@ export default function SidebarLayout({ children }) {
                         <div className="flex items-center w-full group">
                             <div className="flex-shrink-0 relative">
                                 {/* User avatar with animated border */}
-                                <div className="absolute inset-0 bg-blue-600 rounded-full animate-spin-slow opacity-75 blur-sm transition-all duration-500 group-hover:opacity-100 group-hover:blur-none"></div>
-                                <div className="h-12 w-12 bg-blue-700 rounded-full flex items-center justify-center shadow-lg transform transition-all duration-300 hover:scale-110 relative z-10 border-2 border-white/20">
+                                <div className="absolute inset-0 bg-primary-600 rounded-full animate-spin-slow opacity-75 blur-sm transition-all duration-500 group-hover:opacity-100 group-hover:blur-none"></div>
+                                <div className="h-12 w-12 bg-primary-700 rounded-full flex items-center justify-center shadow-lg transform transition-all duration-300 hover:scale-110 relative z-10 border-2 border-white/20">
                                     <span className="text-base font-bold text-white drop-shadow-sm">{auth.user.name.charAt(0)}</span>
                                 </div>
                                 {/* Online indicator */}
@@ -342,23 +349,27 @@ export default function SidebarLayout({ children }) {
                 <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-lg transition-colors duration-200">
                     <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
                         <div className="flex items-center flex-shrink-0 px-4 mb-8">
-                            <div className="h-10 w-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
-                                <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 002 2z" />
-                                </svg>
+                            <div className="h-12 w-12 bg-white rounded-lg flex items-center justify-center shadow-lg p-1">
+                                <img 
+                                    src="/images/logo.png" 
+                                    alt="The Skin Studio" 
+                                    className="h-full w-full object-contain rounded-lg"
+                                />
                             </div>
-                            <span className="ml-3 text-xl font-bold text-gray-900 dark:text-white font-heading transition-colors duration-200">Billing System</span>
+                            <div className="ml-3">
+                                <span className="text-lg font-bold text-gray-900 dark:text-white font-heading transition-colors duration-200">The Skin Studio</span>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 transition-colors duration-200">Billing System</p>
+                            </div>
                         </div>
                         <nav className="flex-1 px-2 space-y-2">
-                            {navigation.map((item) => (
-                                <Link
-                                    key={item.name}
-                                    href={item.href}
-                                    className={`${
-                                        item.current
-                                            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg border-l-4 border-blue-500'
-                                            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white hover:border-l-4 hover:border-gray-300 dark:hover:border-gray-600'
-                                    } group flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 transform hover:scale-105`}
+                            {navigation.map((item) => (                                    <Link
+                                        key={item.name}
+                                        href={item.href}
+                                        className={`${
+                                            item.current
+                                                ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg border-l-4 border-primary-500'
+                                                : 'text-gray-600 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-800 hover:text-gray-900 dark:hover:text-white hover:border-l-4 hover:border-primary-300 dark:hover:border-primary-600'
+                                        } group flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 transform hover:scale-105`}
                                 >
                                     <div className="mr-3 flex-shrink-0">{item.icon}</div>
                                     <span className="truncate">{item.name}</span>
@@ -369,7 +380,7 @@ export default function SidebarLayout({ children }) {
                     <div className="flex-shrink-0 flex border-t border-gray-200 dark:border-gray-700 p-4 transition-colors duration-200">
                         <div className="flex items-center w-full">
                             <div className="flex-shrink-0">
-                                <div className="h-10 w-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                                <div className="h-10 w-10 bg-gradient-to-r from-primary-600 to-primary-700 rounded-full flex items-center justify-center shadow-lg">
                                     <span className="text-sm font-medium text-white">{auth.user.name.charAt(0)}</span>
                                 </div>
                             </div>

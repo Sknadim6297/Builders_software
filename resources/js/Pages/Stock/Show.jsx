@@ -6,7 +6,8 @@ import {
     ExclamationTriangleIcon,
     ClockIcon,
     DocumentTextIcon,
-    TableCellsIcon
+    TableCellsIcon,
+    AdjustmentsHorizontalIcon
 } from '@heroicons/react/24/outline';
 
 export default function Show({ auth, stock, flash }) {
@@ -66,8 +67,8 @@ export default function Show({ auth, stock, flash }) {
             <div className="py-6 bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-200">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* Header */}
-                    <div className="mb-8">
-                        <div className="flex items-center justify-between">
+                    <div className="mb-6 sm:mb-8">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
                             <div className="flex items-center space-x-4">
                                 <button
                                     onClick={() => router.visit(route('stocks.index'))}
@@ -76,71 +77,76 @@ export default function Show({ auth, stock, flash }) {
                                     <ArrowLeftIcon className="w-6 h-6" />
                                 </button>
                                 <div>
-                                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white font-heading">
+                                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white font-heading">
                                         {stock.item_name}
                                     </h1>
-                                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                    <p className="mt-1 sm:mt-2 text-sm text-gray-600 dark:text-gray-400">
                                         Automatically managed inventory item with movement history
                                     </p>
                                 </div>
                             </div>
-                            <div className="flex space-x-3">
-                                <div className="flex items-center space-x-2">
+                            
+                            {/* Action buttons and info - responsive */}
+                            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+                                {/* Export buttons */}
+                                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                                     <button
                                         onClick={handleExportMovementsExcel}
-                                        className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200"
+                                        className="inline-flex items-center justify-center px-3 sm:px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200 text-sm"
                                         title="Export Movement History to Excel"
                                     >
-                                        <TableCellsIcon className="w-5 h-5 mr-2" />
-                                        Export Excel
+                                        <TableCellsIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                                        <span className="hidden sm:inline">Export </span>Excel
                                     </button>
                                     <button
                                         onClick={handleExportMovementsPDF}
-                                        className="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200"
+                                        className="inline-flex items-center justify-center px-3 sm:px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg shadow-sm transition-colors duration-200 text-sm"
                                         title="Export Movement History to PDF"
                                     >
-                                        <DocumentTextIcon className="w-5 h-5 mr-2" />
-                                        Export PDF
+                                        <DocumentTextIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                                        <span className="hidden sm:inline">Export </span>PDF
                                     </button>
                                 </div>
-                                <div className="text-sm text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 px-4 py-2 rounded-lg border border-blue-200 dark:border-blue-800">
-                                    <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                
+                                {/* Read-only notice */}
+                                <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 px-3 sm:px-4 py-2 rounded-lg border border-blue-200 dark:border-blue-800">
+                                    <svg className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
-                                    Read-only: Stock is automatically managed
+                                    <span className="hidden sm:inline">Read-only: </span>Auto-managed
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
                         {/* Stock Information */}
                         <div className="lg:col-span-2 space-y-6">
                             {/* Basic Information */}
-                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
-                                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Item Information</h2>
+                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 transition-colors duration-200">
+                                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6">Item Information</h2>
                                 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                             Item Name
                                         </label>
-                                        <p className="text-gray-900 dark:text-white">{stock.item_name}</p>
+                                        <p className="text-gray-900 dark:text-white text-sm sm:text-base break-words">{stock.item_name}</p>
                                     </div>
                                     
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                             Unit
                                         </label>
-                                        <p className="text-gray-900 dark:text-white">{stock.unit?.toUpperCase()}</p>
+                                        <p className="text-gray-900 dark:text-white text-sm sm:text-base">{stock.unit?.toUpperCase()}</p>
                                     </div>
                                     
                                     {stock.item_description && (
-                                        <div className="md:col-span-2">
+                                        <div className="sm:col-span-2">
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                                 Description
                                             </label>
-                                            <p className="text-gray-900 dark:text-white">{stock.item_description}</p>
+                                            <p className="text-gray-900 dark:text-white text-sm sm:text-base break-words">{stock.item_description}</p>
                                         </div>
                                     )}
                                     
@@ -149,40 +155,40 @@ export default function Show({ auth, stock, flash }) {
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                                 Location
                                             </label>
-                                            <p className="text-gray-900 dark:text-white">{stock.location}</p>
+                                            <p className="text-gray-900 dark:text-white text-sm sm:text-base">{stock.location}</p>
                                         </div>
                                     )}
                                     
                                     {stock.supplier_info && (
-                                        <div className="md:col-span-2">
+                                        <div className="sm:col-span-2">
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                                                 Supplier Information
                                             </label>
-                                            <p className="text-gray-900 dark:text-white">{stock.supplier_info}</p>
+                                            <p className="text-gray-900 dark:text-white text-sm sm:text-base break-words">{stock.supplier_info}</p>
                                         </div>
                                     )}
                                 </div>
                             </div>
 
                             {/* Stock Movements */}
-                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
-                                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Stock Movements</h2>
+                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 transition-colors duration-200">
+                                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6">Stock Movements</h2>
                                 
                                 {stock.stock_movements && stock.stock_movements.length > 0 ? (
-                                    <div className="space-y-4">
+                                    <div className="space-y-3 sm:space-y-4">
                                         {stock.stock_movements.map((movement) => (
-                                            <div key={movement.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
-                                                <div className="flex items-center justify-between">
+                                            <div key={movement.id} className="border border-gray-200 dark:border-gray-600 rounded-lg p-3 sm:p-4">
+                                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
                                                     <div className="flex items-center space-x-3">
                                                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getMovementTypeColor(movement.movement_type)}`}>
                                                             {movement.movement_type.toUpperCase()}
                                                         </span>
-                                                        <span className="text-lg font-medium text-gray-900 dark:text-white">
+                                                        <span className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">
                                                             {movement.movement_type === 'out' ? '-' : '+'}{parseFloat(movement.quantity).toFixed(2)} {stock.unit?.toUpperCase()}
                                                         </span>
                                                     </div>
-                                                    <div className="text-right">
-                                                        <div className="text-sm text-gray-900 dark:text-white">
+                                                    <div className="text-left sm:text-right">
+                                                        <div className="text-sm sm:text-base text-gray-900 dark:text-white font-medium">
                                                             {formatCurrency(movement.total_cost)}
                                                         </div>
                                                         <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
@@ -196,12 +202,12 @@ export default function Show({ auth, stock, flash }) {
                                                         {movement.notes}
                                                     </div>
                                                 )}
-                                                <div className="mt-1 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                                                <div className="mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-1 sm:space-y-0 text-xs text-gray-500 dark:text-gray-400">
                                                     <span>
                                                         {movement.created_by && `By: ${movement.created_by.name}`}
                                                     </span>
                                                     {movement.reference_type === 'purchase_bill' && (
-                                                        <span className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded">
+                                                        <span className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded inline-block">
                                                             Purchase Bill #{movement.reference_id}
                                                         </span>
                                                     )}
@@ -219,14 +225,14 @@ export default function Show({ auth, stock, flash }) {
                         </div>
 
                         {/* Stock Summary Sidebar */}
-                        <div className="space-y-6">
+                        <div className="space-y-6 lg:space-y-6">
                             {/* Current Stock Status */}
-                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
+                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 transition-colors duration-200">
                                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Current Stock</h3>
                                 
                                 <div className="space-y-4">
                                     <div className="text-center">
-                                        <div className="text-3xl font-bold text-gray-900 dark:text-white">
+                                        <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
                                             {parseFloat(stock.quantity_on_hand).toFixed(2)}
                                         </div>
                                         <div className="text-sm text-gray-500 dark:text-gray-400">
@@ -246,17 +252,17 @@ export default function Show({ auth, stock, flash }) {
                             </div>
 
                             {/* Financial Summary */}
-                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
+                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 transition-colors duration-200">
                                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Financial Summary</h3>
                                 
                                 <div className="space-y-3">
-                                    <div className="flex justify-between">
+                                    <div className="flex justify-between items-center">
                                         <span className="text-sm text-gray-600 dark:text-gray-400">Unit Cost</span>
                                         <span className="text-sm font-medium text-gray-900 dark:text-white">
                                             {formatCurrency(stock.unit_cost)}
                                         </span>
                                     </div>
-                                    <div className="flex justify-between">
+                                    <div className="flex justify-between items-center">
                                         <span className="text-sm text-gray-600 dark:text-gray-400">Total Value</span>
                                         <span className="text-lg font-bold text-gray-900 dark:text-white">
                                             {formatCurrency(stock.total_value)}
@@ -266,17 +272,17 @@ export default function Show({ auth, stock, flash }) {
                             </div>
 
                             {/* Reorder Information */}
-                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
+                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 sm:p-6 transition-colors duration-200">
                                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Reorder Information</h3>
                                 
                                 <div className="space-y-3">
-                                    <div className="flex justify-between">
+                                    <div className="flex justify-between items-center">
                                         <span className="text-sm text-gray-600 dark:text-gray-400">Reorder Level</span>
                                         <span className="text-sm font-medium text-gray-900 dark:text-white">
                                             {stock.reorder_level} {stock.unit?.toUpperCase()}
                                         </span>
                                     </div>
-                                    <div className="flex justify-between">
+                                    <div className="flex justify-between items-center">
                                         <span className="text-sm text-gray-600 dark:text-gray-400">Status</span>
                                         <span className={`text-sm font-medium ${
                                             isLowStock() 

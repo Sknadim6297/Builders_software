@@ -1,7 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
+    <meta charse        th {
+            background-color: #a47db5;
+            color: white;
+            font-weight: bold;
+        }tf-8">
     <title>Stock Management Report</title>
     <style>
         body {
@@ -12,11 +16,26 @@
         .header {
             text-align: center;
             margin-bottom: 30px;
+            border-bottom: 2px solid #a47db5;
+            padding-bottom: 20px;
+        }
+        .logo {
+            margin-bottom: 15px;
+        }
+        .logo img {
+            max-height: 80px;
+            max-width: 250px;
         }
         .header h1 {
-            color: #333;
+            color: #a47db5;
+            margin: 10px 0 5px 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .header .subtitle {
+            color: #666;
             margin: 0;
-            font-size: 20px;
+            font-size: 14px;
         }
         .header p {
             color: #666;
@@ -73,7 +92,11 @@
 </head>
 <body>
     <div class="header">
-        <h1>Stock Management Report</h1>
+        <div class="logo">
+            <img src="{{ public_path('images/logo.png') }}" alt="The Skin Studio">
+        </div>
+        <h1>The Skin Studio</h1>
+        <p class="subtitle">Stock Management Report</p>
         <p>Generated on: {{ date('F j, Y \a\t g:i A') }}</p>
         @if($search)
             <p>Search Filter: "{{ $search }}"</p>

@@ -12,13 +12,14 @@
         .header {
             text-align: center;
             margin-bottom: 30px;
-            border-bottom: 2px solid #333;
+            border-bottom: 2px solid #a47db5;
             padding-bottom: 10px;
         }
         .title {
             font-size: 24px;
             font-weight: bold;
             margin-bottom: 5px;
+            color: #a47db5;
         }
         .subtitle {
             font-size: 14px;
@@ -41,7 +42,8 @@
             vertical-align: top;
         }
         th {
-            background-color: #f2f2f2;
+            background-color: #a47db5;
+            color: white;
             font-weight: bold;
             font-size: 11px;
         }
@@ -83,8 +85,9 @@
 </head>
 <body>
     <div class="header">
+        <img src="{{ public_path('images/logo.png') }}" alt="The Skin Studio" style="height: 60px; width: auto; margin-bottom: 10px;">
         <div class="title">Activity Logs Report</div>
-        <div class="subtitle">User & Admin Activity Monitoring</div>
+        <div class="subtitle">The Skin Studio - User & Admin Activity Monitoring</div>
         <div class="meta-info">
             Generated on: {{ now()->format('F j, Y \a\t g:i A') }} | 
             Total Records: {{ count($logs) }}

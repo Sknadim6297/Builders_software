@@ -107,7 +107,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
                     <div className="flex items-center gap-4">
                         <PrimaryButton 
                             disabled={processing}
-                            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200"
+                            className="bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition duration-200"
                         >
                             {processing ? 'Saving...' : 'Save Changes'}
                         </PrimaryButton>

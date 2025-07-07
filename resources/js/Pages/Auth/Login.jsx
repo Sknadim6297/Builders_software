@@ -41,21 +41,17 @@ export default function Login({ status }) {
             <Head title="Admin Login" />
             
             {/* Left Side - Login Form */}
-            <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-50 to-blue-50">
+            <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-primary-50 to-primary-100">
                 <div className="max-w-md w-full space-y-8">
                     {/* Header */}
                     <div className="text-center">
-                        <div className="mx-auto h-16 w-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mb-6 shadow-lg">
-                            <svg className="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                            </svg>
+                        <div className="mx-auto h-28 w-28 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-lg p-2">
+                            <img 
+                                src="/images/logo.png" 
+                                alt="The Skin Studio" 
+                                className="h-full w-full object-contain rounded-xl"
+                            />
                         </div>
-                        <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                            Welcome Back
-                        </h2>
-                        <p className="text-gray-600">
-                            Sign in to your admin dashboard
-                        </p>
                     </div>
 
                     {/* Status Message */}
@@ -84,7 +80,7 @@ export default function Login({ status }) {
                                         type="email"
                                         name="email"
                                         value={data.email}
-                                        className="pl-10 block w-full border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+                                        className="pl-10 block w-full border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition duration-200"
                                         autoComplete="username"
                                         isFocused={true}
                                         onChange={(e) => setData('email', e.target.value)}
@@ -110,7 +106,7 @@ export default function Login({ status }) {
                                         type={showPassword ? 'text' : 'password'}
                                         name="password"
                                         value={data.password}
-                                        className="pl-10 pr-10 block w-full border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+                                        className="pl-10 pr-10 block w-full border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition duration-200"
                                         autoComplete="current-password"
                                         onChange={(e) => setData('password', e.target.value)}
                                         placeholder="Enter your password"
@@ -143,7 +139,7 @@ export default function Login({ status }) {
                                     type="checkbox"
                                     checked={data.remember}
                                     onChange={(e) => setData('remember', e.target.checked)}
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                                 />
                                 <label htmlFor="remember" className="ml-2 block text-sm text-gray-700">
                                     Remember me
@@ -154,7 +150,7 @@ export default function Login({ status }) {
                         {/* Submit Button */}
                         <div>
                             <PrimaryButton
-                                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200 disabled:opacity-50"
+                                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition duration-200 disabled:opacity-50"
                                 disabled={processing}
                             >
                                 {processing ? (
@@ -174,15 +170,15 @@ export default function Login({ status }) {
 
                     {/* Footer */}
                     <div className="text-center text-sm text-gray-500">
-                        <p>Billing System Admin Portal</p>
-                        <p className="mt-1">Secure access only</p>
+                        <p>The Skin Studio Management Portal</p>
+                        <p className="mt-1">Professional salon administration</p>
                     </div>
                 </div>
             </div>
 
             {/* Right Side - Background Image/Design */}
             <div className="hidden lg:flex flex-1 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800"></div>
                 <div className="absolute inset-0 bg-black opacity-20"></div>
                 
                 {/* Geometric Shapes */}
@@ -195,10 +191,10 @@ export default function Login({ status }) {
                 <div className="relative z-10 flex flex-col justify-center items-center text-white p-16">
                     <div className="max-w-md text-center">
                         <h1 className="text-4xl font-bold mb-6">
-                            Billing System
+                            The Skin Studio
                         </h1>
                         <p className="text-xl mb-8 opacity-90">
-                            Streamline your billing process with our comprehensive management system
+                            Complete salon management system for beauty professionals
                         </p>
                         <div className="space-y-4">
                             <div className="flex items-center space-x-3">
@@ -207,7 +203,7 @@ export default function Login({ status }) {
                                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
                                     </svg>
                                 </div>
-                                <span>Invoice Management</span>
+                                <span>Client Management</span>
                             </div>
                             <div className="flex items-center space-x-3">
                                 <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
@@ -215,7 +211,7 @@ export default function Login({ status }) {
                                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
                                     </svg>
                                 </div>
-                                <span>Payment Tracking</span>
+                                <span>Service Billing</span>
                             </div>
                             <div className="flex items-center space-x-3">
                                 <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
@@ -223,7 +219,7 @@ export default function Login({ status }) {
                                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
                                     </svg>
                                 </div>
-                                <span>Detailed Reports</span>
+                                <span>Inventory Control</span>
                             </div>
                         </div>
                     </div>

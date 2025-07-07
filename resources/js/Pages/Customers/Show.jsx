@@ -31,7 +31,7 @@ export default function Show({ customer }) {
                         <div className="flex space-x-3">
                             <Link
                                 href={route('customers.edit', customer.id)}
-                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                                className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
                             >
                                 Edit Customer
                             </Link>
@@ -88,7 +88,7 @@ export default function Show({ customer }) {
                                                 Mobile Number
                                             </label>
                                             <p className="mt-1 text-gray-900 dark:text-white">
-                                                <a href={`tel:+91${customer.mobile_number}`} className="hover:text-blue-600">
+                                                <a href={`tel:+91${customer.mobile_number}`} className="hover:text-primary-600">
                                                     +91 {customer.mobile_number}
                                                 </a>
                                             </p>
@@ -100,7 +100,7 @@ export default function Show({ customer }) {
                                                     Alternate Mobile
                                                 </label>
                                                 <p className="mt-1 text-gray-900 dark:text-white">
-                                                    <a href={`tel:+91${customer.alternate_mobile}`} className="hover:text-blue-600">
+                                                    <a href={`tel:+91${customer.alternate_mobile}`} className="hover:text-primary-600">
                                                         +91 {customer.alternate_mobile}
                                                     </a>
                                                 </p>
@@ -191,7 +191,7 @@ export default function Show({ customer }) {
                                             </svg>
                                             Create Bill
                                         </button>
-                                        <button className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center justify-center">
+                                        <button className="w-full bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center justify-center">
                                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -200,7 +200,7 @@ export default function Show({ customer }) {
                                         </button>
                                         <a
                                             href={`tel:+91${customer.mobile_number}`}
-                                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center justify-center"
+                                            className="w-full bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center justify-center"
                                         >
                                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />

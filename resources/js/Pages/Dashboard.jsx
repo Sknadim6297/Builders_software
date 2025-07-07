@@ -25,13 +25,13 @@ export default function Dashboard() {
             name: 'Today Service Done',
             value: '12',
             icon: (
-                <svg className="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-8 h-8 text-primary-600 dark:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             ),
             change: '+3',
             changeType: 'increase',
-            bgGradient: 'from-blue-500 to-cyan-600',
+            bgGradient: 'from-primary-500 to-primary-600',
             description: 'services completed'
         },
         {
@@ -149,8 +149,8 @@ export default function Dashboard() {
                 text: 'text-green-600 dark:text-green-400'
             },
             update: {
-                bg: 'bg-blue-100 dark:bg-blue-900/20',
-                text: 'text-blue-600 dark:text-blue-400'
+                bg: 'bg-primary-100 dark:bg-primary-900/20',
+                text: 'text-primary-600 dark:text-primary-400'
             },
             invoice: {
                 bg: 'bg-purple-100 dark:bg-purple-900/20',
@@ -310,7 +310,7 @@ export default function Dashboard() {
                             <div className="text-sm text-gray-600 dark:text-gray-400">
                                 Showing {recentActivities.length} recent activities from today
                             </div>
-                            <button className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200 flex items-center font-medium">
+                            <button className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 transition-colors duration-200 flex items-center font-medium">
                                 <span>View all activities</span>
                                 <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />

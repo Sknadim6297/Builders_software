@@ -272,14 +272,45 @@ export default function Index({ logs, filters, logNames, events, users, flash })
 
     const getLogNameBadgeColor = (logName) => {
         const colors = {
+            // Authentication related
             'auth': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+            
+            // User management
             'admin': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
             'user': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+            'admin_users': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+            
+            // Business entities
             'customer': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+            'customers': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
             'vendor': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+            'vendors': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
             'service': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
+            'services': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
+            
+            // Purchase and billing
+            'purchase_bill': 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200',
+            'purchase_bills': 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200',
+            'purchase-bills': 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200',
+            
+            // Stock management
+            'stock': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+            'stocks': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+            'stock_management': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+            'stock_movement': 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
+            'stock_movements': 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
+            
+            // Activity logs
+            'activity_log': 'bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-200',
+            'activity_logs': 'bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-200',
+            
+            // System
+            'system': 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
+            'default': 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200',
         };
-        return colors[logName] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
+        
+        // Return specific color if found, otherwise return a default color for new log types
+        return colors[logName] || colors[logName?.toLowerCase()] || colors['default'];
     };
 
     return (

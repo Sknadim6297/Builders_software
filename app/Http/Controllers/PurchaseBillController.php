@@ -38,27 +38,69 @@ class PurchaseBillController extends Controller
             });
         }
 
+        // Vendor filter
+        if ($request->filled('vendor_id')) {
+            $query->where('vendor_id', $request->vendor_id);
+        }
+
+        // Status filter (assuming you have a status field)
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // PO Date range filter
+        if ($request->filled('po_date_from')) {
+            $query->where('po_date', '>=', $request->po_date_from);
+        }
+        if ($request->filled('po_date_to')) {
+            $query->where('po_date', '<=', $request->po_date_to);
+        }
+
+        // Expected delivery date range filter
+        if ($request->filled('expected_delivery_from')) {
+            $query->where('expected_delivery', '>=', $request->expected_delivery_from);
+        }
+        if ($request->filled('expected_delivery_to')) {
+            $query->where('expected_delivery', '<=', $request->expected_delivery_to);
+        }
+
+        // Amount range filter
+        if ($request->filled('min_amount')) {
+            $query->where('total', '>=', $request->min_amount);
+        }
+        if ($request->filled('max_amount')) {
+            $query->where('total', '<=', $request->max_amount);
+        }
+
         // Handle export requests
         if ($request->has('export')) {
             $exportType = $request->get('export');
-            $search = $request->get('search');
+            $filters = $request->only([
+                'search', 'vendor_id', 'status', 'po_date_from', 'po_date_to',
+                'expected_delivery_from', 'expected_delivery_to', 'min_amount', 'max_amount'
+            ]);
 
             if ($exportType === 'excel') {
-                return Excel::download(new PurchaseBillsExport($search), 'purchase-bills-' . date('Y-m-d') . '.xlsx');
+                return Excel::download(new PurchaseBillsExport($filters), 'purchase-bills-' . date('Y-m-d') . '.xlsx');
             }
 
             if ($exportType === 'pdf') {
                 $purchaseBills = $query->get();
-                $pdf = Pdf::loadView('purchase-bills.pdf', compact('purchaseBills', 'search'));
+                $pdf = Pdf::loadView('purchase-bills.pdf', compact('purchaseBills', 'filters'));
                 return $pdf->download('purchase-bills-' . date('Y-m-d') . '.pdf');
             }
         }
 
         $purchaseBills = $query->paginate(15)->withQueryString();
+        $vendors = Vendor::select('id', 'name')->orderBy('name')->get();
 
         return Inertia::render('PurchaseBills/Index', [
             'purchaseBills' => $purchaseBills,
-            'filters' => $request->only(['search'])
+            'vendors' => $vendors,
+            'filters' => $request->only([
+                'search', 'vendor_id', 'status', 'po_date_from', 'po_date_to',
+                'expected_delivery_from', 'expected_delivery_to', 'min_amount', 'max_amount'
+            ])
         ]);
     }
 
