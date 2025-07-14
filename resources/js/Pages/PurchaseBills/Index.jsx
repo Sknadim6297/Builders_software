@@ -159,9 +159,9 @@ export default function Index({ auth, purchaseBills, filters, flash, vendors }) 
                                     {/* Create Button */}
                                     <Link
                                         href={route('purchase-bills.create')}
-                                        className="inline-flex items-center px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-medium rounded-lg shadow-sm transition-colors duration-200"
+                                        className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center"
                                     >
-                                        <PlusIcon className="w-5 h-5 mr-2" />
+                                        <PlusIcon className="w-4 h-4 mr-2" />
                                         Create Purchase Bill
                                     </Link>
                                 </div>
@@ -182,7 +182,7 @@ export default function Index({ auth, purchaseBills, filters, flash, vendors }) 
                                             placeholder="Search purchase bills..."
                                             value={search}
                                             onChange={(e) => setSearch(e.target.value)}
-                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
+                                            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
                                         />
                                     </div>
                                 </div>
@@ -198,14 +198,14 @@ export default function Index({ auth, purchaseBills, filters, flash, vendors }) 
                                         onClick={() => setShowFilters(!showFilters)}
                                         className={`px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 ${
                                             showFilters || hasActiveFilters()
-                                                ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
+                                                ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300'
                                                 : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                                         }`}
                                     >
                                         <FunnelIcon className="w-4 h-4" />
                                         <span>Filters</span>
                                         {hasActiveFilters() && (
-                                            <span className="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                                            <span className="bg-primary-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                                                 !
                                             </span>
                                         )}
@@ -246,7 +246,7 @@ export default function Index({ auth, purchaseBills, filters, flash, vendors }) 
                                             <select
                                                 value={filterData.vendor_id}
                                                 onChange={(e) => handleFilterChange('vendor_id', e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
+                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
                                             >
                                                 <option value="">All Vendors</option>
                                                 {vendors?.map(vendor => (
@@ -265,7 +265,7 @@ export default function Index({ auth, purchaseBills, filters, flash, vendors }) 
                                             <select
                                                 value={filterData.status}
                                                 onChange={(e) => handleFilterChange('status', e.target.value)}
-                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
+                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
                                             >
                                                 <option value="">All Status</option>
                                                 <option value="draft">Draft</option>
@@ -287,14 +287,14 @@ export default function Index({ auth, purchaseBills, filters, flash, vendors }) 
                                                     placeholder="Min"
                                                     value={filterData.min_amount}
                                                     onChange={(e) => handleFilterChange('min_amount', e.target.value)}
-                                                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
+                                                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
                                                 />
                                                 <input
                                                     type="number"
                                                     placeholder="Max"
                                                     value={filterData.max_amount}
                                                     onChange={(e) => handleFilterChange('max_amount', e.target.value)}
-                                                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
+                                                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
                                                 />
                                             </div>
                                         </div>
@@ -312,14 +312,14 @@ export default function Index({ auth, purchaseBills, filters, flash, vendors }) 
                                                     type="date"
                                                     value={filterData.po_date_from}
                                                     onChange={(e) => handleFilterChange('po_date_from', e.target.value)}
-                                                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
+                                                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
                                                 />
                                                 <span className="px-2 py-2 text-gray-500 dark:text-gray-400">to</span>
                                                 <input
                                                     type="date"
                                                     value={filterData.po_date_to}
                                                     onChange={(e) => handleFilterChange('po_date_to', e.target.value)}
-                                                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
+                                                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
                                                 />
                                             </div>
                                         </div>
@@ -334,14 +334,14 @@ export default function Index({ auth, purchaseBills, filters, flash, vendors }) 
                                                     type="date"
                                                     value={filterData.expected_delivery_from}
                                                     onChange={(e) => handleFilterChange('expected_delivery_from', e.target.value)}
-                                                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
+                                                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
                                                 />
                                                 <span className="px-2 py-2 text-gray-500 dark:text-gray-400">to</span>
                                                 <input
                                                     type="date"
                                                     value={filterData.expected_delivery_to}
                                                     onChange={(e) => handleFilterChange('expected_delivery_to', e.target.value)}
-                                                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
+                                                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
                                                 />
                                             </div>
                                         </div>
@@ -358,7 +358,7 @@ export default function Index({ auth, purchaseBills, filters, flash, vendors }) 
                                         </button>
                                         <button
                                             type="submit"
-                                            className="px-6 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-lg transition-colors duration-200"
+                                            className="px-6 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors duration-200"
                                         >
                                             Apply Filters
                                         </button>
@@ -419,7 +419,7 @@ export default function Index({ auth, purchaseBills, filters, flash, vendors }) 
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
                                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                                                         bill.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-                                                        bill.status === 'sent' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                                                        bill.status === 'sent' ? 'bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200' :
                                                         bill.status === 'received' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
                                                         bill.status === 'cancelled' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
                                                         'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
@@ -465,9 +465,9 @@ export default function Index({ auth, purchaseBills, filters, flash, vendors }) 
                                                     <p className="text-gray-500 dark:text-gray-400 mb-4">Get started by creating your first purchase bill.</p>
                                                     <Link
                                                         href={route('purchase-bills.create')}
-                                                        className="inline-flex items-center px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-medium rounded-lg shadow-sm transition-colors duration-200"
+                                                        className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center"
                                                     >
-                                                        <PlusIcon className="w-5 h-5 mr-2" />
+                                                        <PlusIcon className="w-4 h-4 mr-2" />
                                                         Create Purchase Bill
                                                     </Link>
                                                 </div>
@@ -492,7 +492,7 @@ export default function Index({ auth, purchaseBills, filters, flash, vendors }) 
                                                 href={link.url || '#'}
                                                 className={`px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
                                                     link.active
-                                                        ? 'bg-blue-700 text-white'
+                                                        ? 'bg-primary-600 text-white'
                                                         : link.url
                                                         ? 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                                                         : 'text-gray-400 dark:text-gray-500 cursor-not-allowed'

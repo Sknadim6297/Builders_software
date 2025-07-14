@@ -363,7 +363,7 @@ export default function Create({ auth, vendors, customers, flash }) {
 
                             <div className="overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                    <thead className="bg-blue-700 text-white">
+                                    <thead className="bg-primary-600 text-white">
                                         <tr>
                                             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Product</th>
                                             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Description</th>
@@ -577,7 +577,7 @@ export default function Create({ auth, vendors, customers, flash }) {
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="px-6 py-2 bg-blue-700 hover:bg-blue-800 disabled:bg-blue-400 text-white rounded-lg transition-colors duration-200"
+                                className="px-6 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white rounded-lg transition-colors duration-200"
                             >
                                 {processing ? 'Saving...' : 'Save Purchase Order'}
                             </button>

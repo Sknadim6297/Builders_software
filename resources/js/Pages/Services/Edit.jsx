@@ -63,7 +63,7 @@ export default function Edit({ service, flash }) {
                                     id="name"
                                     type="text"
                                     value={data.name}
-                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 focus:ring-primary-500 rounded-md shadow-sm"
                                     onChange={(e) => setData('name', e.target.value)}
                                     placeholder="Enter service name"
                                     required
@@ -80,7 +80,7 @@ export default function Edit({ service, flash }) {
                                     id="description"
                                     value={data.description}
                                     rows={3}
-                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 focus:ring-primary-500 rounded-md shadow-sm"
                                     onChange={(e) => setData('description', e.target.value)}
                                     placeholder="Enter service description"
                                     required
@@ -103,7 +103,7 @@ export default function Edit({ service, flash }) {
                                         step="0.01"
                                         min="0"
                                         value={data.price}
-                                        className="pl-8 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                        className="pl-8 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 focus:ring-primary-500 rounded-md shadow-sm"
                                         onChange={(e) => setData('price', e.target.value)}
                                         placeholder="0.00"
                                         required
@@ -125,7 +125,7 @@ export default function Edit({ service, flash }) {
                                         min="0"
                                         max="100"
                                         value={data.gst_percentage}
-                                        className="block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                        className="block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 focus:ring-primary-500 rounded-md shadow-sm"
                                         onChange={(e) => setData('gst_percentage', e.target.value)}
                                         placeholder="18.00"
                                     />
@@ -145,7 +145,7 @@ export default function Edit({ service, flash }) {
                                         type="checkbox"
                                         checked={data.is_active}
                                         onChange={(e) => setData('is_active', e.target.checked)}
-                                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                        className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
                                     />
                                     <label htmlFor="is_active" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
                                         Service is active
@@ -158,14 +158,14 @@ export default function Edit({ service, flash }) {
                         <div className="flex items-center justify-end mt-6 space-x-3">
                             <Link
                                 href={route('services.index')}
-                                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
                             >
                                 Cancel
                             </Link>
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
+                                className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 disabled:opacity-50"
                             >
                                 {processing ? 'Updating...' : 'Update Service'}
                             </button>

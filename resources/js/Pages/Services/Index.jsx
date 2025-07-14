@@ -84,10 +84,10 @@ export default function Index({ services, flash, filters }) {
                         </div>
                         <Link
                             href={route('services.create')}
-                            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-medium transition duration-200 flex items-center space-x-2 shadow-lg"
+                            className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center"
                         >
-                            <PlusIcon className="w-5 h-5" />
-                            <span>Add New Service</span>
+                            <PlusIcon className="w-4 h-4 mr-2" />
+                            Add New Service
                         </Link>
                     </div>
                 </div>
@@ -106,7 +106,7 @@ export default function Index({ services, flash, filters }) {
                                         value={search}
                                         onChange={(e) => setSearch(e.target.value)}
                                         onKeyPress={handleKeyPress}
-                                        className="pl-10 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        className="pl-10 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500"
                                     />
                                 </div>
                             </div>
@@ -123,7 +123,7 @@ export default function Index({ services, flash, filters }) {
                             {/* Search Button */}
                             <button
                                 onClick={handleSearch}
-                                className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                                className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
                             >
                                 Search
                             </button>
@@ -132,7 +132,7 @@ export default function Index({ services, flash, filters }) {
                             {(search || fromDate || toDate) && (
                                 <button
                                     onClick={handleReset}
-                                    className="inline-flex items-center px-4 py-2 bg-gray-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-600 focus:bg-gray-600 active:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                                    className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center"
                                 >
                                     <XMarkIcon className="w-4 h-4 mr-2" />
                                     Reset
@@ -152,7 +152,7 @@ export default function Index({ services, flash, filters }) {
                                             type="date"
                                             value={fromDate}
                                             onChange={(e) => setFromDate(e.target.value)}
-                                            className="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            className="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500"
                                         />
                                     </div>
                                     <div>
@@ -163,7 +163,7 @@ export default function Index({ services, flash, filters }) {
                                             type="date"
                                             value={toDate}
                                             onChange={(e) => setToDate(e.target.value)}
-                                            className="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            className="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500"
                                         />
                                     </div>
                                 </div>
@@ -191,7 +191,7 @@ export default function Index({ services, flash, filters }) {
                             {!(search || fromDate || toDate) && (
                                 <Link
                                     href={route('services.create')}
-                                    className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition duration-200"
+                                    className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center"
                                 >
                                     <PlusIcon className="w-4 h-4 mr-2" />
                                     Add New Service
@@ -233,7 +233,7 @@ export default function Index({ services, flash, filters }) {
                                                 {services.from + index}
                                             </td>
                                             <td className="px-4 py-4 whitespace-nowrap">
-                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800 dark:bg-primary-800 dark:text-primary-100">
                                                     {service.serv_id}
                                                 </span>
                                             </td>
@@ -258,17 +258,15 @@ export default function Index({ services, flash, filters }) {
                                                 <div className="flex items-center justify-center space-x-2">
                                                     <Link
                                                         href={route('services.edit', service.id)}
-                                                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200"
+                                                        className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center"
                                                     >
-                                                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                        </svg>
+                                                        <PencilIcon className="w-4 h-4 mr-2" />
                                                         Edit
                                                     </Link>
                                                     <button
                                                         onClick={() => handleDelete(service)}
                                                         disabled={isDeleting === service.id}
-                                                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
                                                     >
                                                         {isDeleting === service.id ? (
                                                             <>
@@ -280,9 +278,7 @@ export default function Index({ services, flash, filters }) {
                                                             </>
                                                         ) : (
                                                             <>
-                                                                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                                </svg>
+                                                                <TrashIcon className="w-4 h-4 mr-2" />
                                                                 Delete
                                                             </>
                                                         )}

@@ -200,7 +200,7 @@ export default function Create({ roles, permissions, flash }) {
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
+                                className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 disabled:opacity-50"
                             >
                                 {processing ? 'Creating...' : 'Create Admin User'}
                             </button>

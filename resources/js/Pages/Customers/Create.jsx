@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import SidebarLayout from '@/Layouts/SidebarLayout';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 export default function Create({ flash }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -58,20 +57,23 @@ export default function Create({ flash }) {
             <Head title="Create Customer" />
             
             <div className="p-6">
-                <div className="flex items-center mb-6">
-                    <Link
-                        href={route('customers.index')}
-                        className="mr-4 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
-                    >
-                        <ArrowLeftIcon className="w-6 h-6" />
-                    </Link>
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Create New Customer</h1>
-                        <p className="text-gray-600 dark:text-gray-400 mt-1">Add a new customer to your database</p>
+                <div className="max-w-4xl mx-auto">
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Create New Customer</h1>
+                            <p className="text-gray-600 dark:text-gray-400 mt-2">Add a new customer to your database</p>
+                        </div>
+                        <div className="flex space-x-3">
+                            <Link
+                                href={route('customers.index')}
+                                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                            >
+                                Back to Customers
+                            </Link>
+                        </div>
                     </div>
-                </div>
 
-                <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                     <form onSubmit={submit} className="p-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Customer Name */}
@@ -83,7 +85,7 @@ export default function Create({ flash }) {
                                     id="name"
                                     type="text"
                                     value={data.name}
-                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 rounded-md shadow-sm"
                                     onChange={(e) => setData('name', e.target.value)}
                                     required
                                 />
@@ -99,7 +101,7 @@ export default function Create({ flash }) {
                                     id="mobile_number"
                                     type="tel"
                                     value={data.mobile_number}
-                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 rounded-md shadow-sm"
                                     onChange={(e) => setData('mobile_number', e.target.value)}
                                     placeholder="Enter mobile number"
                                     required
@@ -116,7 +118,7 @@ export default function Create({ flash }) {
                                     id="alternate_mobile"
                                     type="tel"
                                     value={data.alternate_mobile}
-                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 rounded-md shadow-sm"
                                     onChange={(e) => {
                                         const value = e.target.value.replace(/\D/g, '').slice(0, 10);
                                         setData('alternate_mobile', value);
@@ -138,7 +140,7 @@ export default function Create({ flash }) {
                                     id="address"
                                     value={data.address}
                                     rows={3}
-                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 rounded-md shadow-sm"
                                     onChange={(e) => setData('address', e.target.value)}
                                     placeholder="Customer's full address"
                                 />
@@ -154,7 +156,7 @@ export default function Create({ flash }) {
                                     id="pincode"
                                     type="text"
                                     value={data.pincode}
-                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 rounded-md shadow-sm"
                                     onChange={(e) => {
                                         const value = e.target.value.replace(/\D/g, '').slice(0, 6);
                                         setData('pincode', value);
@@ -177,7 +179,7 @@ export default function Create({ flash }) {
                                     id="location"
                                     type="text"
                                     value={data.location}
-                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 rounded-md shadow-sm"
                                     onChange={(e) => setData('location', e.target.value)}
                                     placeholder="City, State"
                                 />
@@ -192,7 +194,7 @@ export default function Create({ flash }) {
                                 <select
                                     id="source"
                                     value={data.source}
-                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 rounded-md shadow-sm"
                                     onChange={(e) => setData('source', e.target.value)}
                                     required
                                 >
@@ -215,7 +217,7 @@ export default function Create({ flash }) {
                                     id="gst_number"
                                     type="text"
                                     value={data.gst_number}
-                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 rounded-md shadow-sm"
                                     onChange={(e) => setData('gst_number', e.target.value)}
                                     placeholder="Optional GST number"
                                 />
@@ -223,22 +225,23 @@ export default function Create({ flash }) {
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-end mt-6 space-x-3">
+                        <div className="flex justify-end mt-6 space-x-3">
                             <Link
                                 href={route('customers.index')}
-                                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
                             >
                                 Cancel
                             </Link>
                             <button
                                 type="submit"
                                 disabled={processing}
-                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
+                                className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 disabled:opacity-50"
                             >
                                 {processing ? 'Creating...' : 'Create Customer'}
                             </button>
                         </div>
                     </form>
+                </div>
                 </div>
             </div>
         </SidebarLayout>

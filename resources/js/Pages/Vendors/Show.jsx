@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import SidebarLayout from '@/Layouts/SidebarLayout';
-import { ArrowLeftIcon, PencilIcon, BuildingOfficeIcon, PhoneIcon, MapPinIcon, ClipboardDocumentListIcon, CalendarIcon, ClockIcon, CheckBadgeIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, BuildingOfficeIcon, PhoneIcon, MapPinIcon, ClipboardDocumentListIcon, CalendarIcon, ClockIcon, CheckBadgeIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 export default function Show({ vendor, flash }) {
     // Show flash messages as toasts
@@ -42,33 +42,33 @@ export default function Show({ vendor, flash }) {
             <Head title={`${vendor.name} - Vendor Details`} />
             
             <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center space-x-4">
-                        <Link
-                            href={route('vendors.index')}
-                            className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                        >
-                            <ArrowLeftIcon className="w-4 h-4 mr-2" />
-                            Back to Vendors
-                        </Link>
+                <div className="max-w-4xl mx-auto">
+                    <div className="flex items-center justify-between mb-6">
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{vendor.name}</h1>
-                            <p className="text-gray-600 dark:text-gray-400 mt-1">Vendor Details</p>
+                            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{vendor.name}</h1>
+                            <p className="text-gray-600 dark:text-gray-400 mt-2">Vendor Details</p>
+                        </div>
+                        <div className="flex space-x-3">
+                            <Link
+                                href={route('vendors.edit', vendor.id)}
+                                className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                            >
+                                <PencilIcon className="w-4 h-4 mr-2 inline" />
+                                Edit Vendor
+                            </Link>
+                            <Link
+                                href={route('vendors.index')}
+                                className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                            >
+                                Back to Vendors
+                            </Link>
                         </div>
                     </div>
-                    <Link
-                        href={route('vendors.edit', vendor.id)}
-                        className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150"
-                    >
-                        <PencilIcon className="w-4 h-4 mr-2" />
-                        Edit Vendor
-                    </Link>
-                </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Main Information Card */}
                     <div className="lg:col-span-2">
-                        <div className="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                                 <h3 className="text-lg font-medium text-gray-900 dark:text-white">Vendor Information</h3>
                             </div>
@@ -77,7 +77,7 @@ export default function Show({ vendor, flash }) {
                                     <div className="space-y-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">Vendor ID</label>
-                                            <p className="mt-1 text-lg font-semibold text-blue-600 dark:text-blue-400">{vendor.vend_id}</p>
+                                            <p className="mt-1 text-lg font-semibold text-primary-600 dark:text-primary-400">{vendor.vend_id}</p>
                                         </div>
                                         
                                         <div>
@@ -107,7 +107,7 @@ export default function Show({ vendor, flash }) {
                                             <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">Supply of Items</label>
                                             <div className="mt-1 flex items-center">
                                                 <ClipboardDocumentListIcon className="w-4 h-4 text-gray-400 mr-2" />
-                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-800 dark:text-orange-100">
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800 dark:bg-primary-800 dark:text-primary-100">
                                                     {vendor.supply_of_goods}
                                                 </span>
                                             </div>
@@ -167,7 +167,7 @@ export default function Show({ vendor, flash }) {
                     {/* Sidebar Information */}
                     <div className="space-y-6">
                         {/* Record Details */}
-                        <div className="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                                 <h3 className="text-lg font-medium text-gray-900 dark:text-white">Record Details</h3>
                             </div>
@@ -199,14 +199,14 @@ export default function Show({ vendor, flash }) {
                         </div>
 
                         {/* Quick Actions */}
-                        <div className="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                                 <h3 className="text-lg font-medium text-gray-900 dark:text-white">Quick Actions</h3>
                             </div>
                             <div className="p-6 space-y-3">
                                 <Link
                                     href={route('vendors.edit', vendor.id)}
-                                    className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                    className="w-full bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center justify-center"
                                 >
                                     <PencilIcon className="w-4 h-4 mr-2" />
                                     Edit Details
@@ -214,16 +214,15 @@ export default function Show({ vendor, flash }) {
                                 
                                 <Link
                                     href={route('vendors.index')}
-                                    className="w-full inline-flex justify-center items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                    className="w-full bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center justify-center"
                                 >
-                                    <ArrowLeftIcon className="w-4 h-4 mr-2" />
                                     Back to List
                                 </Link>
                             </div>
                         </div>
 
                         {/* Contact Information */}
-                        <div className="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                                 <h3 className="text-lg font-medium text-gray-900 dark:text-white">Contact Info</h3>
                             </div>
@@ -231,7 +230,7 @@ export default function Show({ vendor, flash }) {
                                 <div>
                                     <a 
                                         href={`tel:${vendor.mobile_number}`}
-                                        className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                                        className="inline-flex items-center text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300"
                                     >
                                         <PhoneIcon className="w-4 h-4 mr-2" />
                                         Call Primary
@@ -242,7 +241,7 @@ export default function Show({ vendor, flash }) {
                                     <div>
                                         <a 
                                             href={`tel:${vendor.alternate_mobile}`}
-                                            className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                                            className="inline-flex items-center text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300"
                                         >
                                             <PhoneIcon className="w-4 h-4 mr-2" />
                                             Call Alternate
@@ -255,7 +254,7 @@ export default function Show({ vendor, flash }) {
                                         href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(vendor.address + ', ' + vendor.location + ', ' + vendor.pincode)}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                                        className="inline-flex items-center text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300"
                                     >
                                         <MapPinIcon className="w-4 h-4 mr-2" />
                                         View on Map
@@ -264,6 +263,7 @@ export default function Show({ vendor, flash }) {
                             </div>
                         </div>
                     </div>
+                </div>
                 </div>
             </div>
         </SidebarLayout>

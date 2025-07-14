@@ -36,7 +36,7 @@ export default function Index({ users, roles, filters }) {
                     </div>
                     <Link
                         href={route('admin-users.create')}
-                        className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                        className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center"
                     >
                         <PlusIcon className="w-4 h-4 mr-2" />
                         Add New Admin
@@ -81,7 +81,7 @@ export default function Index({ users, roles, filters }) {
                             <div className="flex items-end">
                                 <button
                                     type="submit"
-                                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                                    className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
                                 >
                                     Search
                                 </button>
@@ -156,7 +156,7 @@ export default function Index({ users, roles, filters }) {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
                                                     {user.role?.display_name || 'No Role'}
                                                 </span>
                                             </td>

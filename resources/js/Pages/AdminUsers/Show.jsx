@@ -84,7 +84,7 @@ export default function Show({ user, flash }) {
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                                                 user.role?.name === 'super_admin' 
                                                     ? 'bg-purple-100 text-purple-800' 
-                                                    : 'bg-blue-100 text-blue-800'
+                                                    : 'bg-primary-100 text-primary-800'
                                             }`}>
                                                 {user.role?.display_name || 'No Role'}
                                             </span>

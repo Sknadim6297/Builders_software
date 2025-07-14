@@ -261,7 +261,7 @@ export default function Index({ logs, filters, logNames, events, users, flash })
     const getEventBadgeColor = (event) => {
         const colors = {
             'created': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-            'updated': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+            'updated': 'bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200',
             'deleted': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
             'login': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
             'logout': 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
@@ -277,7 +277,7 @@ export default function Index({ logs, filters, logNames, events, users, flash })
             
             // User management
             'admin': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-            'user': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+            'user': 'bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200',
             'admin_users': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
             
             // Business entities
@@ -685,7 +685,7 @@ export default function Index({ logs, filters, logNames, events, users, flash })
                 <div className="fixed inset-0 bg-gray-600 bg-opacity-50 dark:bg-gray-900 dark:bg-opacity-75 overflow-y-auto h-full w-full z-50 transition-colors duration-200">
                     <div className="relative top-20 mx-auto p-5 border border-gray-200 dark:border-gray-700 w-96 shadow-lg rounded-md bg-white dark:bg-gray-800 transition-colors duration-200">
                         <div className="mt-3 text-center">
-                            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900">
+                            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-primary-100 dark:bg-primary-900">
                                 <CheckIcon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                             </div>
                             <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white mt-4 font-heading transition-colors duration-200">
@@ -718,7 +718,7 @@ export default function Index({ logs, filters, logNames, events, users, flash })
                                 <button
                                     onClick={verifyOtpAndDelete}
                                     disabled={verifyLoading || !otpCode.trim()}
-                                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-colors duration-200"
+                                    className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50 transition-colors duration-200"
                                 >
                                     {verifyLoading ? 'Verifying...' : 'Verify & Delete'}
                                 </button>

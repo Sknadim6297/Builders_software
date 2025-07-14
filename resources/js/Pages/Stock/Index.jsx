@@ -344,7 +344,7 @@ export default function Index({ auth, stocks, filters, flash }) {
                                                 </div>
                                                 <Link
                                                     href={route('stocks.show', stock.id)}
-                                                    className="inline-flex items-center px-3 py-1.5 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-md hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors duration-200"
+                                                    className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-1.5 text-xs font-medium rounded-md transition-colors duration-200 flex items-center"
                                                 >
                                                     <EyeIcon className="w-3 h-3 mr-1" />
                                                     Details
@@ -380,7 +380,7 @@ export default function Index({ auth, stocks, filters, flash }) {
                                                     disabled={!link.url}
                                                     className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded whitespace-nowrap ${
                                                         link.active
-                                                            ? 'bg-blue-700 text-white'
+                                                            ? 'bg-primary-600 text-white'
                                                             : link.url
                                                             ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
                                                             : 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'

@@ -71,7 +71,7 @@ export default function Edit({ customer, flash }) {
                                         type="text"
                                         value={data.name}
                                         onChange={(e) => setData('name', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                                         placeholder="Enter customer name"
                                     />
                                     {errors.name && (
@@ -91,7 +91,7 @@ export default function Edit({ customer, flash }) {
                                             const value = e.target.value.replace(/\D/g, '').slice(0, 10);
                                             setData('mobile_number', value);
                                         }}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                                         placeholder="Enter 10-digit mobile number"
                                         maxLength="10"
                                         pattern="[0-9]{10}"
@@ -111,7 +111,7 @@ export default function Edit({ customer, flash }) {
                                         value={data.address}
                                         onChange={(e) => setData('address', e.target.value)}
                                         rows="3"
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                                         placeholder="Enter complete address"
                                     />
                                     {errors.address && (
@@ -131,7 +131,7 @@ export default function Edit({ customer, flash }) {
                                             const value = e.target.value.replace(/\D/g, '').slice(0, 6);
                                             setData('pincode', value);
                                         }}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                                         placeholder="Enter 6-digit pincode"
                                         maxLength="6"
                                         pattern="[0-9]{6}"
@@ -151,7 +151,7 @@ export default function Edit({ customer, flash }) {
                                         type="text"
                                         value={data.location}
                                         onChange={(e) => setData('location', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                                         placeholder="Enter location"
                                     />
                                     {errors.location && (
@@ -171,7 +171,7 @@ export default function Edit({ customer, flash }) {
                                             const value = e.target.value.replace(/\D/g, '').slice(0, 10);
                                             setData('alternate_mobile', value);
                                         }}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                                         placeholder="Enter 10-digit alternate mobile (optional)"
                                         maxLength="10"
                                         pattern="[0-9]{10}"
@@ -190,7 +190,7 @@ export default function Edit({ customer, flash }) {
                                     <select
                                         value={data.source}
                                         onChange={(e) => setData('source', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                                     >
                                         <option value="">Select Source</option>
                                         <option value="Website">Website</option>
@@ -215,7 +215,7 @@ export default function Edit({ customer, flash }) {
                                         type="text"
                                         value={data.gst_number}
                                         onChange={(e) => setData('gst_number', e.target.value.toUpperCase())}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                                         placeholder="Enter GST number (optional)"
                                         maxLength="15"
                                     />
@@ -234,7 +234,7 @@ export default function Edit({ customer, flash }) {
                                             type="checkbox"
                                             checked={data.is_active}
                                             onChange={(e) => setData('is_active', e.target.checked)}
-                                            className="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500"
+                                            className="rounded border-gray-300 text-primary-600 shadow-sm focus:ring-primary-500"
                                         />
                                         <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                                             Active Customer
@@ -247,7 +247,7 @@ export default function Edit({ customer, flash }) {
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-6 py-2 rounded-lg transition-colors duration-200 flex items-center"
+                                    className="bg-primary-600 hover:bg-primary-700 disabled:bg-primary-400 text-white px-6 py-2 rounded-lg transition-colors duration-200 flex items-center"
                                 >
                                     {processing && (
                                         <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

@@ -109,7 +109,7 @@ export default function Show({ auth, stock, flash }) {
                                 </div>
                                 
                                 {/* Read-only notice */}
-                                <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 px-3 sm:px-4 py-2 rounded-lg border border-blue-200 dark:border-blue-800">
+                                <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 bg-primary-50 dark:bg-primary-900/20 px-3 sm:px-4 py-2 rounded-lg border border-primary-200 dark:border-primary-800">
                                     <svg className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>

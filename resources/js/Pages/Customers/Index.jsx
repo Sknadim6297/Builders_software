@@ -71,7 +71,7 @@ export default function Index({ customers, flash, filters }) {
 
     const formatTime = (timeStr) => {
         if (!timeStr) return '-';
-        return timeStr.slice(0, 5); // HH:MM format
+        return timeStr.slice(0, 5); 
     };
 
     return (
@@ -81,12 +81,12 @@ export default function Index({ customers, flash, filters }) {
             <div className="p-6">
                 <div className="flex justify-between items-center mb-6">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Customer Management</h1>
-                        <p className="text-gray-600 dark:text-gray-400 mt-1">Manage your customers and their information</p>
+                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Customer Management</h1>
+                        <p className="text-gray-600 dark:text-gray-400 mt-2">Manage your customers and their information</p>
                     </div>
                     <Link
                         href={route('customers.create')}
-                        className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                        className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center"
                     >
                         <PlusIcon className="w-4 h-4 mr-2" />
                         Add New Customer
@@ -107,7 +107,7 @@ export default function Index({ customers, flash, filters }) {
                                         value={search}
                                         onChange={(e) => setSearch(e.target.value)}
                                         onKeyPress={handleKeyPress}
-                                        className="pl-10 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        className="pl-10 w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500"
                                     />
                                 </div>
                             </div>
@@ -124,7 +124,7 @@ export default function Index({ customers, flash, filters }) {
                             {/* Search Button */}
                             <button
                                 onClick={handleSearch}
-                                className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                                className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
                             >
                                 Search
                             </button>
@@ -133,7 +133,7 @@ export default function Index({ customers, flash, filters }) {
                             {(search || fromDate || toDate) && (
                                 <button
                                     onClick={handleReset}
-                                    className="inline-flex items-center px-4 py-2 bg-gray-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-600 focus:bg-gray-600 active:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                                    className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center"
                                 >
                                     <XMarkIcon className="w-4 h-4 mr-2" />
                                     Reset
@@ -153,7 +153,7 @@ export default function Index({ customers, flash, filters }) {
                                             type="date"
                                             value={fromDate}
                                             onChange={(e) => setFromDate(e.target.value)}
-                                            className="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            className="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500"
                                         />
                                     </div>
                                     <div>
@@ -164,7 +164,7 @@ export default function Index({ customers, flash, filters }) {
                                             type="date"
                                             value={toDate}
                                             onChange={(e) => setToDate(e.target.value)}
-                                            className="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            className="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500"
                                         />
                                     </div>
                                 </div>
@@ -219,7 +219,7 @@ export default function Index({ customers, flash, filters }) {
                                                 {!(search || fromDate || toDate) && (
                                                     <Link
                                                         href={route('customers.create')}
-                                                        className="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                                                        className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center"
                                                     >
                                                         <PlusIcon className="w-4 h-4 mr-2" />
                                                         Add Customer
@@ -234,7 +234,7 @@ export default function Index({ customers, flash, filters }) {
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                                 {customers.from + index}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600 dark:text-blue-400">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary-600 dark:text-primary-400">
                                                 {customer.cust_id}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
@@ -263,14 +263,14 @@ export default function Index({ customers, flash, filters }) {
                                                 <div className="flex space-x-2">
                                                     <Link
                                                         href={route('customers.show', customer.id)}
-                                                        className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                                                        className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300"
                                                         title="View Details"
                                                     >
                                                         <EyeIcon className="w-4 h-4" />
                                                     </Link>
                                                     <Link
                                                         href={route('customers.edit', customer.id)}
-                                                        className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                                                        className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300"
                                                         title="Edit"
                                                     >
                                                         <PencilIcon className="w-4 h-4" />

@@ -84,6 +84,7 @@ export default function SidebarLayout({ children }) {
                 current: route().current('purchase-bills.*'),
                 permission: 'purchase_bills'
             },
+
             {
                 name: 'Stock Management',
                 href: route('stocks.index'),
@@ -104,7 +105,8 @@ export default function SidebarLayout({ children }) {
                     </svg>
                 ),
                 current: route().current('admin-users.*'),
-                permission: 'admin_users'
+                permission: 'admin_users',
+                disabled: true
             },
             {
                 name: 'Log Book of User & Admin Activity',
@@ -115,7 +117,8 @@ export default function SidebarLayout({ children }) {
                     </svg>
                 ),
                 current: route().current('activity-logs.*'),
-                permission: 'activity_logs'
+                permission: 'activity_logs',
+                disabled: true
 
             }
         ];
@@ -126,7 +129,7 @@ export default function SidebarLayout({ children }) {
 
         // Otherwise, filter menus based on user permissions and exclude disabled ones
         const userPermissions = permissions || [];
-        return allMenus.filter(menu => 
+        return allMenus.filter(menu =>
             !menu.disabled && userPermissions.some(permission => permission.name === menu.permission)
         );
     }, [auth, permissions]);
@@ -152,28 +155,24 @@ export default function SidebarLayout({ children }) {
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
             {/* Mobile sidebar */}
-            <div className={`fixed inset-0 flex z-40 md:hidden transition-all duration-500 ease-out ${
-                sidebarOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
-            }`}>
-                <div 
-                    className={`fixed inset-0 bg-gray-600/75 dark:bg-gray-900/80 backdrop-blur-sm transition-all duration-500 ease-out transform ${
-                        sidebarOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-110'
-                    }`} 
+            <div className={`fixed inset-0 flex z-40 md:hidden transition-all duration-500 ease-out ${sidebarOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
+                }`}>
+                <div
+                    className={`fixed inset-0 bg-gray-600/75 dark:bg-gray-900/80 backdrop-blur-sm transition-all duration-500 ease-out transform ${sidebarOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-110'
+                        }`}
                     onClick={closeMobileSidebar}
                 ></div>
-                <div className={`relative flex-1 flex flex-col max-w-xs w-full bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl shadow-2xl transition-all duration-500 ease-out transform ${
-                    sidebarOpen ? 'translate-x-0 scale-100 rotate-0' : '-translate-x-full scale-95 -rotate-1'
-                }`}>
-                    
+                <div className={`relative flex-1 flex flex-col max-w-xs w-full bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl shadow-2xl transition-all duration-500 ease-out transform ${sidebarOpen ? 'translate-x-0 scale-100 rotate-0' : '-translate-x-full scale-95 -rotate-1'
+                    }`}>
+
                     {/* Close button with enhanced animations */}
                     <div className="absolute top-0 right-0 -mr-12 pt-2">
                         <button
                             type="button"
-                            className={`ml-1 flex items-center justify-center h-12 w-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-300 transform hover:scale-125 hover:rotate-180 hover:bg-white/20 ${
-                                sidebarOpen ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 translate-x-8 scale-75'
-                            }`}
+                            className={`ml-1 flex items-center justify-center h-12 w-12 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-300 transform hover:scale-125 hover:rotate-180 hover:bg-white/20 ${sidebarOpen ? 'opacity-100 translate-x-0 scale-100' : 'opacity-0 translate-x-8 scale-75'
+                                }`}
                             onClick={closeMobileSidebar}
-                            style={{ 
+                            style={{
                                 transitionDelay: sidebarOpen ? '300ms' : '0ms',
                                 boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
                             }}
@@ -185,39 +184,34 @@ export default function SidebarLayout({ children }) {
                     </div>
                     <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto relative">
                         {/* Logo/Brand section with enhanced animations */}
-                        <div className={`flex-shrink-0 flex items-center px-4 mb-8 transition-all duration-700 ease-out transform ${
-                            sidebarOpen ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-8 opacity-0 scale-90'
-                        }`} style={{ transitionDelay: sidebarOpen ? '200ms' : '0ms' }}>
-                            <div className={`h-16 w-16 bg-white rounded-xl flex items-center justify-center shadow-lg transform transition-all duration-500 hover:scale-110 hover:rotate-3 hover:shadow-xl ${
-                                sidebarOpen ? 'animate-pulse' : ''
-                            }`} style={{
-                                animation: sidebarOpen ? 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' : 'none',
-                                boxShadow: '0 10px 30px rgba(164, 125, 181, 0.3)'
-                            }}>
-                                <img 
-                                    src="/images/logo.png" 
-                                    alt="The Skin Studio" 
+                        <div className={`flex-shrink-0 flex items-center px-4 mb-8 transition-all duration-700 ease-out transform ${sidebarOpen ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-8 opacity-0 scale-90'
+                            }`} style={{ transitionDelay: sidebarOpen ? '200ms' : '0ms' }}>
+                            <div className={`h-16 w-16 bg-white rounded-xl flex items-center justify-center shadow-lg transform transition-all duration-500 hover:scale-110 hover:rotate-3 hover:shadow-xl ${sidebarOpen ? 'animate-pulse' : ''
+                                }`} style={{
+                                    animation: sidebarOpen ? 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' : 'none',
+                                    boxShadow: '0 10px 30px rgba(164, 125, 181, 0.3)'
+                                }}>
+                                <img
+                                    src="/images/logo.png"
+                                    alt="The Skin Studio"
                                     className="h-14 w-14 object-contain rounded-lg"
                                 />
                             </div>
                             <div className="ml-3 overflow-hidden">
-                                <span className={`text-lg font-bold text-gray-900 dark:text-white font-heading transition-all duration-500 ${
-                                    sidebarOpen ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
-                                }`} style={{ transitionDelay: sidebarOpen ? '400ms' : '0ms' }}>
+                                <span className={`text-lg font-bold text-gray-900 dark:text-white font-heading transition-all duration-500 ${sidebarOpen ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
+                                    }`} style={{ transitionDelay: sidebarOpen ? '400ms' : '0ms' }}>
                                     The Skin Studio
                                 </span>
-                                <p className={`text-xs text-gray-600 dark:text-gray-400 transition-all duration-500 ${
-                                    sidebarOpen ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
-                                }`} style={{ transitionDelay: sidebarOpen ? '500ms' : '0ms' }}>
+                                <p className={`text-xs text-gray-600 dark:text-gray-400 transition-all duration-500 ${sidebarOpen ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
+                                    }`} style={{ transitionDelay: sidebarOpen ? '500ms' : '0ms' }}>
                                     Billing System
                                 </p>
                             </div>
                         </div>
-                        
+
                         {/* Floating particles effect */}
-                        <div className={`absolute inset-0 pointer-events-none transition-opacity duration-1000 ${
-                            sidebarOpen ? 'opacity-30' : 'opacity-0'
-                        }`}>
+                        <div className={`absolute inset-0 pointer-events-none transition-opacity duration-1000 ${sidebarOpen ? 'opacity-30' : 'opacity-0'
+                            }`}>
                             {[...Array(6)].map((_, i) => (
                                 <div
                                     key={i}
@@ -233,62 +227,55 @@ export default function SidebarLayout({ children }) {
                         </div>
                         <nav className="mt-5 px-2 space-y-2 relative">
                             {/* Navigation background glow */}
-                            <div className={`absolute inset-0 bg-primary-50/20 dark:bg-primary-900/10 rounded-2xl transition-all duration-700 ${
-                                sidebarOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-                            }`} style={{ transitionDelay: sidebarOpen ? '300ms' : '0ms' }}></div>
-                            
+                            <div className={`absolute inset-0 bg-primary-50/20 dark:bg-primary-900/10 rounded-2xl transition-all duration-700 ${sidebarOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+                                }`} style={{ transitionDelay: sidebarOpen ? '300ms' : '0ms' }}></div>
+
                             {navigation.map((item, index) => (
                                 <div
                                     key={item.name}
-                                    className={`relative transition-all duration-600 ease-out transform ${
-                                        sidebarOpen 
-                                            ? 'translate-x-0 opacity-100 scale-100' 
-                                            : '-translate-x-12 opacity-0 scale-90'
-                                    }`}
-                                    style={{ 
-                                        transitionDelay: sidebarOpen ? `${(index + 2) * 100}ms` : '0ms' 
+                                    className={`relative transition-all duration-600 ease-out transform ${sidebarOpen
+                                        ? 'translate-x-0 opacity-100 scale-100'
+                                        : '-translate-x-12 opacity-0 scale-90'
+                                        }`}
+                                    style={{
+                                        transitionDelay: sidebarOpen ? `${(index + 2) * 100}ms` : '0ms'
                                     }}
                                 >
                                     {/* Menu item glow effect */}
-                                    <div className={`absolute inset-0 bg-primary-200/20 dark:bg-primary-600/20 rounded-xl blur-sm transition-all duration-300 ${
-                                        item.current ? 'opacity-100 scale-110' : 'opacity-0 scale-100'
-                                    }`}></div>
-                                    
+                                    <div className={`absolute inset-0 bg-primary-200/20 dark:bg-primary-600/20 rounded-xl blur-sm transition-all duration-300 ${item.current ? 'opacity-100 scale-110' : 'opacity-0 scale-100'
+                                        }`}></div>
+
                                     <Link
                                         href={item.href}
-                                        className={`${
-                                            item.current
-                                                ? 'bg-primary-700 text-white shadow-xl border border-primary-600/30'
-                                                : 'text-gray-600 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-gray-900 dark:hover:text-white border border-transparent hover:border-primary-200/50 dark:hover:border-primary-700/50'
-                                        } group relative flex items-center px-3 py-3 text-base font-medium rounded-xl transition-all duration-300 transform hover:scale-105 hover:translate-x-2 overflow-hidden backdrop-blur-sm`}
+                                        className={`${item.current
+                                            ? 'bg-primary-700 text-white shadow-xl border border-primary-600/30'
+                                            : 'text-gray-600 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-gray-900 dark:hover:text-white border border-transparent hover:border-primary-200/50 dark:hover:border-primary-700/50'
+                                            } group relative flex items-center px-3 py-3 text-base font-medium rounded-xl transition-all duration-300 transform hover:scale-105 hover:translate-x-2 overflow-hidden backdrop-blur-sm`}
                                         onClick={closeMobileSidebar}
                                         style={{
-                                            boxShadow: item.current 
-                                                ? '0 8px 32px rgba(164, 125, 181, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)' 
+                                            boxShadow: item.current
+                                                ? '0 8px 32px rgba(164, 125, 181, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
                                                 : '0 2px 8px rgba(0, 0, 0, 0.05)'
                                         }}
                                     >
                                         {/* Hover ripple effect */}
                                         <div className="absolute inset-0 bg-primary-200/10 dark:bg-primary-600/10 translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-out"></div>
-                                        
-                                        <div className={`mr-4 flex-shrink-0 transform transition-all duration-300 group-hover:scale-125 group-hover:rotate-12 relative z-10 ${
-                                            item.current ? 'text-white drop-shadow-sm' : ''
-                                        }`}>
+
+                                        <div className={`mr-4 flex-shrink-0 transform transition-all duration-300 group-hover:scale-125 group-hover:rotate-12 relative z-10 ${item.current ? 'text-white drop-shadow-sm' : ''
+                                            }`}>
                                             {item.icon}
                                         </div>
                                         <span className="truncate relative z-10 font-medium">{item.name}</span>
-                                        
+
                                         {/* Active indicator with animation */}
-                                        <div className={`ml-auto relative z-10 transition-all duration-300 transform ${
-                                            item.current ? 'opacity-100 scale-100 translate-x-0' : 'opacity-0 scale-75 translate-x-4 group-hover:opacity-60 group-hover:scale-100 group-hover:translate-x-0'
-                                        }`}>
-                                            <div className={`w-2 h-2 rounded-full ${
-                                                item.current 
-                                                    ? 'bg-white shadow-lg animate-pulse' 
-                                                    : 'bg-primary-400 group-hover:bg-primary-500'
-                                            }`}></div>
+                                        <div className={`ml-auto relative z-10 transition-all duration-300 transform ${item.current ? 'opacity-100 scale-100 translate-x-0' : 'opacity-0 scale-75 translate-x-4 group-hover:opacity-60 group-hover:scale-100 group-hover:translate-x-0'
+                                            }`}>
+                                            <div className={`w-2 h-2 rounded-full ${item.current
+                                                ? 'bg-white shadow-lg animate-pulse'
+                                                : 'bg-primary-400 group-hover:bg-primary-500'
+                                                }`}></div>
                                         </div>
-                                        
+
                                         {/* Shine effect for active items */}
                                         {item.current && (
                                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-1000 ease-out"></div>
@@ -298,9 +285,8 @@ export default function SidebarLayout({ children }) {
                             ))}
                         </nav>
                     </div>
-                    <div className={`flex-shrink-0 flex border-t border-gray-200/50 dark:border-gray-700/50 p-4 bg-gray-50/50 dark:bg-gray-800/50 backdrop-blur-sm transition-all duration-700 ease-out transform ${
-                        sidebarOpen ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-8 opacity-0 scale-95'
-                    }`} style={{ transitionDelay: sidebarOpen ? '500ms' : '0ms' }}>
+                    <div className={`flex-shrink-0 flex border-t border-gray-200/50 dark:border-gray-700/50 p-4 bg-gray-50/50 dark:bg-gray-800/50 backdrop-blur-sm transition-all duration-700 ease-out transform ${sidebarOpen ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-8 opacity-0 scale-95'
+                        }`} style={{ transitionDelay: sidebarOpen ? '500ms' : '0ms' }}>
                         <div className="flex items-center w-full group">
                             <div className="flex-shrink-0 relative">
                                 {/* User avatar with animated border */}
@@ -312,23 +298,20 @@ export default function SidebarLayout({ children }) {
                                 <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-white shadow-lg animate-pulse"></div>
                             </div>
                             <div className="ml-3 flex-1 min-w-0 overflow-hidden">
-                                <p className={`text-sm font-semibold text-gray-700 dark:text-gray-200 truncate transition-all duration-500 transform ${
-                                    sidebarOpen ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
-                                }`} style={{ transitionDelay: sidebarOpen ? '600ms' : '0ms' }}>
+                                <p className={`text-sm font-semibold text-gray-700 dark:text-gray-200 truncate transition-all duration-500 transform ${sidebarOpen ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
+                                    }`} style={{ transitionDelay: sidebarOpen ? '600ms' : '0ms' }}>
                                     {auth.user.name}
                                 </p>
-                                <p className={`text-xs text-gray-500 dark:text-gray-400 truncate transition-all duration-500 transform ${
-                                    sidebarOpen ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
-                                }`} style={{ transitionDelay: sidebarOpen ? '700ms' : '0ms' }}>
+                                <p className={`text-xs text-gray-500 dark:text-gray-400 truncate transition-all duration-500 transform ${sidebarOpen ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
+                                    }`} style={{ transitionDelay: sidebarOpen ? '700ms' : '0ms' }}>
                                     {auth.user.email}
                                 </p>
                             </div>
                             <div className="flex items-center">
                                 <button
                                     onClick={handleLogout}
-                                    className={`p-2 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-all duration-300 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transform hover:scale-110 hover:rotate-12 group relative overflow-hidden ${
-                                        sidebarOpen ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
-                                    }`}
+                                    className={`p-2 text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-all duration-300 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transform hover:scale-110 hover:rotate-12 group relative overflow-hidden ${sidebarOpen ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
+                                        }`}
                                     style={{ transitionDelay: sidebarOpen ? '800ms' : '0ms' }}
                                     title="Sign out"
                                 >
@@ -350,9 +333,9 @@ export default function SidebarLayout({ children }) {
                     <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
                         <div className="flex items-center flex-shrink-0 px-4 mb-8">
                             <div className="h-12 w-12 bg-white rounded-lg flex items-center justify-center shadow-lg p-1">
-                                <img 
-                                    src="/images/logo.png" 
-                                    alt="The Skin Studio" 
+                                <img
+                                    src="/images/logo.png"
+                                    alt="The Skin Studio"
                                     className="h-full w-full object-contain rounded-lg"
                                 />
                             </div>
@@ -362,18 +345,17 @@ export default function SidebarLayout({ children }) {
                             </div>
                         </div>
                         <nav className="flex-1 px-2 space-y-2">
-                            {navigation.map((item) => (                                    <Link
-                                        key={item.name}
-                                        href={item.href}
-                                        className={`${
-                                            item.current
-                                                ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg border-l-4 border-primary-500'
-                                                : 'text-gray-600 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-800 hover:text-gray-900 dark:hover:text-white hover:border-l-4 hover:border-primary-300 dark:hover:border-primary-600'
-                                        } group flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 transform hover:scale-105`}
-                                >
-                                    <div className="mr-3 flex-shrink-0">{item.icon}</div>
-                                    <span className="truncate">{item.name}</span>
-                                </Link>
+                            {navigation.map((item) => (<Link
+                                key={item.name}
+                                href={item.href}
+                                className={`${item.current
+                                    ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg border-l-4 border-primary-500'
+                                    : 'text-gray-600 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-800 hover:text-gray-900 dark:hover:text-white hover:border-l-4 hover:border-primary-300 dark:hover:border-primary-600'
+                                    } group flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 transform hover:scale-105`}
+                            >
+                                <div className="mr-3 flex-shrink-0">{item.icon}</div>
+                                <span className="truncate">{item.name}</span>
+                            </Link>
                             ))}
                         </nav>
                     </div>
