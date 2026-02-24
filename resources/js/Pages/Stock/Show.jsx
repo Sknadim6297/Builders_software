@@ -211,6 +211,11 @@ export default function Show({ auth, stock, flash }) {
                                                             Purchase Bill #{movement.reference_id}
                                                         </span>
                                                     )}
+                                                    {movement.reference_type === 'invoice' && (
+                                                        <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded inline-block">
+                                                            Invoice #{movement.reference_id}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
                                         ))}

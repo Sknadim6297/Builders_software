@@ -385,6 +385,7 @@ class PurchaseBillController extends Controller
                     'unit' => $unit,
                     'quantity_on_hand' => 0,
                     'unit_cost' => $unitCost,
+                    'selling_price' => $unitCost,
                     'total_value' => 0,
                     'reorder_level' => 0,
                     'supplier_info' => 'From Purchase Bill: ' . $purchaseBill->po_number,

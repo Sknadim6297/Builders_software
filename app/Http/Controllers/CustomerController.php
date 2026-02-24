@@ -90,6 +90,10 @@ class CustomerController extends Controller
      */
     public function show(Customer $customer)
     {
+        $customer->load(['invoices' => function ($query) {
+            $query->orderBy('created_at', 'desc');
+        }]);
+
         return Inertia::render('Customers/Show', [
             'customer' => $customer
         ]);

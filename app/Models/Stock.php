@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Traits\LogsActivity;
 
 class Stock extends Model
@@ -17,6 +18,7 @@ class Stock extends Model
         'unit',
         'quantity_on_hand',
         'unit_cost',
+        'selling_price',
         'total_value',
         'reorder_level',
         'supplier_info',
@@ -27,6 +29,7 @@ class Stock extends Model
     protected $casts = [
         'quantity_on_hand' => 'decimal:2',
         'unit_cost' => 'decimal:2',
+        'selling_price' => 'decimal:2',
         'total_value' => 'decimal:2',
         'reorder_level' => 'integer'
     ];
@@ -37,6 +40,13 @@ class Stock extends Model
     public function stockMovements(): HasMany
     {
         return $this->hasMany(StockMovement::class);
+    }
+
+    public function consumableServices(): BelongsToMany
+    {
+        return $this->belongsToMany(Service::class, 'service_consumables')
+            ->withPivot('quantity')
+            ->withTimestamps();
     }
 
     /**

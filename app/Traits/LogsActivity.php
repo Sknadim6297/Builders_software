@@ -19,9 +19,11 @@ trait LogsActivity
             if (static::shouldLogEvent('updated')) {
                 $oldValues = $model->getOriginal();
                 $newValues = $model->getAttributes();
+                $oldComparable = static::normalizeForDiff($oldValues);
+                $newComparable = static::normalizeForDiff($newValues);
                 
                 // Only log if there are actual changes
-                if (array_diff_assoc($newValues, $oldValues)) {
+                if (array_diff_assoc($newComparable, $oldComparable)) {
                     ActivityLogger::logModelEvent($model, 'updated', $oldValues, $newValues);
                 }
             }
@@ -49,5 +51,27 @@ trait LogsActivity
     protected static function getEventsToLog(): array
     {
         return ['created', 'updated', 'deleted'];
+    }
+
+    protected static function normalizeForDiff(array $values): array
+    {
+        $normalized = [];
+
+        foreach ($values as $key => $value) {
+            if ($value instanceof \DateTimeInterface) {
+                $normalized[$key] = $value->format('c');
+                continue;
+            }
+
+            if (is_array($value) || is_object($value)) {
+                $encoded = json_encode($value);
+                $normalized[$key] = $encoded === false ? serialize($value) : $encoded;
+                continue;
+            }
+
+            $normalized[$key] = $value;
+        }
+
+        return $normalized;
     }
 }

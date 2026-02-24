@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Service;
+use App\Models\Stock;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -47,7 +48,11 @@ class ServiceController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Services/Create');
+        $stocks = Stock::select('id', 'item_name', 'unit')->orderBy('item_name')->get();
+
+        return Inertia::render('Services/Create', [
+            'stocks' => $stocks
+        ]);
     }
 
     /**
@@ -60,16 +65,28 @@ class ServiceController extends Controller
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
             'gst_percentage' => 'nullable|numeric|min:0|max:100',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
+            'consumables' => 'nullable|array',
+            'consumables.*.stock_id' => 'required_with:consumables|exists:stocks,id',
+            'consumables.*.quantity' => 'required_with:consumables|numeric|min:0.01'
         ]);
 
-        Service::create([
+        $service = Service::create([
             'name' => $request->name,
             'description' => $request->description,
             'price' => $request->price,
             'gst_percentage' => $request->gst_percentage,
             'is_active' => $request->is_active ?? true
         ]);
+
+        $consumables = $request->input('consumables', []);
+        if (!empty($consumables)) {
+            $syncData = [];
+            foreach ($consumables as $item) {
+                $syncData[$item['stock_id']] = ['quantity' => $item['quantity']];
+            }
+            $service->consumables()->sync($syncData);
+        }
 
         return redirect()->route('services.index')
             ->with('success', 'Service created successfully.');
@@ -90,8 +107,12 @@ class ServiceController extends Controller
      */
     public function edit(Service $service)
     {
+        $service->load('consumables');
+        $stocks = Stock::select('id', 'item_name', 'unit')->orderBy('item_name')->get();
+
         return Inertia::render('Services/Edit', [
-            'service' => $service
+            'service' => $service,
+            'stocks' => $stocks
         ]);
     }
 
@@ -105,7 +126,10 @@ class ServiceController extends Controller
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
             'gst_percentage' => 'nullable|numeric|min:0|max:100',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
+            'consumables' => 'nullable|array',
+            'consumables.*.stock_id' => 'required_with:consumables|exists:stocks,id',
+            'consumables.*.quantity' => 'required_with:consumables|numeric|min:0.01'
         ]);
 
         $service->update([
@@ -115,6 +139,13 @@ class ServiceController extends Controller
             'gst_percentage' => $request->gst_percentage,
             'is_active' => $request->is_active ?? true
         ]);
+
+        $consumables = $request->input('consumables', []);
+        $syncData = [];
+        foreach ($consumables as $item) {
+            $syncData[$item['stock_id']] = ['quantity' => $item['quantity']];
+        }
+        $service->consumables()->sync($syncData);
 
         return redirect()->route('services.index')
             ->with('success', 'Service updated successfully.');

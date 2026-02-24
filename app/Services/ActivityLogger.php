@@ -45,7 +45,9 @@ class ActivityLogger
             $properties['attributes'] = $newValues;
         }
         if ($oldValues && $newValues) {
-            $properties['changes'] = array_diff_assoc($newValues, $oldValues);
+            $oldComparable = self::normalizeForDiff($oldValues);
+            $newComparable = self::normalizeForDiff($newValues);
+            $properties['changes'] = array_diff_assoc($newComparable, $oldComparable);
         }
 
         return self::log($description, [
@@ -105,5 +107,27 @@ class ActivityLogger
             default:
                 return "{$userName} performed {$event} on {$modelName}: {$modelIdentifier}";
         }
+    }
+
+    private static function normalizeForDiff(array $values): array
+    {
+        $normalized = [];
+
+        foreach ($values as $key => $value) {
+            if ($value instanceof \DateTimeInterface) {
+                $normalized[$key] = $value->format('c');
+                continue;
+            }
+
+            if (is_array($value) || is_object($value)) {
+                $encoded = json_encode($value);
+                $normalized[$key] = $encoded === false ? serialize($value) : $encoded;
+                continue;
+            }
+
+            $normalized[$key] = $value;
+        }
+
+        return $normalized;
     }
 }

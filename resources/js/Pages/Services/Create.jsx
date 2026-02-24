@@ -1,15 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import SidebarLayout from '@/Layouts/SidebarLayout';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
-export default function Create({ flash }) {
+export default function Create({ flash, stocks }) {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         description: '',
         price: '',
         gst_percentage: '',
-        is_active: true
+        is_active: true,
+        consumables: []
     });
 
     // Show flash messages as toasts
@@ -31,6 +32,24 @@ export default function Create({ flash }) {
     const handleSubmit = (e) => {
         e.preventDefault();
         post(route('services.store'));
+    };
+
+    const addConsumable = () => {
+        setData('consumables', [
+            ...data.consumables,
+            { stock_id: '', quantity: '1' }
+        ]);
+    };
+
+    const removeConsumable = (index) => {
+        const newItems = data.consumables.filter((_, i) => i !== index);
+        setData('consumables', newItems);
+    };
+
+    const updateConsumable = (index, field, value) => {
+        const newItems = [...data.consumables];
+        newItems[index][field] = value;
+        setData('consumables', newItems);
     };
 
     return (
@@ -153,6 +172,71 @@ export default function Create({ flash }) {
                                 </div>
                                 <p className="text-sm text-gray-500 mt-1">Uncheck to mark this service as inactive</p>
                             </div>
+                        </div>
+
+                        <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Consumable Products</h2>
+                                <button
+                                    type="button"
+                                    onClick={addConsumable}
+                                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm transition-colors duration-200"
+                                >
+                                    Add Consumable
+                                </button>
+                            </div>
+                            <p className="text-sm text-gray-500 mt-1">Optional: inventory deducted per service unit.</p>
+
+                            {data.consumables.length === 0 ? (
+                                <div className="mt-4 text-sm text-gray-500">No consumables added.</div>
+                            ) : (
+                                <div className="mt-4 space-y-3">
+                                    {data.consumables.map((item, index) => (
+                                        <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                                            <div className="md:col-span-7">
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                    Stock Item
+                                                </label>
+                                                <select
+                                                    value={item.stock_id}
+                                                    onChange={(e) => updateConsumable(index, 'stock_id', e.target.value)}
+                                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 focus:ring-primary-500 rounded-md shadow-sm"
+                                                >
+                                                    <option value="">Select item</option>
+                                                    {stocks.map((stock) => (
+                                                        <option key={stock.id} value={stock.id}>
+                                                            {stock.item_name} ({stock.unit?.toUpperCase()})
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div className="md:col-span-3">
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                    Quantity per Service
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    min="0.01"
+                                                    step="0.01"
+                                                    value={item.quantity}
+                                                    onChange={(e) => updateConsumable(index, 'quantity', e.target.value)}
+                                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 focus:ring-primary-500 rounded-md shadow-sm"
+                                                />
+                                            </div>
+                                            <div className="md:col-span-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeConsumable(index)}
+                                                    className="w-full bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm transition-colors duration-200"
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            {errors.consumables && <div className="text-red-600 text-sm mt-2">{errors.consumables}</div>}
                         </div>
 
                         <div className="flex items-center justify-end mt-6 space-x-3">

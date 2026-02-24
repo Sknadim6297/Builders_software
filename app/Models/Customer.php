@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
 
 class Customer extends Model
@@ -61,5 +62,10 @@ class Customer extends Model
     public function getFormattedAlternateMobileAttribute()
     {
         return $this->alternate_mobile ? '+91 ' . $this->alternate_mobile : null;
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
     }
 }

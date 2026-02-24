@@ -53,6 +53,10 @@ class StockMovement extends Model
         if ($this->reference_type === 'purchase_bill') {
             return $this->belongsTo(PurchaseBill::class, 'reference_id');
         }
+
+        if ($this->reference_type === 'invoice') {
+            return $this->belongsTo(Invoice::class, 'reference_id');
+        }
         
         return null;
     }

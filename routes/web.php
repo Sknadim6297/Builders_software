@@ -6,6 +6,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\BillingController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -50,6 +51,10 @@ Route::middleware('auth')->group(function () {
     Route::middleware('permission:purchase_bills')->group(function () {
         Route::resource('purchase-bills', \App\Http\Controllers\PurchaseBillController::class);
     });
+
+    // Billing routes (no permission gate)
+    Route::get('billing/{billing}/download', [BillingController::class, 'download'])->name('billing.download');
+    Route::resource('billing', BillingController::class)->only(['index', 'create', 'store', 'show']);
     
     // Stock Management routes - require stock_management permission (Read-only)
     Route::middleware('permission:stock_management')->group(function () {

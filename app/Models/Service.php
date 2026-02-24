@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\LogsActivity;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Service extends Model
 {
@@ -71,5 +72,12 @@ class Service extends Model
     public function getFormattedPriceAttribute()
     {
         return '₹' . number_format($this->price, 2);
+    }
+
+    public function consumables(): BelongsToMany
+    {
+        return $this->belongsToMany(Stock::class, 'service_consumables')
+            ->withPivot('quantity')
+            ->withTimestamps();
     }
 }

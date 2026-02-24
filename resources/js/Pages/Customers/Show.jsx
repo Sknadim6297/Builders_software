@@ -3,6 +3,9 @@ import { Head, Link } from '@inertiajs/react';
 import SidebarLayout from '@/Layouts/SidebarLayout';
 
 export default function Show({ customer }) {
+    const invoices = customer.invoices || [];
+    const totalAmount = invoices.reduce((sum, invoice) => sum + (parseFloat(invoice.total) || 0), 0);
+    const lastInvoice = invoices[0];
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('en-IN', {
             year: 'numeric',
@@ -185,19 +188,25 @@ export default function Show({ customer }) {
                                         Quick Actions
                                     </h3>
                                     <div className="space-y-3">
-                                        <button className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center justify-center">
+                                        <Link
+                                            href={route('billing.create', { customer_id: customer.id })}
+                                            className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center justify-center"
+                                        >
                                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                             </svg>
                                             Create Bill
-                                        </button>
-                                        <button className="w-full bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center justify-center">
+                                        </Link>
+                                        <Link
+                                            href={route('billing.index', { customer_id: customer.id })}
+                                            className="w-full bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center justify-center"
+                                        >
                                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                             </svg>
                                             View Bills
-                                        </button>
+                                        </Link>
                                         <a
                                             href={`tel:+91${customer.mobile_number}`}
                                             className="w-full bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center justify-center"
@@ -220,15 +229,17 @@ export default function Show({ customer }) {
                                     <div className="space-y-4">
                                         <div className="flex justify-between items-center">
                                             <span className="text-gray-600 dark:text-gray-400">Total Bills</span>
-                                            <span className="font-semibold text-gray-900 dark:text-white">0</span>
+                                            <span className="font-semibold text-gray-900 dark:text-white">{invoices.length}</span>
                                         </div>
                                         <div className="flex justify-between items-center">
                                             <span className="text-gray-600 dark:text-gray-400">Total Amount</span>
-                                            <span className="font-semibold text-gray-900 dark:text-white">₹0.00</span>
+                                            <span className="font-semibold text-gray-900 dark:text-white">₹{totalAmount.toFixed(2)}</span>
                                         </div>
                                         <div className="flex justify-between items-center">
                                             <span className="text-gray-600 dark:text-gray-400">Last Bill</span>
-                                            <span className="font-semibold text-gray-900 dark:text-white">Never</span>
+                                            <span className="font-semibold text-gray-900 dark:text-white">
+                                                {lastInvoice ? new Date(lastInvoice.invoice_date).toLocaleDateString('en-IN') : 'Never'}
+                                            </span>
                                         </div>
                                         <div className="flex justify-between items-center">
                                             <span className="text-gray-600 dark:text-gray-400">Status</span>
@@ -254,22 +265,57 @@ export default function Show({ customer }) {
                                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                                         Bills History
                                     </h3>
-                                    <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm">
+                                    <Link
+                                        href={route('billing.create', { customer_id: customer.id })}
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm"
+                                    >
                                         Create New Bill
-                                    </button>
+                                    </Link>
                                 </div>
-                                
-                                <div className="text-center py-12">
-                                    <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
-                                    <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                                        No Bills Found
-                                    </h4>
-                                    <p className="text-gray-600 dark:text-gray-400">
-                                        This customer doesn't have any bills yet. Create the first bill to get started.
-                                    </p>
-                                </div>
+
+                                {invoices.length === 0 ? (
+                                    <div className="text-center py-12">
+                                        <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                        <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                                            No Bills Found
+                                        </h4>
+                                        <p className="text-gray-600 dark:text-gray-400">
+                                            This customer doesn't have any bills yet. Create the first bill to get started.
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="overflow-x-auto">
+                                        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                            <thead className="bg-gray-50 dark:bg-gray-700">
+                                                <tr>
+                                                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-300">Invoice</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-300">Date</th>
+                                                    <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-300">Total</th>
+                                                    <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-300">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                                                {invoices.map((invoice) => (
+                                                    <tr key={invoice.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+                                                        <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{invoice.invoice_number}</td>
+                                                        <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{new Date(invoice.invoice_date).toLocaleDateString('en-IN')}</td>
+                                                        <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">₹{parseFloat(invoice.total || 0).toFixed(2)}</td>
+                                                        <td className="px-4 py-3 text-right">
+                                                            <Link
+                                                                href={route('billing.show', invoice.id)}
+                                                                className="text-primary-600 hover:text-primary-700 text-sm"
+                                                            >
+                                                                View
+                                                            </Link>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

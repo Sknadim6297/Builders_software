@@ -50,6 +50,18 @@ export default function SidebarLayout({ children }) {
                 permission: 'customers',
 
             },
+                {
+                name: 'Customer Billing',
+                href: route('billing.index'),
+                icon: (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 7h6m-6 4h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 3v4a1 1 0 001 1h4" />
+                    </svg>
+                ),
+                current: route().current('billing.*'),
+                permission: null
+            },
             {
                 name: 'Vendor Management',
                 href: route('vendors.index'),
@@ -84,6 +96,7 @@ export default function SidebarLayout({ children }) {
                 current: route().current('purchase-bills.*'),
                 permission: 'purchase_bills'
             },
+        
 
             {
                 name: 'Stock Management',
@@ -130,7 +143,7 @@ export default function SidebarLayout({ children }) {
         // Otherwise, filter menus based on user permissions and exclude disabled ones
         const userPermissions = permissions || [];
         return allMenus.filter(menu =>
-            !menu.disabled && userPermissions.some(permission => permission.name === menu.permission)
+            !menu.disabled && (!menu.permission || userPermissions.some(permission => permission.name === menu.permission))
         );
     }, [auth, permissions]);
 
