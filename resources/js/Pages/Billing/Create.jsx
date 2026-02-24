@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import SidebarLayout from '@/Layouts/SidebarLayout';
 import { ArrowLeftIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { route } from '@/utils/route';
 
 export default function Create({ customers, services, products, prefillCustomerId, flash }) {
     const { data, setData, post, processing, errors } = useForm({

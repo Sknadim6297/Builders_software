@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
 import SidebarLayout from '../../Layouts/SidebarLayout';
 import { ArrowLeftIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { route } from '@/utils/route';
 
 export default function Edit({ auth, purchaseBill, vendors, customers, flash }) {
     const { data, setData, put, processing, errors, reset } = useForm({

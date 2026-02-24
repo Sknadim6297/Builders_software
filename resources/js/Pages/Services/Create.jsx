@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import SidebarLayout from '@/Layouts/SidebarLayout';
+import { route } from '@/utils/route';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 export default function Create({ flash, stocks }) {

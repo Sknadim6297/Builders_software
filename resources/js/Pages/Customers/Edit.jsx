@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import SidebarLayout from '@/Layouts/SidebarLayout';
+import { route } from '@/utils/route';
 
 export default function Edit({ customer, flash }) {
     const { data, setData, put, processing, errors } = useForm({

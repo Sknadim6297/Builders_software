@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
-import SidebarLayout from '../../Layouts/SidebarLayout';
-import { 
+import SidebarLayout from '../../Layouts/SidebarLayout';import { route } from '@/utils/route';import { 
     ArrowLeftIcon, 
     ExclamationTriangleIcon,
     ClockIcon,

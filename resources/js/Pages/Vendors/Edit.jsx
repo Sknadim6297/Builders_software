@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import SidebarLayout from '@/Layouts/SidebarLayout';
+import { route } from '@/utils/route';
 
 export default function Edit({ vendor, flash }) {
     const { data, setData, put, processing, errors, reset } = useForm({

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import SidebarLayout from '@/Layouts/SidebarLayout';
+import { route } from '@/utils/route';
 
 export default function Index({ invoices, customers, filters, flash }) {
     const [search, setSearch] = useState(filters.search || '');
@@ -138,12 +139,20 @@ export default function Index({ invoices, customers, filters, flash }) {
                                             <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{new Date(invoice.invoice_date).toLocaleDateString()}</td>
                                             <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{formatCurrency(invoice.total)}</td>
                                             <td className="px-4 py-3 text-right">
-                                                <Link
-                                                    href={route('billing.show', invoice.id)}
-                                                    className="text-primary-600 hover:text-primary-700 text-sm"
-                                                >
-                                                    View
-                                                </Link>
+                                                <div className="flex justify-end space-x-3">
+                                                    <Link
+                                                        href={route('billing.show', invoice.id)}
+                                                        className="text-primary-600 hover:text-primary-700 text-sm"
+                                                    >
+                                                        View
+                                                    </Link>
+                                                    <Link
+                                                        href={route('billing.edit', invoice.id)}
+                                                        className="text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100 text-sm"
+                                                    >
+                                                        Edit
+                                                    </Link>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}

@@ -42,3 +42,42 @@ window.axios.interceptors.request.use(
     },
     (error) => Promise.reject(error)
 );
+
+// Setup global route() function if not already available
+if (typeof window.route === 'undefined') {
+    window.route = function(name, params = {}, absolute = false) {
+        // Fallback route implementation using Ziggy
+        const Ziggy = window.Ziggy || { url: '', routes: {} };
+        
+        if (!Ziggy.routes[name]) {
+            console.warn(`Route '${name}' not found in Ziggy routes`);
+            return '#';
+        }
+
+        const route = Ziggy.routes[name];
+        let uri = route.uri;
+
+        // Replace parameters in the URI
+        if (route.parameters && params) {
+            route.parameters.forEach((param) => {
+                const key = typeof param === 'string' ? param : Object.keys(param)[0];
+                if (params[key] !== undefined) {
+                    uri = uri.replace(`{${key}}`, params[key]);
+                }
+            });
+        }
+
+        // Add query parameters
+        const queryParams = new URLSearchParams();
+        Object.keys(params).forEach((key) => {
+            if (!route.parameters || !route.parameters.includes(key)) {
+                queryParams.append(key, params[key]);
+            }
+        });
+
+        const query = queryParams.toString();
+        const url = absolute ? `${Ziggy.url}/${uri}` : `/${uri}`;
+
+        return query ? `${url}?${query}` : url;
+    };
+}

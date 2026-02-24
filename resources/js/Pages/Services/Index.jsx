@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import SidebarLayout from '@/Layouts/SidebarLayout';
+import { route } from '@/utils/route';
 import Pagination from '@/Components/Pagination';
 import { PlusIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon, FunnelIcon, XMarkIcon } from '@heroicons/react/24/outline';
 

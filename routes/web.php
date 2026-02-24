@@ -54,7 +54,7 @@ Route::middleware('auth')->group(function () {
 
     // Billing routes (no permission gate)
     Route::get('billing/{billing}/download', [BillingController::class, 'download'])->name('billing.download');
-    Route::resource('billing', BillingController::class)->only(['index', 'create', 'store', 'show']);
+    Route::resource('billing', BillingController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update']);
     
     // Stock Management routes - require stock_management permission (Read-only)
     Route::middleware('permission:stock_management')->group(function () {

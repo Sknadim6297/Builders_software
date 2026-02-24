@@ -1,6 +1,5 @@
 import { Head, Link, router } from '@inertiajs/react';
-import SidebarLayout from '../../Layouts/SidebarLayout';
-import { ArrowLeftIcon, PencilIcon, TrashIcon, DocumentIcon } from '@heroicons/react/24/outline';
+import SidebarLayout from '../../Layouts/SidebarLayout';import { route } from '@/utils/route';import { ArrowLeftIcon, PencilIcon, TrashIcon, DocumentIcon } from '@heroicons/react/24/outline';
 
 export default function Show({ auth, purchaseBill }) {
     const handleDelete = () => {

@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import SidebarLayout from '@/Layouts/SidebarLayout';
+import { route } from '@/utils/route';
 
 export default function Show({ invoice }) {
     const formatCurrency = (value) => {

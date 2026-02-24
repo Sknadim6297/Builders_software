@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import SidebarLayout from '../../Layouts/SidebarLayout';
-import { PlusIcon, PencilIcon, EyeIcon, TrashIcon, MagnifyingGlassIcon, ArrowDownTrayIcon, DocumentTextIcon, TableCellsIcon, FunnelIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import SidebarLayout from '../../Layouts/SidebarLayout';import { route } from '@/utils/route';import { PlusIcon, PencilIcon, EyeIcon, TrashIcon, MagnifyingGlassIcon, ArrowDownTrayIcon, DocumentTextIcon, TableCellsIcon, FunnelIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 export default function Index({ auth, purchaseBills, filters, flash, vendors }) {
     const [search, setSearch] = useState(filters?.search || '');

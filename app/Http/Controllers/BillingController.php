@@ -279,6 +279,230 @@ class BillingController extends Controller
 		]);
 	}
 
+	public function edit(Invoice $billing)
+	{
+		$billing->load(['customer', 'serviceItems.service', 'productItems.stock']);
+		$services = Service::select('id', 'name', 'final_price')->where('is_active', true)->orderBy('name')->get();
+		$products = Stock::select('id', 'item_name', 'unit', 'selling_price', 'unit_cost', 'quantity_on_hand')
+			->orderBy('item_name')
+			->get();
+
+		return Inertia::render('Billing/Edit', [
+			'invoice' => $billing,
+			'services' => $services,
+			'products' => $products
+		]);
+	}
+
+	public function update(Request $request, Invoice $billing)
+	{
+		$requestData = $request->all();
+		if (isset($requestData['service_items']) && is_string($requestData['service_items'])) {
+			$requestData['service_items'] = json_decode($requestData['service_items'], true) ?? [];
+		}
+		if (isset($requestData['product_items']) && is_string($requestData['product_items'])) {
+			$requestData['product_items'] = json_decode($requestData['product_items'], true) ?? [];
+		}
+		$request->merge($requestData);
+
+		$validated = $request->validate([
+			'invoice_date' => 'required|date',
+			'discount' => 'nullable|numeric|min:0',
+			'notes' => 'nullable|string|max:1000',
+			'service_items' => 'nullable|array',
+			'service_items.*.service_id' => 'required_with:service_items|exists:services,id',
+			'service_items.*.quantity' => 'required_with:service_items|numeric|min:0.01',
+			'service_items.*.unit_price' => 'required_with:service_items|numeric|min:0',
+			'product_items' => 'nullable|array',
+			'product_items.*.stock_id' => 'required_with:product_items|exists:stocks,id',
+			'product_items.*.quantity' => 'required_with:product_items|numeric|min:0.01',
+			'product_items.*.unit_price' => 'required_with:product_items|numeric|min:0'
+		]);
+
+		$serviceItems = $validated['service_items'] ?? [];
+		$productItems = $validated['product_items'] ?? [];
+
+		if (empty($serviceItems) && empty($productItems)) {
+			return back()->withErrors(['items' => 'Please add at least one service or product item.']);
+		}
+
+		$serviceIds = collect($serviceItems)->pluck('service_id')->unique()->filter()->values();
+		$services = Service::with('consumables')->whereIn('id', $serviceIds)->get()->keyBy('id');
+
+		$billing->load(['serviceItems.service.consumables', 'productItems.stock']);
+		$oldRequiredByStock = [];
+		foreach ($billing->productItems as $item) {
+			$stockId = (int) $item->stock_id;
+			$quantity = (float) $item->quantity;
+			if ($stockId && $quantity > 0) {
+				$oldRequiredByStock[$stockId] = ($oldRequiredByStock[$stockId] ?? 0) + $quantity;
+			}
+		}
+
+		foreach ($billing->serviceItems as $item) {
+			$service = $item->service;
+			$quantity = (float) $item->quantity;
+			if (!$service || $quantity <= 0) {
+				continue;
+			}
+
+			foreach ($service->consumables as $consumable) {
+				$stockId = $consumable->id;
+				$requiredQty = $quantity * (float) $consumable->pivot->quantity;
+				$oldRequiredByStock[$stockId] = ($oldRequiredByStock[$stockId] ?? 0) + $requiredQty;
+			}
+		}
+
+		$newRequiredByStock = [];
+		foreach ($productItems as $item) {
+			$stockId = (int) $item['stock_id'];
+			$quantity = (float) $item['quantity'];
+			if ($stockId && $quantity > 0) {
+				$newRequiredByStock[$stockId] = ($newRequiredByStock[$stockId] ?? 0) + $quantity;
+			}
+		}
+
+		foreach ($serviceItems as $item) {
+			$serviceId = (int) $item['service_id'];
+			$quantity = (float) $item['quantity'];
+			$service = $services->get($serviceId);
+
+			if (!$service || $quantity <= 0) {
+				continue;
+			}
+
+			foreach ($service->consumables as $consumable) {
+				$stockId = $consumable->id;
+				$requiredQty = $quantity * (float) $consumable->pivot->quantity;
+				$newRequiredByStock[$stockId] = ($newRequiredByStock[$stockId] ?? 0) + $requiredQty;
+			}
+		}
+
+		$stockIds = array_values(array_unique(array_merge(array_keys($oldRequiredByStock), array_keys($newRequiredByStock))));
+		$stocks = Stock::whereIn('id', $stockIds)->get()->keyBy('id');
+		$insufficient = [];
+		foreach ($stockIds as $stockId) {
+			$oldQty = $oldRequiredByStock[$stockId] ?? 0;
+			$newQty = $newRequiredByStock[$stockId] ?? 0;
+			$delta = $newQty - $oldQty;
+			if ($delta > 0) {
+				$stock = $stocks->get($stockId);
+				if (!$stock || $stock->quantity_on_hand < $delta) {
+					$insufficient[] = $stock ? $stock->item_name : "Stock #{$stockId}";
+				}
+			}
+		}
+
+		if (!empty($insufficient)) {
+			return back()->withErrors([
+				'stock' => 'Insufficient stock for: ' . implode(', ', $insufficient)
+			]);
+		}
+
+		DB::beginTransaction();
+
+		try {
+			$serviceRows = [];
+			$productRows = [];
+			$subtotal = 0;
+
+			foreach ($serviceItems as $item) {
+				$quantity = (float) $item['quantity'];
+				$unitPrice = (float) $item['unit_price'];
+				$total = $quantity * $unitPrice;
+				$subtotal += $total;
+
+				$serviceRows[] = [
+					'service_id' => $item['service_id'],
+					'quantity' => $quantity,
+					'unit_price' => $unitPrice,
+					'total' => $total
+				];
+			}
+
+			foreach ($productItems as $item) {
+				$quantity = (float) $item['quantity'];
+				$unitPrice = (float) $item['unit_price'];
+				$total = $quantity * $unitPrice;
+				$subtotal += $total;
+
+				$productRows[] = [
+					'stock_id' => $item['stock_id'],
+					'quantity' => $quantity,
+					'unit_price' => $unitPrice,
+					'total' => $total
+				];
+			}
+
+			$discount = (float) ($validated['discount'] ?? 0);
+			$totalAmount = $subtotal - $discount;
+
+			$billing->update([
+				'invoice_date' => $validated['invoice_date'],
+				'subtotal' => $subtotal,
+				'discount' => $discount,
+				'total' => $totalAmount,
+				'notes' => $validated['notes'] ?? null,
+				'updated_by' => Auth::id()
+			]);
+
+			$billing->serviceItems()->delete();
+			$billing->productItems()->delete();
+
+			if (!empty($serviceRows)) {
+				$billing->serviceItems()->createMany($serviceRows);
+			}
+
+			if (!empty($productRows)) {
+				$billing->productItems()->createMany($productRows);
+			}
+
+			foreach ($stockIds as $stockId) {
+				$oldQty = $oldRequiredByStock[$stockId] ?? 0;
+				$newQty = $newRequiredByStock[$stockId] ?? 0;
+				$delta = $newQty - $oldQty;
+
+				if (abs($delta) < 0.00001) {
+					continue;
+				}
+
+				$stock = $stocks->get($stockId);
+				if (!$stock) {
+					continue;
+				}
+
+				$movementType = $delta > 0 ? 'out' : 'in';
+				$movementQty = abs($delta);
+				$stock->updateQuantity(-1 * $delta);
+
+				StockMovement::create([
+					'stock_id' => $stock->id,
+					'movement_type' => $movementType,
+					'quantity' => $movementQty,
+					'unit_cost' => $stock->unit_cost,
+					'total_cost' => $stock->unit_cost * $movementQty,
+					'reference_type' => 'invoice',
+					'reference_id' => $billing->id,
+					'notes' => 'Invoice ' . $billing->invoice_number . ' updated adjustment',
+					'created_by' => Auth::id()
+				]);
+			}
+
+			DB::commit();
+
+			return redirect()->route('billing.show', $billing->id)
+				->with('success', 'Invoice updated successfully.');
+		} catch (\Exception $e) {
+			DB::rollBack();
+			Log::error('Failed to update invoice:', [
+				'error' => $e->getMessage(),
+				'trace' => $e->getTraceAsString()
+			]);
+
+			return back()->withErrors(['error' => 'Failed to update invoice. Please try again.']);
+		}
+	}
+
 	public function download(Invoice $billing)
 	{
 		$billing->load(['customer', 'serviceItems.service', 'productItems.stock', 'creator']);

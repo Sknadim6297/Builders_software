@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import SidebarLayout from '@/Layouts/SidebarLayout';
-import Pagination from '@/Components/Pagination';
+import SidebarLayout from '@/Layouts/SidebarLayout';import { route } from '@/utils/route';import Pagination from '@/Components/Pagination';
 import { PlusIcon, PencilIcon, TrashIcon, EyeIcon, MagnifyingGlassIcon, FunnelIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 export default function Index({ vendors, flash, filters }) {

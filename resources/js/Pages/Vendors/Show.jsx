@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import SidebarLayout from '@/Layouts/SidebarLayout';
+import { route } from '@/utils/route';
 import { PencilIcon, BuildingOfficeIcon, PhoneIcon, MapPinIcon, ClipboardDocumentListIcon, CalendarIcon, ClockIcon, CheckBadgeIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 export default function Show({ vendor, flash }) {
