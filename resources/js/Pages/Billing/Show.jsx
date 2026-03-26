@@ -184,6 +184,10 @@ export default function Show({ invoice, flash }) {
                                     <span className="text-gray-900 dark:text-white">{formatCurrency(invoice.subtotal)}</span>
                                 </div>
                                 <div className="flex justify-between">
+                                    <span className="text-gray-600 dark:text-gray-400">GST ({parseFloat(invoice.gst_percentage || 0).toFixed(2)}%)</span>
+                                    <span className="text-gray-900 dark:text-white">{formatCurrency((parseFloat(invoice.subtotal || 0) * (parseFloat(invoice.gst_percentage || 0) || 0)) / 100)}</span>
+                                </div>
+                                <div className="flex justify-between">
                                     <span className="text-gray-600 dark:text-gray-400">Discount</span>
                                     <span className="text-gray-900 dark:text-white">-{formatCurrency(invoice.discount)}</span>
                                 </div>

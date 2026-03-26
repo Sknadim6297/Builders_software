@@ -27,6 +27,7 @@ class Invoice extends Model
         'invoice_date',
         'customer_id',
         'subtotal',
+        'gst_percentage',
         'discount',
         'total',
         'amount_paid',
@@ -40,6 +41,7 @@ class Invoice extends Model
     protected $casts = [
         'invoice_date' => 'date',
         'subtotal' => 'decimal:2',
+        'gst_percentage' => 'decimal:2',
         'discount' => 'decimal:2',
         'total' => 'decimal:2',
         'amount_paid' => 'decimal:2',

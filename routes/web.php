@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\VendorController;
 use App\Http\Controllers\AdminUserController;
@@ -9,6 +8,7 @@ use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GSTController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -42,11 +42,6 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     
-    // Service routes - require service permission
-    Route::middleware('permission:services')->group(function () {
-        Route::resource('services', ServiceController::class);
-    });
-    
     // Customer routes - require customer permission
     Route::middleware('permission:customers')->group(function () {
         Route::resource('customers', CustomerController::class);
@@ -73,6 +68,9 @@ Route::middleware('auth')->group(function () {
     Route::post('billing/{billing}/payments', [BillingController::class, 'addPayment'])->name('billing.payments.add');
     Route::get('payments/{payment}/receipt', [BillingController::class, 'downloadPaymentReceipt'])->name('payments.receipt');
     Route::resource('billing', BillingController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update']);
+    
+    // GST Management routes - require gst_management permission
+    Route::get('gst', [GSTController::class, 'index'])->name('gst.index')->middleware('permission:gst_management');
     
     // Stock Management routes - require stock_management permission (Read-only)
     Route::middleware('permission:stock_management')->group(function () {

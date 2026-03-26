@@ -51,17 +51,17 @@ export default function SidebarLayout({ children }) {
                 permission: 'customers',
 
             },
-            {
-                name: 'Categories',
-                href: route('categories.index'),
-                icon: (
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                    </svg>
-                ),
-                current: route().current('categories.*'),
-                permission: 'categories'
-            },
+            // {
+            //     name: 'Categories',
+            //     href: route('categories.index'),
+            //     icon: (
+            //         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            //             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+            //         </svg>
+            //     ),
+            //     current: route().current('categories.*'),
+            //     permission: 'categories'
+            // },
                 {
                 name: 'Customer Billing',
                 href: route('billing.index'),
@@ -74,6 +74,17 @@ export default function SidebarLayout({ children }) {
                 current: route().current('billing.*'),
                 permission: null
             },
+            // {
+            //     name: 'GST Management',
+            //     href: '/gst',
+            //     icon: (
+            //         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            //             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 14l6-6m-6 6l6 6m6-6l-6-6m6 6l-6 6M3 12l6 6m-6-6l6-6m6 6l-6-6m6 6l-6 6" />
+            //         </svg>
+            //     ),
+            //     current: window.location.pathname === '/gst',
+            //     permission: 'gst_management'
+            // },
             {
                 name: 'Vendor Management',
                 href: route('vendors.index'),
@@ -84,17 +95,6 @@ export default function SidebarLayout({ children }) {
                 ),
                 current: route().current('vendors.*'),
                 permission: 'vendors'
-            },
-            {
-                name: 'Service Management',
-                href: route('services.index'),
-                icon: (
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                ),
-                current: route().current('services.*'),
-                permission: 'services'
             },
             {
                 name: 'Manage Purchase Bill',

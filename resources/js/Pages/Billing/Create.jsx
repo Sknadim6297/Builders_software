@@ -8,7 +8,7 @@ export default function Create({ customers, services, products, prefillCustomerI
     const { data, setData, post, processing, errors } = useForm({
         invoice_date: new Date().toISOString().split('T')[0],
         customer_id: prefillCustomerId || '',
-        service_items: [],
+        gst_percentage: '',
         product_items: [],
         discount: '',
         advance_payment: '',
@@ -25,46 +25,17 @@ export default function Create({ customers, services, products, prefillCustomerI
         }
     }, [flash]);
 
-    const serviceMap = useMemo(() => {
-        const map = new Map();
-        services.forEach((service) => map.set(String(service.id), service));
-        return map;
-    }, [services]);
-
     const productMap = useMemo(() => {
         const map = new Map();
         products.forEach((product) => map.set(String(product.id), product));
         return map;
     }, [products]);
 
-    const addServiceItem = () => {
-        setData('service_items', [
-            ...data.service_items,
-            { service_id: '', quantity: '1', unit_price: '', total: 0 }
-        ]);
-    };
-
     const addProductItem = () => {
         setData('product_items', [
             ...data.product_items,
             { stock_id: '', quantity: '1', unit_price: '', total: 0 }
         ]);
-    };
-
-    const updateServiceItem = (index, field, value) => {
-        const items = [...data.service_items];
-        items[index][field] = value;
-
-        if (field === 'service_id') {
-            const service = serviceMap.get(value);
-            items[index].unit_price = service ? service.final_price : '';
-        }
-
-        const quantity = parseFloat(items[index].quantity) || 0;
-        const unitPrice = parseFloat(items[index].unit_price) || 0;
-        items[index].total = quantity * unitPrice;
-
-        setData('service_items', items);
     };
 
     const updateProductItem = (index, field, value) => {
@@ -84,26 +55,22 @@ export default function Create({ customers, services, products, prefillCustomerI
         setData('product_items', items);
     };
 
-    const removeServiceItem = (index) => {
-        const items = data.service_items.filter((_, i) => i !== index);
-        setData('service_items', items);
-    };
-
     const removeProductItem = (index) => {
         const items = data.product_items.filter((_, i) => i !== index);
         setData('product_items', items);
     };
 
     const subtotal = useMemo(() => {
-        const serviceTotal = data.service_items.reduce((sum, item) => sum + (parseFloat(item.total) || 0), 0);
         const productTotal = data.product_items.reduce((sum, item) => sum + (parseFloat(item.total) || 0), 0);
-        return serviceTotal + productTotal;
-    }, [data.service_items, data.product_items]);
+        return productTotal;
+    }, [data.product_items]);
 
     const total = useMemo(() => {
+        const gstPercentage = parseFloat(data.gst_percentage) || 0;
+        const gstAmount = (subtotal * gstPercentage) / 100;
         const discount = parseFloat(data.discount) || 0;
-        return subtotal - discount;
-    }, [subtotal, data.discount]);
+        return subtotal + gstAmount - discount;
+    }, [subtotal, data.gst_percentage, data.discount]);
 
     const dueAmount = useMemo(() => {
         const advancePayment = parseFloat(data.advance_payment) || 0;
@@ -141,7 +108,7 @@ export default function Create({ customers, services, products, prefillCustomerI
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Customer Details</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Invoice Date</label>
                                 <input
@@ -170,82 +137,21 @@ export default function Create({ customers, services, products, prefillCustomerI
                                 </select>
                                 {errors.customer_id && <div className="text-red-600 text-sm mt-1">{errors.customer_id}</div>}
                             </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Service Items</h2>
-                            <button
-                                type="button"
-                                onClick={addServiceItem}
-                                className="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
-                            >
-                                <PlusIcon className="w-4 h-4 mr-2" />
-                                Add Service
-                            </button>
-                        </div>
-
-                        {data.service_items.length === 0 ? (
-                            <p className="text-sm text-gray-500">No services added.</p>
-                        ) : (
-                            <div className="space-y-3">
-                                {data.service_items.map((item, index) => (
-                                    <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-                                        <div className="md:col-span-5">
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Service</label>
-                                            <select
-                                                value={item.service_id}
-                                                onChange={(e) => updateServiceItem(index, 'service_id', e.target.value)}
-                                                className="mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md"
-                                            >
-                                                <option value="">Select service</option>
-                                                {services.map((service) => (
-                                                    <option key={service.id} value={service.id}>{service.name}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Qty</label>
-                                            <input
-                                                type="number"
-                                                min="0.01"
-                                                step="0.01"
-                                                value={item.quantity}
-                                                onChange={(e) => updateServiceItem(index, 'quantity', e.target.value)}
-                                                className="mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md"
-                                            />
-                                        </div>
-                                        <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Unit Price</label>
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                step="0.01"
-                                                value={item.unit_price}
-                                                onChange={(e) => updateServiceItem(index, 'unit_price', e.target.value)}
-                                                className="mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md"
-                                            />
-                                        </div>
-                                        <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Total</label>
-                                            <div className="mt-1 text-sm text-gray-900 dark:text-gray-100">
-                                                {formatCurrency(item.total)}
-                                            </div>
-                                        </div>
-                                        <div className="md:col-span-1">
-                                            <button
-                                                type="button"
-                                                onClick={() => removeServiceItem(index)}
-                                                className="mt-1 p-2 text-red-600 hover:text-red-700"
-                                            >
-                                                <TrashIcon className="w-5 h-5" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">GST %</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    step="0.01"
+                                    value={data.gst_percentage}
+                                    onChange={(e) => setData('gst_percentage', e.target.value)}
+                                    className="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md"
+                                    placeholder="0.00"
+                                />
+                                {errors.gst_percentage && <div className="text-red-600 text-sm mt-1">{errors.gst_percentage}</div>}
                             </div>
-                        )}
+                        </div>
                     </div>
 
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
@@ -393,6 +299,10 @@ export default function Create({ customers, services, products, prefillCustomerI
                             <div className="flex justify-between">
                                 <span>Subtotal</span>
                                 <span className="font-medium text-gray-900 dark:text-white">{formatCurrency(subtotal)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>GST ({parseFloat(data.gst_percentage || 0).toFixed(2)}%)</span>
+                                <span className="font-medium text-gray-900 dark:text-white">{formatCurrency((subtotal * (parseFloat(data.gst_percentage || 0) || 0)) / 100)}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span>Discount</span>

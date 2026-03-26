@@ -187,6 +187,11 @@
             </tr>
             <tr>
                 <td></td>
+                <td class="text-right">GST ({{ number_format($invoice->gst_percentage ?? 0, 2) }}%)</td>
+                <td class="text-right">₹ {{ number_format((($invoice->subtotal ?? 0) * ($invoice->gst_percentage ?? 0)) / 100, 2) }}</td>
+            </tr>
+            <tr>
+                <td></td>
                 <td class="text-right">Discount</td>
                 <td class="text-right">- ₹ {{ number_format($invoice->discount ?? 0, 2) }}</td>
             </tr>

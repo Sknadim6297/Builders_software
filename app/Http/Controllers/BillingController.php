@@ -87,6 +87,7 @@ class BillingController extends Controller
 		$validated = $request->validate([
 			'customer_id' => 'required|exists:customers,id',
 			'invoice_date' => 'required|date',
+			'gst_percentage' => 'nullable|numeric|min:0|max:100',
 			'discount' => 'nullable|numeric|min:0',
 			'advance_payment' => 'nullable|numeric|min:0',
 			'payment_method' => 'nullable|string|in:cash,card,upi,bank_transfer,cheque,other',
@@ -104,8 +105,8 @@ class BillingController extends Controller
 		$serviceItems = $validated['service_items'] ?? [];
 		$productItems = $validated['product_items'] ?? [];
 
-		if (empty($serviceItems) && empty($productItems)) {
-			return back()->withErrors(['items' => 'Please add at least one service or product item.']);
+		if (empty($productItems)) {
+			return back()->withErrors(['items' => 'Please add at least one product item.']);
 		}
 
 		$serviceIds = collect($serviceItems)->pluck('service_id')->unique()->filter()->values();
@@ -189,8 +190,10 @@ class BillingController extends Controller
 				];
 			}
 
+			$gstPercentage = (float) ($validated['gst_percentage'] ?? 0);
+			$gstAmount = ($subtotal * $gstPercentage) / 100;
 			$discount = (float) ($validated['discount'] ?? 0);
-			$totalAmount = $subtotal - $discount;
+			$totalAmount = $subtotal + $gstAmount - $discount;
 			$advancePayment = min((float) ($validated['advance_payment'] ?? 0), $totalAmount);
 			$dueAmount = $totalAmount - $advancePayment;
 			
@@ -206,6 +209,7 @@ class BillingController extends Controller
 				'invoice_date' => $validated['invoice_date'],
 				'customer_id' => $validated['customer_id'],
 				'subtotal' => $subtotal,
+				'gst_percentage' => $gstPercentage,
 				'discount' => $discount,
 				'total' => $totalAmount,
 				'amount_paid' => $advancePayment,
@@ -340,6 +344,7 @@ class BillingController extends Controller
 
 		$validated = $request->validate([
 			'invoice_date' => 'required|date',
+			'gst_percentage' => 'nullable|numeric|min:0|max:100',
 			'discount' => 'nullable|numeric|min:0',
 			'notes' => 'nullable|string|max:1000',
 			'service_items' => 'nullable|array',
@@ -355,8 +360,8 @@ class BillingController extends Controller
 		$serviceItems = $validated['service_items'] ?? [];
 		$productItems = $validated['product_items'] ?? [];
 
-		if (empty($serviceItems) && empty($productItems)) {
-			return back()->withErrors(['items' => 'Please add at least one service or product item.']);
+		if (empty($productItems)) {
+			return back()->withErrors(['items' => 'Please add at least one product item.']);
 		}
 
 		$serviceIds = collect($serviceItems)->pluck('service_id')->unique()->filter()->values();
@@ -467,17 +472,22 @@ class BillingController extends Controller
 				];
 			}
 
+			$gstPercentage = (float) ($validated['gst_percentage'] ?? 0);
+			$gstAmount = ($subtotal * $gstPercentage) / 100;
 			$discount = (float) ($validated['discount'] ?? 0);
-			$totalAmount = $subtotal - $discount;
+			$totalAmount = $subtotal + $gstAmount - $discount;
 
 			$billing->update([
 				'invoice_date' => $validated['invoice_date'],
 				'subtotal' => $subtotal,
+				'gst_percentage' => $gstPercentage,
 				'discount' => $discount,
 				'total' => $totalAmount,
 				'notes' => $validated['notes'] ?? null,
 				'updated_by' => Auth::id()
 			]);
+
+			$billing->updatePaymentStatus();
 
 			$billing->serviceItems()->delete();
 			$billing->productItems()->delete();
