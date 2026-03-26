@@ -11,6 +11,8 @@ export default function Create({ customers, services, products, prefillCustomerI
         service_items: [],
         product_items: [],
         discount: '',
+        advance_payment: '',
+        payment_method: 'cash',
         notes: ''
     });
 
@@ -102,6 +104,11 @@ export default function Create({ customers, services, products, prefillCustomerI
         const discount = parseFloat(data.discount) || 0;
         return subtotal - discount;
     }, [subtotal, data.discount]);
+
+    const dueAmount = useMemo(() => {
+        const advancePayment = parseFloat(data.advance_payment) || 0;
+        return Math.max(0, total - advancePayment);
+    }, [total, data.advance_payment]);
 
     const formatCurrency = (value) => {
         const amount = parseFloat(value || 0);
@@ -320,7 +327,7 @@ export default function Create({ customers, services, products, prefillCustomerI
 
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Invoice Summary</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Discount</label>
                                 <input
@@ -330,6 +337,7 @@ export default function Create({ customers, services, products, prefillCustomerI
                                     value={data.discount}
                                     onChange={(e) => setData('discount', e.target.value)}
                                     className="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md"
+                                    placeholder="0.00"
                                 />
                             </div>
                             <div>
@@ -339,10 +347,49 @@ export default function Create({ customers, services, products, prefillCustomerI
                                     value={data.notes}
                                     onChange={(e) => setData('notes', e.target.value)}
                                     className="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md"
+                                    placeholder="Additional notes..."
                                 />
                             </div>
                         </div>
-                        <div className="mt-4 space-y-2 text-sm text-gray-700 dark:text-gray-300">
+
+                        <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mb-4">
+                            <h3 className="text-md font-semibold text-gray-900 dark:text-white mb-3">Payment Details</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Advance Payment (Optional)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max={total}
+                                        step="0.01"
+                                        value={data.advance_payment}
+                                        onChange={(e) => setData('advance_payment', e.target.value)}
+                                        className="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md"
+                                        placeholder="0.00"
+                                    />
+                                    {errors.advance_payment && <div className="text-red-600 text-sm mt-1">{errors.advance_payment}</div>}
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Payment Method</label>
+                                    <select
+                                        value={data.payment_method}
+                                        onChange={(e) => setData('payment_method', e.target.value)}
+                                        className="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md"
+                                    >
+                                        <option value="cash">Cash</option>
+                                        <option value="card">Card</option>
+                                        <option value="upi">UPI</option>
+                                        <option value="bank_transfer">Bank Transfer</option>
+                                        <option value="cheque">Cheque</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
                             <div className="flex justify-between">
                                 <span>Subtotal</span>
                                 <span className="font-medium text-gray-900 dark:text-white">{formatCurrency(subtotal)}</span>
@@ -351,10 +398,22 @@ export default function Create({ customers, services, products, prefillCustomerI
                                 <span>Discount</span>
                                 <span className="font-medium text-gray-900 dark:text-white">-{formatCurrency(data.discount)}</span>
                             </div>
-                            <div className="flex justify-between text-base font-semibold">
-                                <span>Total</span>
+                            <div className="flex justify-between text-base font-semibold border-t border-gray-200 dark:border-gray-700 pt-2">
+                                <span>Total Amount</span>
                                 <span className="text-gray-900 dark:text-white">{formatCurrency(total)}</span>
                             </div>
+                            {data.advance_payment && parseFloat(data.advance_payment) > 0 && (
+                                <>
+                                    <div className="flex justify-between text-green-600 dark:text-green-400">
+                                        <span>Advance Paid</span>
+                                        <span className="font-medium">-{formatCurrency(data.advance_payment)}</span>
+                                    </div>
+                                    <div className="flex justify-between text-base font-semibold text-orange-600 dark:text-orange-400 border-t border-gray-200 dark:border-gray-700 pt-2">
+                                        <span>Due Amount</span>
+                                        <span>{formatCurrency(dueAmount)}</span>
+                                    </div>
+                                </>
+                            )}
                             {errors.items && <div className="text-red-600 text-sm">{errors.items}</div>}
                             {errors.stock && <div className="text-red-600 text-sm">{errors.stock}</div>}
                         </div>

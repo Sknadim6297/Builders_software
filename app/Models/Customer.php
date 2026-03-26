@@ -39,7 +39,18 @@ class Customer extends Model
         
         static::creating(function ($customer) {
             if (empty($customer->cust_id)) {
-                $customer->cust_id = 'CUST-' . str_pad(Customer::count() + 1, 6, '0', STR_PAD_LEFT);
+                // Find the highest existing cust_id number and increment
+                $lastCustomer = Customer::where('cust_id', 'like', 'CUST-%')
+                    ->orderByRaw("CAST(SUBSTRING(cust_id, 6) AS UNSIGNED) DESC")
+                    ->first();
+                
+                $nextNumber = 1;
+                if ($lastCustomer) {
+                    $lastNumber = (int) substr($lastCustomer->cust_id, 5);
+                    $nextNumber = $lastNumber + 1;
+                }
+                
+                $customer->cust_id = 'CUST-' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
             }
             
             // Auto fetch current date and time

@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <title>Invoice {{ $invoice->invoice_number }}</title>
     <style>
+        * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
         body {
-            font-family: Arial, sans-serif;
+            font-family: "DejaVu Sans", Helvetica, Arial, sans-serif;
             color: #1f2933;
             margin: 24px;
             font-size: 12px;
@@ -110,9 +114,9 @@
     <div class="header">
         <div class="header-left">
             <div class="logo">
-                <img src="{{ public_path('images/logo.png') }}" alt="The Skin Studio">
+                <img src="{{ public_path('images/sayan-sita-logo.png') }}" alt="Sayan Sita Builders">
             </div>
-            <h1>The Skin Studio</h1>
+            <h1>Sayan Sita Builders</h1>
             <div class="muted">Professional Invoice</div>
         </div>
         <div class="header-right">
@@ -161,9 +165,9 @@
                         <td>{{ $item['name'] }}</td>
                         <td>{{ $item['description'] }}</td>
                         <td class="text-right">{{ number_format($item['quantity'], 2) }}</td>
-                        <td class="text-right">Rs. {{ number_format($item['unit_price'], 2) }}</td>
+                        <td class="text-right">₹ {{ number_format($item['unit_price'], 2) }}</td>
                         <td class="text-right">{{ strtoupper($item['measurement']) }}</td>
-                        <td class="text-right">Rs. {{ number_format($item['total'], 2) }}</td>
+                        <td class="text-right">₹ {{ number_format($item['total'], 2) }}</td>
                     </tr>
                 @empty
                     <tr>
@@ -179,20 +183,64 @@
             <tr>
                 <td></td>
                 <td class="text-right">Subtotal</td>
-                <td class="text-right">Rs. {{ number_format($invoice->subtotal ?? 0, 2) }}</td>
+                <td class="text-right">₹ {{ number_format($invoice->subtotal ?? 0, 2) }}</td>
             </tr>
             <tr>
                 <td></td>
                 <td class="text-right">Discount</td>
-                <td class="text-right">- Rs. {{ number_format($invoice->discount ?? 0, 2) }}</td>
+                <td class="text-right">- ₹ {{ number_format($invoice->discount ?? 0, 2) }}</td>
             </tr>
-            <tr>
+            <tr style="border-top: 1px solid #e5e7eb;">
                 <td></td>
-                <td class="text-right total-amount">Total</td>
-                <td class="text-right total-amount">Rs. {{ number_format($invoice->total ?? 0, 2) }}</td>
+                <td class="text-right total-amount">Total Amount</td>
+                <td class="text-right total-amount">₹ {{ number_format($invoice->total ?? 0, 2) }}</td>
+            </tr>
+            <tr style="color: #059669;">
+                <td></td>
+                <td class="text-right"><strong>Amount Paid</strong></td>
+                <td class="text-right"><strong>- ₹ {{ number_format($invoice->amount_paid ?? 0, 2) }}</strong></td>
+            </tr>
+            <tr style="border-top: 2px solid #1f2933; {{ ($invoice->due_amount ?? 0) > 0 ? 'color: #d97706;' : 'color: #059669;' }}">
+                <td></td>
+                <td class="text-right total-amount">Due Amount</td>
+                <td class="text-right total-amount">
+                    @if(($invoice->due_amount ?? 0) > 0)
+                        ₹ {{ number_format($invoice->due_amount, 2) }}
+                    @else
+                        <strong>No Pending / Paid</strong>
+                    @endif
+                </td>
             </tr>
         </table>
     </div>
+
+    @if(!empty($invoice->payments) && count($invoice->payments) > 0)
+        <div class="section">
+            <div class="section-title">Payment History</div>
+            <table class="items">
+                <thead>
+                    <tr>
+                        <th>Payment No.</th>
+                        <th>Date</th>
+                        <th>Method</th>
+                        <th>Reference</th>
+                        <th class="text-right">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($invoice->payments as $payment)
+                        <tr>
+                            <td>{{ $payment->payment_number }}</td>
+                            <td>{{ optional($payment->payment_date)->format('M j, Y') }}</td>
+                            <td>{{ strtoupper(str_replace('_', ' ', $payment->payment_method)) }}</td>
+                            <td>{{ $payment->transaction_reference ?? '-' }}</td>
+                            <td class="text-right">₹ {{ number_format($payment->amount, 2) }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @endif
 
     @if(!empty($invoice->notes))
         <div class="section notes">

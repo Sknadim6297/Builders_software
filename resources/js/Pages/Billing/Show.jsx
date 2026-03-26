@@ -1,11 +1,63 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import SidebarLayout from '@/Layouts/SidebarLayout';
 import { route } from '@/utils/route';
+import { useState, useEffect } from 'react';
 
-export default function Show({ invoice }) {
+export default function Show({ invoice, flash }) {
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    
+    const { data, setData, post, processing, errors, reset } = useForm({
+        amount: '',
+        payment_date: new Date().toISOString().split('T')[0],
+        payment_method: 'cash',
+        transaction_reference: '',
+        notes: ''
+    });
+
+    useEffect(() => {
+        if (flash?.success) {
+            window.showSuccess(flash.success);
+            setShowPaymentModal(false);
+            reset();
+        }
+        if (flash?.error) {
+            window.showError(flash.error);
+        }
+    }, [flash]);
+
     const formatCurrency = (value) => {
         const amount = parseFloat(value || 0);
         return `₹${amount.toFixed(2)}`;
+    };
+
+    const handleAddPayment = (e) => {
+        e.preventDefault();
+        post(route('billing.payments.add', invoice.id), {
+            preserveScroll: true,
+            onSuccess: () => {
+                setShowPaymentModal(false);
+                reset();
+            }
+        });
+    };
+
+    const getPaymentStatusBadge = () => {
+        const status = invoice.payment_status;
+        const classes = {
+            paid: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+            partial: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+            unpaid: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+        };
+        const labels = {
+            paid: 'Paid',
+            partial: 'Partial Payment',
+            unpaid: 'Unpaid'
+        };
+        return (
+            <span className={`px-3 py-1 rounded-full text-sm font-medium ${classes[status] || classes.unpaid}`}>
+                {labels[status] || status}
+            </span>
+        );
     };
 
     const lineItems = [
@@ -38,10 +90,21 @@ export default function Show({ invoice }) {
             <div className="p-6">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Invoice {invoice.invoice_number}</h1>
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Invoice {invoice.invoice_number}</h1>
+                            {getPaymentStatusBadge()}
+                        </div>
                         <p className="text-gray-600 dark:text-gray-400 mt-1">Created on {new Date(invoice.invoice_date).toLocaleDateString()}</p>
                     </div>
                     <div className="mt-4 md:mt-0 flex flex-wrap gap-3">
+                        {invoice.payment_status !== 'paid' && (
+                            <button
+                                onClick={() => setShowPaymentModal(true)}
+                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                            >
+                                Add Payment
+                            </button>
+                        )}
                         <a
                             href={route('billing.download', invoice.id)}
                             className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
@@ -114,7 +177,7 @@ export default function Show({ invoice }) {
 
                     <div className="space-y-6">
                         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Summary</h2>
+                            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Payment Summary</h2>
                             <div className="space-y-3 text-sm">
                                 <div className="flex justify-between">
                                     <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
@@ -124,12 +187,67 @@ export default function Show({ invoice }) {
                                     <span className="text-gray-600 dark:text-gray-400">Discount</span>
                                     <span className="text-gray-900 dark:text-white">-{formatCurrency(invoice.discount)}</span>
                                 </div>
-                                <div className="flex justify-between text-base font-semibold">
-                                    <span className="text-gray-900 dark:text-white">Total</span>
+                                <div className="flex justify-between text-base font-semibold border-t border-gray-200 dark:border-gray-700 pt-2">
+                                    <span className="text-gray-900 dark:text-white">Total Amount</span>
                                     <span className="text-gray-900 dark:text-white">{formatCurrency(invoice.total)}</span>
+                                </div>
+                                <div className="flex justify-between text-green-600 dark:text-green-400">
+                                    <span className="font-medium">Amount Paid</span>
+                                    <span className="font-semibold">{formatCurrency(invoice.amount_paid)}</span>
+                                </div>
+                                <div className={`flex justify-between text-base font-bold border-t border-gray-200 dark:border-gray-700 pt-2 ${
+                                    invoice.due_amount > 0 
+                                        ? 'text-orange-600 dark:text-orange-400' 
+                                        : 'text-green-600 dark:text-green-400'
+                                }`}>
+                                    <span>Due Amount</span>
+                                    <span>{invoice.due_amount > 0 ? formatCurrency(invoice.due_amount) : 'No Pending'}</span>
                                 </div>
                             </div>
                         </div>
+
+                        {invoice.payments && invoice.payments.length > 0 && (
+                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Payment History</h2>
+                                <div className="space-y-3">
+                                    {invoice.payments.map((payment) => (
+                                        <div key={payment.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div>
+                                                    <p className="font-medium text-gray-900 dark:text-white">
+                                                        {payment.payment_number}
+                                                    </p>
+                                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                                        {new Date(payment.payment_date).toLocaleDateString()} • {payment.payment_method.replace('_', ' ').toUpperCase()}
+                                                    </p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-lg font-semibold text-green-600 dark:text-green-400">
+                                                        {formatCurrency(payment.amount)}
+                                                    </p>
+                                                    <a
+                                                        href={route('payments.receipt', payment.id)}
+                                                        className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400"
+                                                    >
+                                                        Download Receipt
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            {payment.transaction_reference && (
+                                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                                    Ref: {payment.transaction_reference}
+                                                </p>
+                                            )}
+                                            {payment.notes && (
+                                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                                    {payment.notes}
+                                                </p>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                         {invoice.notes && (
                             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Notes</h2>
@@ -138,6 +256,114 @@ export default function Show({ invoice }) {
                         )}
                     </div>
                 </div>
+
+                {/* Payment Modal */}
+                {showPaymentModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Add Payment</h2>
+                            <form onSubmit={handleAddPayment} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Payment Amount <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="0.01"
+                                        max={invoice.due_amount}
+                                        step="0.01"
+                                        value={data.amount}
+                                        onChange={(e) => setData('amount', e.target.value)}
+                                        className="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md"
+                                        placeholder="0.00"
+                                        required
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">Due amount: {formatCurrency(invoice.due_amount)}</p>
+                                    {errors.amount && <div className="text-red-600 text-sm mt-1">{errors.amount}</div>}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Payment Date <span className="text-red-500">*</span>
+                                    </label>
+                                    <input
+                                        type="date"
+                                        value={data.payment_date}
+                                        onChange={(e) => setData('payment_date', e.target.value)}
+                                        className="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md"
+                                        required
+                                    />
+                                    {errors.payment_date && <div className="text-red-600 text-sm mt-1">{errors.payment_date}</div>}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Payment Method <span className="text-red-500">*</span>
+                                    </label>
+                                    <select
+                                        value={data.payment_method}
+                                        onChange={(e) => setData('payment_method', e.target.value)}
+                                        className="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md"
+                                        required
+                                    >
+                                        <option value="cash">Cash</option>
+                                        <option value="card">Card</option>
+                                        <option value="upi">UPI</option>
+                                        <option value="bank_transfer">Bank Transfer</option>
+                                        <option value="cheque">Cheque</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Transaction Reference
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={data.transaction_reference}
+                                        onChange={(e) => setData('transaction_reference', e.target.value)}
+                                        className="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md"
+                                        placeholder="Transaction ID, Cheque No, etc."
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        Notes
+                                    </label>
+                                    <textarea
+                                        rows={2}
+                                        value={data.notes}
+                                        onChange={(e) => setData('notes', e.target.value)}
+                                        className="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md"
+                                        placeholder="Additional payment notes..."
+                                    />
+                                </div>
+
+                                <div className="flex gap-3 pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setShowPaymentModal(false);
+                                            reset();
+                                        }}
+                                        className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={processing}
+                                        className="flex-1 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 disabled:opacity-50"
+                                    >
+                                        {processing ? 'Processing...' : 'Add Payment'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
             </div>
         </SidebarLayout>
     );

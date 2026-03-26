@@ -4,22 +4,26 @@
     <meta charset="UTF-8">
     <title>Activity Logs Report</title>
     <style>
+        * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
         body {
-            font-family: Arial, sans-serif;
+            font-family: "DejaVu Sans", Helvetica, Arial, sans-serif;
             font-size: 12px;
             margin: 20px;
         }
         .header {
             text-align: center;
             margin-bottom: 30px;
-            border-bottom: 2px solid #a47db5;
+            border-bottom: 2px solid #073357;
             padding-bottom: 10px;
         }
         .title {
             font-size: 24px;
             font-weight: bold;
             margin-bottom: 5px;
-            color: #a47db5;
+            color: #073357;
         }
         .subtitle {
             font-size: 14px;
@@ -42,7 +46,7 @@
             vertical-align: top;
         }
         th {
-            background-color: #a47db5;
+            background-color: #073357;
             color: white;
             font-weight: bold;
             font-size: 11px;
@@ -85,9 +89,9 @@
 </head>
 <body>
     <div class="header">
-        <img src="{{ public_path('images/logo.png') }}" alt="The Skin Studio" style="height: 60px; width: auto; margin-bottom: 10px;">
+        <img src="{{ public_path('images/sayan-sita-logo.png') }}" alt="Sayan Sita Builders" style="height: 60px; width: auto; margin-bottom: 10px;">
         <div class="title">Activity Logs Report</div>
-        <div class="subtitle">The Skin Studio - User & Admin Activity Monitoring</div>
+        <div class="subtitle">Sayan Sita Builders - User & Admin Activity Monitoring</div>
         <div class="meta-info">
             Generated on: {{ now()->format('F j, Y \a\t g:i A') }} | 
             Total Records: {{ count($logs) }}

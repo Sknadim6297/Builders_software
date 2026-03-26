@@ -4,20 +4,22 @@
 
 /* Custom Color Theme Variables */
 :root {
-    --primary-color: #a47db5;
-    --primary-hover: #9569a6;
-    --primary-light: #c29ed1;
-    --primary-dark: #8b6a99;
-    --primary-50: #f7f3f9;
-    --primary-100: #ede4f2;
-    --primary-200: #dcc9e4;
-    --primary-300: #c6a3d2;
-    --primary-400: #b188c3;
-    --primary-500: #a47db5;
-    --primary-600: #9569a6;
-    --primary-700: #7d5587;
-    --primary-800: #69466f;
-    --primary-900: #573c5c;
+    --primary-color: #073357;
+    --primary-hover: #0b4d7f;
+    --primary-light: #1b5f99;
+    --primary-dark: #04243f;
+    --secondary-color: #c0ae8a;
+    --secondary-hover: #b79f74;
+    --primary-50: #e8f0fa;
+    --primary-100: #cfe0f3;
+    --primary-200: #9ec0df;
+    --primary-300: #6c9aca;
+    --primary-400: #486fae;
+    --primary-500: #2f5594;
+    --primary-600: #244470;
+    --primary-700: #1b3555;
+    --primary-800: #112443;
+    --primary-900: #07172a;
 }
 
 /* Google Fonts - Global Font Setup */

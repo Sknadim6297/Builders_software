@@ -16,9 +16,10 @@ return [
     'public_path' => null,  // Override the public path if needed
 
     /*
-     * Dejavu Sans font is missing glyphs for converted entities, turn it off if you need to show € and £.
+     * Dejavu Sans font supports Unicode characters including ₹ (Rupee).
+     * Set to false to preserve the rupee symbol without conversion.
      */
-    'convert_entities' => true,
+    'convert_entities' => false,
 
     'options' => [
         /**

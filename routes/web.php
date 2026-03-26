@@ -7,10 +7,22 @@ use App\Http\Controllers\VendorController;
 use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\BillingController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+
+use Illuminate\Support\Facades\Artisan;
+
+Route::get('/run-migrate', function () {
+    Artisan::call('migrate', [
+        '--force' => true
+    ]);
+
+    return "Migration completed successfully!";
+});
 
 Route::get('/csrf-token', function () {
     return response()->json(['csrf_token' => csrf_token()]);
@@ -23,9 +35,7 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -42,6 +52,12 @@ Route::middleware('auth')->group(function () {
         Route::resource('customers', CustomerController::class);
     });
     
+    // Categories routes - require categories permission
+    Route::middleware('permission:categories')->group(function () {
+        Route::resource('categories', CategoryController::class);
+        Route::patch('categories/{category}/toggle-status', [CategoryController::class, 'toggleStatus'])->name('categories.toggle-status');
+    });
+    
     // Vendor routes - require vendor permission
     Route::middleware('permission:vendors')->group(function () {
         Route::resource('vendors', VendorController::class);
@@ -54,6 +70,8 @@ Route::middleware('auth')->group(function () {
 
     // Billing routes (no permission gate)
     Route::get('billing/{billing}/download', [BillingController::class, 'download'])->name('billing.download');
+    Route::post('billing/{billing}/payments', [BillingController::class, 'addPayment'])->name('billing.payments.add');
+    Route::get('payments/{payment}/receipt', [BillingController::class, 'downloadPaymentReceipt'])->name('payments.receipt');
     Route::resource('billing', BillingController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update']);
     
     // Stock Management routes - require stock_management permission (Read-only)

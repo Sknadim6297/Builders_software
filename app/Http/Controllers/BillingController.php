@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use App\Models\Invoice;
+use App\Models\Payment;
 use App\Models\Service;
 use App\Models\Stock;
 use App\Models\StockMovement;
@@ -18,7 +19,9 @@ class BillingController extends Controller
 {
 	public function index(Request $request)
 	{
-		$query = Invoice::with('customer')->orderBy('created_at', 'desc');
+		$query = Invoice::with('customer')
+			->select('id', 'invoice_number', 'invoice_date', 'customer_id', 'total', 'amount_paid', 'due_amount', 'payment_status', 'created_at')
+			->orderBy('created_at', 'desc');
 
 		if ($request->filled('search')) {
 			$search = $request->search;
@@ -85,6 +88,8 @@ class BillingController extends Controller
 			'customer_id' => 'required|exists:customers,id',
 			'invoice_date' => 'required|date',
 			'discount' => 'nullable|numeric|min:0',
+			'advance_payment' => 'nullable|numeric|min:0',
+			'payment_method' => 'nullable|string|in:cash,card,upi,bank_transfer,cheque,other',
 			'notes' => 'nullable|string|max:1000',
 			'service_items' => 'nullable|array',
 			'service_items.*.service_id' => 'required_with:service_items|exists:services,id',
@@ -186,6 +191,15 @@ class BillingController extends Controller
 
 			$discount = (float) ($validated['discount'] ?? 0);
 			$totalAmount = $subtotal - $discount;
+			$advancePayment = min((float) ($validated['advance_payment'] ?? 0), $totalAmount);
+			$dueAmount = $totalAmount - $advancePayment;
+			
+			$paymentStatus = 'unpaid';
+			if ($advancePayment >= $totalAmount) {
+				$paymentStatus = 'paid';
+			} elseif ($advancePayment > 0) {
+				$paymentStatus = 'partial';
+			}
 
 			$invoice = Invoice::create([
 				'invoice_number' => $invoiceNumber,
@@ -194,6 +208,9 @@ class BillingController extends Controller
 				'subtotal' => $subtotal,
 				'discount' => $discount,
 				'total' => $totalAmount,
+				'amount_paid' => $advancePayment,
+				'due_amount' => $dueAmount,
+				'payment_status' => $paymentStatus,
 				'notes' => $validated['notes'] ?? null,
 				'created_by' => Auth::id()
 			]);
@@ -204,6 +221,22 @@ class BillingController extends Controller
 
 			if (!empty($productRows)) {
 				$invoice->productItems()->createMany($productRows);
+			}
+
+			// Create advance payment record if any
+			if ($advancePayment > 0) {
+				$lastPayment = Payment::latest('id')->first();
+				$paymentNumber = 'PAY-' . str_pad(($lastPayment ? $lastPayment->id + 1 : 1), 6, '0', STR_PAD_LEFT);
+				
+				Payment::create([
+					'payment_number' => $paymentNumber,
+					'invoice_id' => $invoice->id,
+					'payment_date' => $validated['invoice_date'],
+					'amount' => $advancePayment,
+					'payment_method' => $validated['payment_method'] ?? 'cash',
+					'notes' => 'Advance payment',
+					'created_by' => Auth::id()
+				]);
 			}
 
 			foreach ($productRows as $item) {
@@ -272,7 +305,7 @@ class BillingController extends Controller
 
 	public function show(Invoice $billing)
 	{
-		$billing->load(['customer', 'serviceItems.service', 'productItems.stock', 'creator']);
+		$billing->load(['customer', 'serviceItems.service', 'productItems.stock', 'creator', 'payments.creator']);
 
 		return Inertia::render('Billing/Show', [
 			'invoice' => $billing
@@ -505,7 +538,7 @@ class BillingController extends Controller
 
 	public function download(Invoice $billing)
 	{
-		$billing->load(['customer', 'serviceItems.service', 'productItems.stock', 'creator']);
+		$billing->load(['customer', 'serviceItems.service', 'productItems.stock', 'creator', 'payments']);
 
 		$lineItems = array_merge(
 			($billing->serviceItems ?? collect())->map(function ($item) {
@@ -538,6 +571,70 @@ class BillingController extends Controller
 		]);
 
 		$filename = 'invoice-' . $billing->invoice_number . '.pdf';
+		return $pdf->download($filename);
+	}
+
+	/**
+	 * Add a payment to an invoice
+	 */
+	public function addPayment(Request $request, Invoice $billing)
+	{
+		$validated = $request->validate([
+			'amount' => 'required|numeric|min:0.01',
+			'payment_date' => 'required|date',
+			'payment_method' => 'required|string|in:cash,card,upi,bank_transfer,cheque,other',
+			'transaction_reference' => 'nullable|string|max:255',
+			'notes' => 'nullable|string|max:1000'
+		]);
+
+		if ($validated['amount'] > $billing->due_amount) {
+			return back()->withErrors(['amount' => 'Payment amount cannot exceed due amount of ₹' . number_format($billing->due_amount, 2)]);
+		}
+
+		DB::beginTransaction();
+
+		try {
+			$lastPayment = Payment::latest('id')->first();
+			$paymentNumber = 'PAY-' . str_pad(($lastPayment ? $lastPayment->id + 1 : 1), 6, '0', STR_PAD_LEFT);
+
+			$payment = Payment::create([
+				'payment_number' => $paymentNumber,
+				'invoice_id' => $billing->id,
+				'payment_date' => $validated['payment_date'],
+				'amount' => $validated['amount'],
+				'payment_method' => $validated['payment_method'],
+				'transaction_reference' => $validated['transaction_reference'] ?? null,
+				'notes' => $validated['notes'] ?? null,
+				'created_by' => Auth::id()
+			]);
+
+			$billing->amount_paid += $validated['amount'];
+			$billing->updatePaymentStatus();
+
+			DB::commit();
+
+			return back()->with('success', 'Payment of ₹' . number_format($validated['amount'], 2) . ' added successfully.');
+		} catch (\Exception $e) {
+			DB::rollBack();
+			Log::error('Failed to add payment:', [
+				'error' => $e->getMessage(),
+				'trace' => $e->getTraceAsString()
+			]);
+
+			return back()->withErrors(['error' => 'Failed to add payment. Please try again.']);
+		}
+	}
+
+	public function downloadPaymentReceipt(Payment $payment)
+	{
+		$payment->load(['invoice.customer', 'creator']);
+
+		$pdf = Pdf::loadView('billing.payment-receipt-pdf', [
+			'payment' => $payment,
+			'invoice' => $payment->invoice
+		]);
+
+		$filename = 'receipt-' . $payment->payment_number . '.pdf';
 		return $pdf->download($filename);
 	}
 }

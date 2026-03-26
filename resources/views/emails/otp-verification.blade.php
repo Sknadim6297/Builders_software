@@ -21,13 +21,13 @@
         }
         .header {
             text-align: center;
-            border-bottom: 2px solid #a47db5;
+            border-bottom: 2px solid #073357;
             padding-bottom: 20px;
             margin-bottom: 20px;
         }
         .otp-box {
             background: #f8f9fa;
-            border: 2px dashed #a47db5;
+            border: 2px dashed #c0ae8a;
             border-radius: 10px;
             text-align: center;
             padding: 20px;
@@ -36,7 +36,7 @@
         .otp-code {
             font-size: 36px;
             font-weight: bold;
-            color: #a47db5;
+            color: #073357;
             letter-spacing: 5px;
             margin: 10px 0;
         }
@@ -61,9 +61,9 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="{{ asset('images/logo.png') }}" alt="The Skin Studio" style="height: 70px; width: auto; margin-bottom: 10px;">
-            <h1 style="color: #a47db5; margin: 0;">🔐 OTP Verification Required</h1>
-            <p style="margin: 10px 0 0 0; color: #666;">The Skin Studio - Billing System - Security Verification</p>
+            <img src="{{ asset('images/sayan-sita-logo.png') }}" alt="Sayan Sita Builders" style="height: 70px; width: auto; margin-bottom: 10px;">
+            <h1 style="color: #073357; margin: 0;">🔐 OTP Verification Required</h1>
+            <p style="margin: 10px 0 0 0; color: #666;">Sayan Sita Builders - Billing System - Security Verification</p>
         </div>
 
         <div style="margin: 20px 0;">
@@ -98,10 +98,10 @@
         </div>
 
         <div class="footer">
-            <p>This email was sent automatically by The Skin Studio - Billing System.</p>
+            <p>This email was sent automatically by Sayan Sita Builders - Billing System.</p>
             <p>If you have any questions, please contact your system administrator.</p>
             <p style="margin-top: 10px;">
-                <strong>The Skin Studio - Billing System</strong> | 
+                <strong>Sayan Sita Builders - Billing System</strong> | 
                 Generated on {{ now()->format('M j, Y g:i A') }}
             </p>
         </div>

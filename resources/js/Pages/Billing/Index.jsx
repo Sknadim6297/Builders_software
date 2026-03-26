@@ -23,6 +23,24 @@ export default function Index({ invoices, customers, filters, flash }) {
         return `₹${amount.toFixed(2)}`;
     };
 
+    const getPaymentStatusBadge = (status) => {
+        const classes = {
+            paid: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+            partial: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+            unpaid: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+        };
+        const labels = {
+            paid: 'Paid',
+            partial: 'Partial',
+            unpaid: 'Unpaid'
+        };
+        return (
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${classes[status] || classes.unpaid}`}>
+                {labels[status] || status}
+            </span>
+        );
+    };
+
     const applyFilters = () => {
         router.get(route('billing.index'), {
             search,
@@ -128,6 +146,8 @@ export default function Index({ invoices, customers, filters, flash }) {
                                         <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-300">Customer</th>
                                         <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-300">Date</th>
                                         <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-300">Total</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-300">Due</th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-300">Status</th>
                                         <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-300">Actions</th>
                                     </tr>
                                 </thead>
@@ -138,6 +158,12 @@ export default function Index({ invoices, customers, filters, flash }) {
                                             <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{invoice.customer?.name}</td>
                                             <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{new Date(invoice.invoice_date).toLocaleDateString()}</td>
                                             <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{formatCurrency(invoice.total)}</td>
+                                            <td className="px-4 py-3 text-sm">
+                                                <span className={invoice.due_amount > 0 ? 'text-orange-600 dark:text-orange-400 font-medium' : 'text-green-600 dark:text-green-400'}>
+                                                    {invoice.due_amount > 0 ? formatCurrency(invoice.due_amount) : 'Paid'}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3 text-sm">{getPaymentStatusBadge(invoice.payment_status)}</td>
                                             <td className="px-4 py-3 text-right">
                                                 <div className="flex justify-end space-x-3">
                                                     <Link

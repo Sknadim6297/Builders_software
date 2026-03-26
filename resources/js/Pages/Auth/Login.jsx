@@ -47,8 +47,8 @@ export default function Login({ status }) {
                     <div className="text-center">
                         <div className="mx-auto h-28 w-28 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-lg p-2">
                             <img 
-                                src="/images/logo.png" 
-                                alt="The Skin Studio" 
+                                src="/images/sayan-sita-logo.png" 
+                                alt="Sayan Sita Builders" 
                                 className="h-full w-full object-contain rounded-xl"
                             />
                         </div>
@@ -170,8 +170,8 @@ export default function Login({ status }) {
 
                     {/* Footer */}
                     <div className="text-center text-sm text-gray-500">
-                        <p>The Skin Studio Management Portal</p>
-                        <p className="mt-1">Professional salon administration</p>
+                        <p>Sayan Sita Builders Management Portal</p>
+                        <p className="mt-1">Professional business administration</p>
                     </div>
                 </div>
             </div>
@@ -191,10 +191,10 @@ export default function Login({ status }) {
                 <div className="relative z-10 flex flex-col justify-center items-center text-white p-16">
                     <div className="max-w-md text-center">
                         <h1 className="text-4xl font-bold mb-6">
-                            The Skin Studio
+                            Sayan Sita Builders
                         </h1>
                         <p className="text-xl mb-8 opacity-90">
-                            Complete salon management system for beauty professionals
+                            Complete management system for construction and projects
                         </p>
                         <div className="space-y-4">
                             <div className="flex items-center space-x-3">

@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import { router } from '@inertiajs/react';
+import { route } from '@/utils/route';
 import Header from '../Components/Header/Header';
 
 export default function SidebarLayout({ children }) {
@@ -49,6 +50,17 @@ export default function SidebarLayout({ children }) {
                 current: route().current('customers.*'),
                 permission: 'customers',
 
+            },
+            {
+                name: 'Categories',
+                href: route('categories.index'),
+                icon: (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    </svg>
+                ),
+                current: route().current('categories.*'),
+                permission: 'categories'
             },
                 {
                 name: 'Customer Billing',
@@ -205,19 +217,19 @@ export default function SidebarLayout({ children }) {
                                     boxShadow: '0 10px 30px rgba(164, 125, 181, 0.3)'
                                 }}>
                                 <img
-                                    src="/images/logo.png"
-                                    alt="The Skin Studio"
+                                    src="/images/sayan-sita-logo.png"
+                                    alt="Sayan Sita Builders"
                                     className="h-14 w-14 object-contain rounded-lg"
                                 />
                             </div>
                             <div className="ml-3 overflow-hidden">
                                 <span className={`text-lg font-bold text-gray-900 dark:text-white font-heading transition-all duration-500 ${sidebarOpen ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
                                     }`} style={{ transitionDelay: sidebarOpen ? '400ms' : '0ms' }}>
-                                    The Skin Studio
+                                    Sayan Sita Builders
                                 </span>
                                 <p className={`text-xs text-gray-600 dark:text-gray-400 transition-all duration-500 ${sidebarOpen ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
                                     }`} style={{ transitionDelay: sidebarOpen ? '500ms' : '0ms' }}>
-                                    Billing System
+                                    Project Management System
                                 </p>
                             </div>
                         </div>
@@ -347,14 +359,14 @@ export default function SidebarLayout({ children }) {
                         <div className="flex items-center flex-shrink-0 px-4 mb-8">
                             <div className="h-12 w-12 bg-white rounded-lg flex items-center justify-center shadow-lg p-1">
                                 <img
-                                    src="/images/logo.png"
-                                    alt="The Skin Studio"
+                                    src="/images/sayan-sita-logo.png"
+                                    alt="Sayan Sita Builders"
                                     className="h-full w-full object-contain rounded-lg"
                                 />
                             </div>
                             <div className="ml-3">
-                                <span className="text-lg font-bold text-gray-900 dark:text-white font-heading transition-colors duration-200">The Skin Studio</span>
-                                <p className="text-xs text-gray-600 dark:text-gray-400 transition-colors duration-200">Billing System</p>
+                                <span className="text-lg font-bold text-gray-900 dark:text-white font-heading transition-colors duration-200">Sayan Sita Builders</span>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 transition-colors duration-200">Project Management</p>
                             </div>
                         </div>
                         <nav className="flex-1 px-2 space-y-2">

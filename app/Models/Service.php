@@ -35,7 +35,18 @@ class Service extends Model
         
         static::creating(function ($service) {
             if (empty($service->serv_id)) {
-                $service->serv_id = 'SRV-' . str_pad(Service::count() + 1, 6, '0', STR_PAD_LEFT);
+                // Find the highest existing serv_id number and increment
+                $lastService = Service::where('serv_id', 'like', 'SRV-%')
+                    ->orderByRaw("CAST(SUBSTRING(serv_id, 5) AS UNSIGNED) DESC")
+                    ->first();
+                
+                $nextNumber = 1;
+                if ($lastService) {
+                    $lastNumber = (int) substr($lastService->serv_id, 4);
+                    $nextNumber = $lastNumber + 1;
+                }
+                
+                $service->serv_id = 'SRV-' . str_pad($nextNumber, 6, '0', STR_PAD_LEFT);
             }
             
             // Calculate final price with GST

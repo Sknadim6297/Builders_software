@@ -413,7 +413,7 @@ export default function Index({ auth, purchaseBills, filters, flash, vendors }) 
                                                     {new Date(bill.expected_delivery).toLocaleDateString()}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                                                    ${parseFloat(bill.total || 0).toFixed(2)}
+                                                    ₹{parseFloat(bill.total || 0).toFixed(2)}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
                                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${

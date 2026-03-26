@@ -1,22 +1,22 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charse        th {
-            background-color: #a47db5;
-            color: white;
-            font-weight: bold;
-        }tf-8">
+    <meta charset="UTF-8">
     <title>Purchase Bills Report</title>
     <style>
+        * {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
         body {
-            font-family: Arial, sans-serif;
+            font-family: "DejaVu Sans", Helvetica, Arial, sans-serif;
             margin: 20px;
             font-size: 12px;
         }
         .header {
             text-align: center;
             margin-bottom: 30px;
-            border-bottom: 2px solid #a47db5;
+            border-bottom: 2px solid #073357;
             padding-bottom: 20px;
         }
         .logo {
@@ -27,7 +27,7 @@
             max-width: 250px;
         }
         .header h1 {
-            color: #a47db5;
+            color: #073357;
             margin: 10px 0 5px 0;
             font-size: 24px;
             font-weight: bold;
@@ -72,9 +72,9 @@
 <body>
     <div class="header">
         <div class="logo">
-            <img src="{{ public_path('images/logo.png') }}" alt="The Skin Studio">
+            <img src="{{ public_path('images/sayan-sita-logo.png') }}" alt="Sayan Sita Builders">
         </div>
-        <h1>The Skin Studio</h1>
+        <h1>Sayan Sita Builders</h1>
         <p class="subtitle">Purchase Bills Report</p>
         <p>Generated on: {{ date('F j, Y \a\t g:i A') }}</p>
         @if(!empty($filters))
@@ -96,7 +96,7 @@
                     Expected Delivery: {{ $filters['expected_delivery_from'] ?? 'Start' }} to {{ $filters['expected_delivery_to'] ?? 'End' }} |
                 @endif
                 @if(!empty($filters['min_amount']) || !empty($filters['max_amount']))
-                    Amount: ${{ $filters['min_amount'] ?? '0' }} to ${{ $filters['max_amount'] ?? '∞' }}
+                    Amount: ₹ {{ $filters['min_amount'] ?? '0' }} to ₹ {{ $filters['max_amount'] ?? '∞' }}
                 @endif
             </div>
         @endif
@@ -121,7 +121,7 @@
                     <td>{{ $bill->vendor->name ?? 'N/A' }}</td>
                     <td>{{ $bill->po_date ? date('M j, Y', strtotime($bill->po_date)) : '' }}</td>
                     <td>{{ $bill->expected_delivery ? date('M j, Y', strtotime($bill->expected_delivery)) : '' }}</td>
-                    <td class="text-right">${{ number_format($bill->total ?? 0, 2) }}</td>
+                    <td class="text-right">₹ {{ number_format($bill->total ?? 0, 2) }}</td>
                     <td>{{ ucfirst($bill->status ?? 'draft') }}</td>
                     <td>{{ $bill->reference ?? '' }}</td>
                 </tr>
