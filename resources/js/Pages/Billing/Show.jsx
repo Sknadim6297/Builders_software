@@ -129,6 +129,12 @@ export default function Show({ invoice, flash }) {
                                     <p className="text-gray-500">Name</p>
                                     <p className="text-gray-900 dark:text-white">{invoice.customer?.name}</p>
                                 </div>
+                                {invoice.buyer_logo && (
+                                    <div>
+                                        <p className="text-gray-500">Buyer Logo</p>
+                                        <img src={`/storage/${invoice.buyer_logo}`} alt="Buyer Logo" className="h-16 mt-1 object-contain" />
+                                    </div>
+                                )}
                                 <div>
                                     <p className="text-gray-500">Customer ID</p>
                                     <p className="text-gray-900 dark:text-white">{invoice.customer?.cust_id}</p>
@@ -184,8 +190,16 @@ export default function Show({ invoice, flash }) {
                                     <span className="text-gray-900 dark:text-white">{formatCurrency(invoice.subtotal)}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-gray-600 dark:text-gray-400">GST ({parseFloat(invoice.gst_percentage || 0).toFixed(2)}%)</span>
-                                    <span className="text-gray-900 dark:text-white">{formatCurrency((parseFloat(invoice.subtotal || 0) * (parseFloat(invoice.gst_percentage || 0) || 0)) / 100)}</span>
+                                    <span className="text-gray-600 dark:text-gray-400">C G.S.T ({parseFloat(invoice.cgst_percentage || 0).toFixed(2)}%)</span>
+                                    <span className="text-gray-900 dark:text-white">{formatCurrency((parseFloat(invoice.subtotal || 0) * (parseFloat(invoice.cgst_percentage || 0) || 0)) / 100)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600 dark:text-gray-400">S G.S.T ({parseFloat(invoice.sgst_percentage || 0).toFixed(2)}%)</span>
+                                    <span className="text-gray-900 dark:text-white">{formatCurrency((parseFloat(invoice.subtotal || 0) * (parseFloat(invoice.sgst_percentage || 0) || 0)) / 100)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600 dark:text-gray-400">Total GST ({parseFloat(invoice.gst_percentage || ((parseFloat(invoice.cgst_percentage || 0)+parseFloat(invoice.sgst_percentage || 0))) ).toFixed(2)}%)</span>
+                                    <span className="text-gray-900 dark:text-white">{formatCurrency((parseFloat(invoice.subtotal || 0) * (parseFloat(invoice.gst_percentage || ((parseFloat(invoice.cgst_percentage || 0)+parseFloat(invoice.sgst_percentage || 0))) ) || 0)) / 100)}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-600 dark:text-gray-400">Discount</span>

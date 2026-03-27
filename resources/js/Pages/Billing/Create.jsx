@@ -8,7 +8,10 @@ export default function Create({ customers, services, products, prefillCustomerI
     const { data, setData, post, processing, errors } = useForm({
         invoice_date: new Date().toISOString().split('T')[0],
         customer_id: prefillCustomerId || '',
+        cgst_percentage: '',
+        sgst_percentage: '',
         gst_percentage: '',
+        buyer_logo: undefined,
         product_items: [],
         discount: '',
         advance_payment: '',
@@ -24,6 +27,15 @@ export default function Create({ customers, services, products, prefillCustomerI
             window.showError(flash.error);
         }
     }, [flash]);
+
+    useEffect(() => {
+        const cgst = parseFloat(data.cgst_percentage) || 0;
+        const sgst = parseFloat(data.sgst_percentage) || 0;
+        const sum = cgst + sgst;
+        if (!Number.isNaN(sum)) {
+            setData('gst_percentage', String(sum));
+        }
+    }, [data.cgst_percentage, data.sgst_percentage]);
 
     const productMap = useMemo(() => {
         const map = new Map();
@@ -66,11 +78,13 @@ export default function Create({ customers, services, products, prefillCustomerI
     }, [data.product_items]);
 
     const total = useMemo(() => {
-        const gstPercentage = parseFloat(data.gst_percentage) || 0;
+        const cgstPercentage = parseFloat(data.cgst_percentage) || 0;
+        const sgstPercentage = parseFloat(data.sgst_percentage) || 0;
+        const gstPercentage = cgstPercentage + sgstPercentage || parseFloat(data.gst_percentage) || 0;
         const gstAmount = (subtotal * gstPercentage) / 100;
         const discount = parseFloat(data.discount) || 0;
         return subtotal + gstAmount - discount;
-    }, [subtotal, data.gst_percentage, data.discount]);
+    }, [subtotal, data.cgst_percentage, data.sgst_percentage, data.gst_percentage, data.discount]);
 
     const dueAmount = useMemo(() => {
         const advancePayment = parseFloat(data.advance_payment) || 0;
@@ -84,7 +98,9 @@ export default function Create({ customers, services, products, prefillCustomerI
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('billing.store'));
+        post(route('billing.store'), {
+            forceFormData: true
+        });
     };
 
     return (
@@ -138,7 +154,52 @@ export default function Create({ customers, services, products, prefillCustomerI
                                 {errors.customer_id && <div className="text-red-600 text-sm mt-1">{errors.customer_id}</div>}
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">GST %</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">C G.S.T %</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    step="0.01"
+                                    value={data.cgst_percentage}
+                                    onChange={(e) => setData('cgst_percentage', e.target.value)}
+                                    className="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md"
+                                    placeholder="0.00"
+                                />
+                                {errors.cgst_percentage && <div className="text-red-600 text-sm mt-1">{errors.cgst_percentage}</div>}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">S G.S.T %</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    step="0.01"
+                                    value={data.sgst_percentage}
+                                    onChange={(e) => setData('sgst_percentage', e.target.value)}
+                                    className="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md"
+                                    placeholder="0.00"
+                                />
+                                {errors.sgst_percentage && <div className="text-red-600 text-sm mt-1">{errors.sgst_percentage}</div>}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Order / Buyer Logo (Image Upload)</label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => setData('buyer_logo', e.target.files?.[0] || undefined)}
+                                    className="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md"
+                                />
+                                {errors.buyer_logo && <div className="text-red-600 text-sm mt-1">{errors.buyer_logo}</div>}
+                                {data.buyer_logo && data.buyer_logo instanceof File && (
+                                    <img
+                                        src={URL.createObjectURL(data.buyer_logo)}
+                                        alt="Buyer logo preview"
+                                        className="h-16 mt-2 object-contain"
+                                    />
+                                )}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">GST % (auto)</label>
                                 <input
                                     type="number"
                                     min="0"

@@ -33,7 +33,10 @@ export default function Edit({ invoice, services, products, flash }) {
     const { data, setData, put, processing, errors } = useForm({
         invoice_date: toDateInput(invoice.invoice_date),
         customer_id: invoice.customer_id || '',
+        cgst_percentage: invoice.cgst_percentage != null ? String(invoice.cgst_percentage) : '',
+        sgst_percentage: invoice.sgst_percentage != null ? String(invoice.sgst_percentage) : '',
         gst_percentage: invoice.gst_percentage != null ? String(invoice.gst_percentage) : '',
+        buyer_logo: invoice.buyer_logo || undefined,
         service_items: initialServiceItems,
         product_items: initialProductItems,
         discount: invoice.discount != null ? String(invoice.discount) : '',
@@ -48,6 +51,15 @@ export default function Edit({ invoice, services, products, flash }) {
             window.showError(flash.error);
         }
     }, [flash]);
+
+    useEffect(() => {
+        const cgst = parseFloat(data.cgst_percentage) || 0;
+        const sgst = parseFloat(data.sgst_percentage) || 0;
+        const sum = cgst + sgst;
+        if (!Number.isNaN(sum)) {
+            setData('gst_percentage', String(sum));
+        }
+    }, [data.cgst_percentage, data.sgst_percentage]);
 
     const productMap = useMemo(() => {
         const map = new Map();
@@ -90,11 +102,13 @@ export default function Edit({ invoice, services, products, flash }) {
     }, [data.product_items]);
 
     const total = useMemo(() => {
-        const gstPercentage = parseFloat(data.gst_percentage) || 0;
+        const cgstPercentage = parseFloat(data.cgst_percentage) || 0;
+        const sgstPercentage = parseFloat(data.sgst_percentage) || 0;
+        const gstPercentage = cgstPercentage + sgstPercentage || parseFloat(data.gst_percentage) || 0;
         const gstAmount = (subtotal * gstPercentage) / 100;
         const discount = parseFloat(data.discount) || 0;
         return subtotal + gstAmount - discount;
-    }, [subtotal, data.gst_percentage, data.discount]);
+    }, [subtotal, data.cgst_percentage, data.sgst_percentage, data.gst_percentage, data.discount]);
 
     const formatCurrency = (value) => {
         const amount = parseFloat(value || 0);
@@ -103,7 +117,9 @@ export default function Edit({ invoice, services, products, flash }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        put(route('billing.update', invoice.id));
+        put(route('billing.update', invoice.id), {
+            forceFormData: true
+        });
     };
 
     return (
@@ -127,7 +143,7 @@ export default function Edit({ invoice, services, products, flash }) {
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Customer Details</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Invoice Date</label>
                                 <input
@@ -146,7 +162,37 @@ export default function Edit({ invoice, services, products, flash }) {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">GST %</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">C G.S.T %</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    step="0.01"
+                                    value={data.cgst_percentage}
+                                    onChange={(e) => setData('cgst_percentage', e.target.value)}
+                                    className="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md"
+                                    placeholder="0.00"
+                                />
+                                {errors.cgst_percentage && <div className="text-red-600 text-sm mt-1">{errors.cgst_percentage}</div>}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">S G.S.T %</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    step="0.01"
+                                    value={data.sgst_percentage}
+                                    onChange={(e) => setData('sgst_percentage', e.target.value)}
+                                    className="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md"
+                                    placeholder="0.00"
+                                />
+                                {errors.sgst_percentage && <div className="text-red-600 text-sm mt-1">{errors.sgst_percentage}</div>}
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">GST % (Total)</label>
                                 <input
                                     type="number"
                                     min="0"
@@ -158,6 +204,30 @@ export default function Edit({ invoice, services, products, flash }) {
                                     placeholder="0.00"
                                 />
                                 {errors.gst_percentage && <div className="text-red-600 text-sm mt-1">{errors.gst_percentage}</div>}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Buyer Logo (Image Upload)</label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => setData('buyer_logo', e.target.files?.[0] || undefined)}
+                                    className="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md"
+                                />
+                                {errors.buyer_logo && <div className="text-red-600 text-sm mt-1">{errors.buyer_logo}</div>}
+                                {data.buyer_logo && data.buyer_logo instanceof File && (
+                                    <img
+                                        src={URL.createObjectURL(data.buyer_logo)}
+                                        alt="Buyer logo preview"
+                                        className="h-16 mt-2 object-contain"
+                                    />
+                                )}
+                                {data.buyer_logo && !(data.buyer_logo instanceof File) && (
+                                    <img
+                                        src={`/storage/${data.buyer_logo}`}
+                                        alt="Current buyer logo"
+                                        className="h-16 mt-2 object-contain"
+                                    />
+                                )}
                             </div>
                         </div>
                     </div>

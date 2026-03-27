@@ -87,10 +87,13 @@ class BillingController extends Controller
 		$validated = $request->validate([
 			'customer_id' => 'required|exists:customers,id',
 			'invoice_date' => 'required|date',
+			'cgst_percentage' => 'nullable|numeric|min:0|max:100',
+			'sgst_percentage' => 'nullable|numeric|min:0|max:100',
 			'gst_percentage' => 'nullable|numeric|min:0|max:100',
 			'discount' => 'nullable|numeric|min:0',
 			'advance_payment' => 'nullable|numeric|min:0',
 			'payment_method' => 'nullable|string|in:cash,card,upi,bank_transfer,cheque,other',
+			'buyer_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
 			'notes' => 'nullable|string|max:1000',
 			'service_items' => 'nullable|array',
 			'service_items.*.service_id' => 'required_with:service_items|exists:services,id',
@@ -101,6 +104,11 @@ class BillingController extends Controller
 			'product_items.*.quantity' => 'required_with:product_items|numeric|min:0.01',
 			'product_items.*.unit_price' => 'required_with:product_items|numeric|min:0'
 		]);
+
+		$buyerLogoPath = null;
+		if ($request->hasFile('buyer_logo')) {
+			$buyerLogoPath = $request->file('buyer_logo')->store('invoice-logos', 'public');
+		}
 
 		$serviceItems = $validated['service_items'] ?? [];
 		$productItems = $validated['product_items'] ?? [];
@@ -155,9 +163,6 @@ class BillingController extends Controller
 		DB::beginTransaction();
 
 		try {
-			$lastInvoice = Invoice::latest('id')->first();
-			$invoiceNumber = 'INV-' . str_pad(($lastInvoice ? $lastInvoice->id + 1 : 1), 6, '0', STR_PAD_LEFT);
-
 			$serviceRows = [];
 			$productRows = [];
 			$subtotal = 0;
@@ -190,7 +195,9 @@ class BillingController extends Controller
 				];
 			}
 
-			$gstPercentage = (float) ($validated['gst_percentage'] ?? 0);
+			$cgstPercentage = (float) ($validated['cgst_percentage'] ?? 0);
+			$sgstPercentage = (float) ($validated['sgst_percentage'] ?? 0);
+			$gstPercentage = $cgstPercentage + $sgstPercentage;
 			$gstAmount = ($subtotal * $gstPercentage) / 100;
 			$discount = (float) ($validated['discount'] ?? 0);
 			$totalAmount = $subtotal + $gstAmount - $discount;
@@ -205,19 +212,24 @@ class BillingController extends Controller
 			}
 
 			$invoice = Invoice::create([
-				'invoice_number' => $invoiceNumber,
+				'invoice_number' => 'TEMP-' . uniqid(),
 				'invoice_date' => $validated['invoice_date'],
 				'customer_id' => $validated['customer_id'],
 				'subtotal' => $subtotal,
 				'gst_percentage' => $gstPercentage,
+				'cgst_percentage' => $cgstPercentage,
+				'sgst_percentage' => $sgstPercentage,
 				'discount' => $discount,
 				'total' => $totalAmount,
 				'amount_paid' => $advancePayment,
 				'due_amount' => $dueAmount,
 				'payment_status' => $paymentStatus,
+				'buyer_logo' => $buyerLogoPath,
 				'notes' => $validated['notes'] ?? null,
 				'created_by' => Auth::id()
 			]);
+
+			$invoice->update(['invoice_number' => 'INV-' . str_pad($invoice->id, 6, '0', STR_PAD_LEFT)]);
 
 			if (!empty($serviceRows)) {
 				$invoice->serviceItems()->createMany($serviceRows);
@@ -229,11 +241,8 @@ class BillingController extends Controller
 
 			// Create advance payment record if any
 			if ($advancePayment > 0) {
-				$lastPayment = Payment::latest('id')->first();
-				$paymentNumber = 'PAY-' . str_pad(($lastPayment ? $lastPayment->id + 1 : 1), 6, '0', STR_PAD_LEFT);
-				
-				Payment::create([
-					'payment_number' => $paymentNumber,
+				$payment = Payment::create([
+					'payment_number' => 'TEMP-' . uniqid(),
 					'invoice_id' => $invoice->id,
 					'payment_date' => $validated['invoice_date'],
 					'amount' => $advancePayment,
@@ -241,6 +250,8 @@ class BillingController extends Controller
 					'notes' => 'Advance payment',
 					'created_by' => Auth::id()
 				]);
+
+				$payment->update(['payment_number' => 'PAY-' . str_pad($payment->id, 6, '0', STR_PAD_LEFT)]);
 			}
 
 			foreach ($productRows as $item) {
@@ -258,7 +269,7 @@ class BillingController extends Controller
 					'total_cost' => $stock->unit_cost * $item['quantity'],
 					'reference_type' => 'invoice',
 					'reference_id' => $invoice->id,
-					'notes' => 'Invoice ' . $invoiceNumber . ' product sale',
+					'notes' => 'Invoice ' . $invoice->invoice_number . ' product sale',
 					'created_by' => Auth::id()
 				]);
 			}
@@ -286,7 +297,7 @@ class BillingController extends Controller
 						'total_cost' => $stock->unit_cost * $deductQty,
 						'reference_type' => 'invoice',
 						'reference_id' => $invoice->id,
-						'notes' => 'Invoice ' . $invoiceNumber . ' service consumption: ' . $service->name,
+						'notes' => 'Invoice ' . $invoice->invoice_number . ' service consumption: ' . $service->name,
 						'created_by' => Auth::id()
 					]);
 				}
@@ -303,7 +314,7 @@ class BillingController extends Controller
 				'trace' => $e->getTraceAsString()
 			]);
 
-			return back()->withErrors(['error' => 'Failed to create invoice. Please try again.']);
+			return back()->withErrors(['error' => 'Failed to create invoice: ' . $e->getMessage()]);
 		}
 	}
 
@@ -342,10 +353,18 @@ class BillingController extends Controller
 		}
 		$request->merge($requestData);
 
+		$buyerLogoPath = $billing->buyer_logo;
+		if ($request->hasFile('buyer_logo')) {
+			$buyerLogoPath = $request->file('buyer_logo')->store('invoice-logos', 'public');
+		}
+
 		$validated = $request->validate([
 			'invoice_date' => 'required|date',
+			'cgst_percentage' => 'nullable|numeric|min:0|max:100',
+			'sgst_percentage' => 'nullable|numeric|min:0|max:100',
 			'gst_percentage' => 'nullable|numeric|min:0|max:100',
 			'discount' => 'nullable|numeric|min:0',
+			'buyer_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
 			'notes' => 'nullable|string|max:1000',
 			'service_items' => 'nullable|array',
 			'service_items.*.service_id' => 'required_with:service_items|exists:services,id',
@@ -472,7 +491,9 @@ class BillingController extends Controller
 				];
 			}
 
-			$gstPercentage = (float) ($validated['gst_percentage'] ?? 0);
+			$cgstPercentage = (float) ($validated['cgst_percentage'] ?? 0);
+			$sgstPercentage = (float) ($validated['sgst_percentage'] ?? 0);
+			$gstPercentage = $cgstPercentage + $sgstPercentage;
 			$gstAmount = ($subtotal * $gstPercentage) / 100;
 			$discount = (float) ($validated['discount'] ?? 0);
 			$totalAmount = $subtotal + $gstAmount - $discount;
@@ -481,8 +502,11 @@ class BillingController extends Controller
 				'invoice_date' => $validated['invoice_date'],
 				'subtotal' => $subtotal,
 				'gst_percentage' => $gstPercentage,
+				'cgst_percentage' => $cgstPercentage,
+				'sgst_percentage' => $sgstPercentage,
 				'discount' => $discount,
 				'total' => $totalAmount,
+				'buyer_logo' => $buyerLogoPath,
 				'notes' => $validated['notes'] ?? null,
 				'updated_by' => Auth::id()
 			]);
@@ -542,7 +566,7 @@ class BillingController extends Controller
 				'trace' => $e->getTraceAsString()
 			]);
 
-			return back()->withErrors(['error' => 'Failed to update invoice. Please try again.']);
+			return back()->withErrors(['error' => 'Failed to update invoice: ' . $e->getMessage()]);
 		}
 	}
 
@@ -550,15 +574,22 @@ class BillingController extends Controller
 	{
 		$billing->load(['customer', 'serviceItems.service', 'productItems.stock', 'creator', 'payments']);
 
+		$invoiceDiscountPercent = 0;
+		if ((float) ($billing->subtotal ?? 0) > 0 && (float) ($billing->discount ?? 0) > 0) {
+			$invoiceDiscountPercent = round(((float) ($billing->discount ?? 0) / (float) ($billing->subtotal ?? 0)) * 100, 2);
+		}
+
 		$lineItems = array_merge(
 			($billing->serviceItems ?? collect())->map(function ($item) {
 				return [
 					'type' => 'Service',
 					'name' => $item->service->name ?? 'Service',
 					'description' => $item->service->description ?? '-',
-					'measurement' => '-',
+					'unit' => '-',
+					'hsn_code' => $item->service->hsn_code ?? '-',
 					'quantity' => $item->quantity,
 					'unit_price' => $item->unit_price,
+					'discount' => $item->discount ?? null,
 					'total' => $item->total
 				];
 			})->toArray(),
@@ -567,21 +598,62 @@ class BillingController extends Controller
 					'type' => 'Product',
 					'name' => $item->stock->item_name ?? 'Product',
 					'description' => $item->stock->item_description ?? '-',
-					'measurement' => $item->stock->unit ?? '-',
+					'unit' => $item->stock->unit ?? '-',
+					'hsn_code' => $item->stock->hsn_code ?? '-',
 					'quantity' => $item->quantity,
 					'unit_price' => $item->unit_price,
+					'discount' => $item->discount ?? 0,
 					'total' => $item->total
 				];
 			})->toArray()
 		);
 
+		$cgstPercentage = (float) ($billing->cgst_percentage ?? 0);
+		$sgstPercentage = (float) ($billing->sgst_percentage ?? 0);
+		$gstPercentage = $cgstPercentage + $sgstPercentage;
+		$gstAmount = round((float) ($billing->subtotal ?? 0) * $gstPercentage / 100, 2);
+		$cgst = round((float) ($billing->subtotal ?? 0) * $cgstPercentage / 100, 2);
+		$sgst = round((float) ($billing->subtotal ?? 0) * $sgstPercentage / 100, 2);
+		$deliveryCharges = $billing->delivery_charges ?? 0;
+		$grossTotal = round(($billing->subtotal ?? 0) + $deliveryCharges, 2);
+		$netValue = round(($billing->total ?? 0) + $deliveryCharges, 2);
+		$amountInWords = $this->convertAmountToWords($netValue);
+
 		$pdf = Pdf::loadView('billing.invoice-pdf', [
 			'invoice' => $billing,
-			'lineItems' => $lineItems
+			'lineItems' => $lineItems,
+			'gst_amount' => $gstAmount,
+			'cgst' => $cgst,
+			'sgst' => $sgst,
+			'delivery_charges' => $deliveryCharges,
+			'gross_total' => $grossTotal,
+			'net_value' => $netValue,
+			'amount_in_words' => $amountInWords,
+			'invoice_discount_percent' => $invoiceDiscountPercent,
+			'buyer_logo' => $billing->buyer_logo ?? null
 		]);
 
 		$filename = 'invoice-' . $billing->invoice_number . '.pdf';
 		return $pdf->download($filename);
+	}
+
+	private function convertAmountToWords(float $amount): string
+	{
+		try {
+			$formatter = new \NumberFormatter('en_IN', \NumberFormatter::SPELLOUT);
+			$whole = (int) floor($amount);
+			$fraction = (int) round(($amount - $whole) * 100);
+
+			$words = ucfirst($formatter->format($whole)) . ' Rupees';
+			if ($fraction > 0) {
+				$words .= ' and ' . ucfirst($formatter->format($fraction)) . ' Paise';
+			}
+			$words .= ' only.';
+
+			return $words;
+		} catch (\Throwable $e) {
+			return number_format($amount, 2) . ' Rupees only';
+		}
 	}
 
 	/**
