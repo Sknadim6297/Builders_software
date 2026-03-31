@@ -134,25 +134,38 @@ export default function Show({ auth, purchaseBill }) {
                                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                                         <thead className="bg-gray-50 dark:bg-gray-700">
                                             <tr>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Product</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Description</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Quantity</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Unit Price</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Unit</th>
-                                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Total</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Sl. No</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Description</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">HSN Code</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Quantity</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Unit</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Rate</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Discount %</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Net Rate</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Amount</th>
                                             </tr>
                                         </thead>
                                         <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                            {purchaseBill.items && purchaseBill.items.map((item, index) => (
-                                                <tr key={index}>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{item.product}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{item.description || '-'}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{item.quantity}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{formatCurrency(item.unit_price)}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{item.measurement}</td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">{formatCurrency(item.total)}</td>
-                                                </tr>
-                                            ))}
+                                            {purchaseBill.items && purchaseBill.items.map((item, index) => {
+                                                const quantity = parseFloat(item.quantity) || 0;
+                                                const rate = parseFloat(item.unit_price) || 0;
+                                                const discountPct = parseFloat(item.discount_percentage) || 0;
+                                                const netRate = rate - (rate * discountPct / 100);
+                                                const amount = netRate * quantity;
+                                                return (
+                                                    <tr key={index}>
+                                                        <td className="px-4 py-3">{index + 1}</td>
+                                                        <td className="px-4 py-3">{item.product || '-'}</td>
+                                                        <td className="px-4 py-3">{item.hsn_code || '-'}</td>
+                                                        <td className="px-4 py-3">{quantity}</td>
+                                                        <td className="px-4 py-3">{item.measurement || '-'}</td>
+                                                        <td className="px-4 py-3">{formatCurrency(rate)}</td>
+                                                        <td className="px-4 py-3">{discountPct}%</td>
+                                                        <td className="px-4 py-3">{formatCurrency(netRate)}</td>
+                                                        <td className="px-4 py-3">{formatCurrency(amount)}</td>
+                                                    </tr>
+                                                );
+                                            })}
                                         </tbody>
                                     </table>
                                 </div>
@@ -191,18 +204,40 @@ export default function Show({ auth, purchaseBill }) {
                                         <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{formatCurrency(purchaseBill.subtotal)}</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span className="text-sm text-gray-600 dark:text-gray-400">Tax ({purchaseBill.tax}%)</span>
-                                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{formatCurrency((purchaseBill.subtotal * purchaseBill.tax) / 100)}</span>
+                                        <span className="text-sm text-gray-600 dark:text-gray-400">Delivery Charges</span>
+                                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{formatCurrency(purchaseBill.delivery_charges)}</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-sm text-gray-600 dark:text-gray-400">Discount</span>
                                         <span className="text-sm font-medium text-gray-900 dark:text-gray-100">-{formatCurrency(purchaseBill.discount)}</span>
                                     </div>
-                                    <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
-                                        <div className="flex justify-between">
-                                            <span className="text-lg font-semibold text-gray-900 dark:text-white">Total</span>
-                                            <span className="text-lg font-semibold text-gray-900 dark:text-white">{formatCurrency(purchaseBill.total)}</span>
-                                        </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-sm text-gray-600 dark:text-gray-400">CGST ({purchaseBill.cgst_percentage}%)</span>
+                                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{formatCurrency(purchaseBill.cgst_amount)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-sm text-gray-600 dark:text-gray-400">SGST ({purchaseBill.sgst_percentage}%)</span>
+                                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{formatCurrency(purchaseBill.sgst_amount)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-sm text-gray-600 dark:text-gray-400">IGST ({purchaseBill.igst_percentage}%)</span>
+                                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{formatCurrency(purchaseBill.igst_amount)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-sm text-gray-600 dark:text-gray-400">TCS ({purchaseBill.tcs_percentage}%)</span>
+                                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{formatCurrency(purchaseBill.tcs_amount)}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-sm text-gray-600 dark:text-gray-400">Round Off</span>
+                                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{formatCurrency(purchaseBill.round_off)}</span>
+                                    </div>
+                                    <div className="flex justify-between border-t border-gray-200 dark:border-gray-700 pt-3">
+                                        <span className="text-lg font-semibold text-gray-900 dark:text-white">Gross Amount</span>
+                                        <span className="text-lg font-semibold text-gray-900 dark:text-white">{formatCurrency(purchaseBill.gross_amount)}</span>
+                                    </div>
+                                    <div className="flex justify-between border-t border-gray-200 dark:border-gray-700 pt-3">
+                                        <span className="text-lg font-semibold text-gray-900 dark:text-white">Net Amount</span>
+                                        <span className="text-lg font-semibold text-gray-900 dark:text-white">{formatCurrency(purchaseBill.net_amount)}</span>
                                     </div>
                                 </div>
                             </div>

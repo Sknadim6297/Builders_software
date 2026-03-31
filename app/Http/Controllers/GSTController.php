@@ -62,7 +62,7 @@ class GSTController extends Controller
         $query = Invoice::where('invoice_date', '>=', $fromDate)
             ->where('invoice_date', '<=', $toDate)
             ->where('payment_status', '!=', 'cancelled')
-            ->with(['invoiceServiceItems.service', 'customer']);
+            ->with(['invoiceServiceItems.service', 'productItems.stock', 'customer']);
 
         $invoices = $query->get();
         $totalGST = 0;
@@ -71,10 +71,21 @@ class GSTController extends Controller
         foreach ($invoices as $invoice) {
             $invoiceGST = 0;
 
-            // Calculate GST from service items only
+            // Calculate GST from service items
             foreach ($invoice->invoiceServiceItems as $item) {
                 if ($item->service && $item->service->gst_percentage > 0) {
                     $gstPercentage = $item->service->gst_percentage;
+                    if ($gstRate === null || $gstPercentage == $gstRate) {
+                        $gstAmount = ($item->total * $gstPercentage) / (100 + $gstPercentage);
+                        $invoiceGST += $gstAmount;
+                    }
+                }
+            }
+
+            // Calculate GST from product items
+            foreach ($invoice->productItems as $item) {
+                if ($item->stock && isset($item->stock->gst_percentage) && $item->stock->gst_percentage > 0) {
+                    $gstPercentage = $item->stock->gst_percentage;
                     if ($gstRate === null || $gstPercentage == $gstRate) {
                         $gstAmount = ($item->total * $gstPercentage) / (100 + $gstPercentage);
                         $invoiceGST += $gstAmount;

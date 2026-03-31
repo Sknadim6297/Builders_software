@@ -60,6 +60,36 @@ class User extends Authenticatable
         return $this->belongsToMany(Permission::class, 'user_permissions');
     }
 
+    /**
+     * Get menus this user has access to
+     */
+    public function menus()
+    {
+        return $this->belongsToMany(Menu::class, 'user_menu_permissions');
+    }
+
+    /**
+     * Get allowed menus for this user (including all for super admin)
+     */
+    public function getAllowedMenus()
+    {
+        if ($this->is_super_admin) {
+            return Menu::active()->orderBy('sort_order')->get();
+        }
+        return $this->menus()->where('is_active', true)->orderBy('sort_order')->get();
+    }
+
+    /**
+     * Check if user has access to a menu
+     */
+    public function hasMenuAccess($menuName)
+    {
+        if ($this->is_super_admin) {
+            return true;
+        }
+        return $this->menus()->where('name', $menuName)->exists();
+    }
+
     public function hasPermission($permission)
     {
         if ($this->is_super_admin) {

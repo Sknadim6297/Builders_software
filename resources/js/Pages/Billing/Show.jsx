@@ -202,7 +202,7 @@ export default function Show({ invoice, flash }) {
                                     <span className="text-gray-900 dark:text-white">{formatCurrency((parseFloat(invoice.subtotal || 0) * (parseFloat(invoice.gst_percentage || ((parseFloat(invoice.cgst_percentage || 0)+parseFloat(invoice.sgst_percentage || 0))) ) || 0)) / 100)}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-gray-600 dark:text-gray-400">Discount</span>
+                                    <span className="text-gray-600 dark:text-gray-400">Discount ({parseFloat(invoice.invoice_discount_percent || 0).toFixed(2)}%)</span>
                                     <span className="text-gray-900 dark:text-white">-{formatCurrency(invoice.discount)}</span>
                                 </div>
                                 <div className="flex justify-between text-base font-semibold border-t border-gray-200 dark:border-gray-700 pt-2">

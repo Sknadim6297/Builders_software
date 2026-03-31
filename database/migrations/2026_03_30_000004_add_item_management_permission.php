@@ -1,0 +1,36 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        // Add item_management permission if it doesn't exist
+        DB::table('permissions')->updateOrInsert(
+            ['name' => 'item_management'],
+            [
+                'name' => 'item_management',
+                'display_name' => 'Manage Item Master',
+                'description' => 'Manage Item Master',
+                'created_at' => now(),
+                'updated_at' => now()
+            ]
+        );
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        // Remove the permission
+        DB::table('permissions')->where('name', 'item_management')->delete();
+    }
+};

@@ -13,6 +13,8 @@ use App\Models\Vendor;
 use App\Models\Customer;
 use App\Models\Stock;
 use App\Models\StockMovement;
+use App\Models\Item;
+use App\Models\PurchaseBillItem;
 use App\Exports\PurchaseBillsExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -111,10 +113,12 @@ class PurchaseBillController extends Controller
     {
         $vendors = Vendor::select('id', 'name', 'address')->orderBy('name')->get();
         $customers = Customer::select('id', 'name', 'address')->orderBy('name')->get();
+        $items = Item::active()->get(['id', 'item_code', 'name', 'unit_type', 'gst_percentage']);
 
-        return Inertia::render('PurchaseBills/Create', [
+        return Inertia::render('PurchaseBills/CreateNew', [
             'vendors' => $vendors,
-            'customers' => $customers
+            'customers' => $customers,
+            'items' => $items
         ]);
     }
 
@@ -136,11 +140,23 @@ class PurchaseBillController extends Controller
             'vendor_address' => 'required|string|max:500',
             'deliver_address' => 'required|string|max:500',
             'expected_delivery' => 'nullable|date',
-            'items' => 'required', // Accept both string and array
+            'items' => 'required',
             'subtotal' => 'required|numeric|min:0',
-            'tax' => 'nullable|numeric|min:0|max:100',
+            'delivery_charges' => 'nullable|numeric|min:0',
+            'gst_type' => 'required|in:intra,inter',
+            'cgst_percentage' => 'nullable|numeric|min:0|max:100',
+            'sgst_percentage' => 'nullable|numeric|min:0|max:100',
+            'igst_percentage' => 'nullable|numeric|min:0|max:100',
+            'cgst_amount' => 'nullable|numeric|min:0',
+            'sgst_amount' => 'nullable|numeric|min:0',
+            'igst_amount' => 'nullable|numeric|min:0',
+            'tcs_percentage' => 'nullable|numeric|min:0|max:100',
+            'tcs_amount' => 'nullable|numeric|min:0',
+            'round_off' => 'nullable|numeric',
+            'gross_amount' => 'nullable|numeric|min:0',
             'discount' => 'nullable|numeric|min:0',
             'total' => 'required|numeric|min:0',
+            'net_amount' => 'nullable|numeric|min:0',
             'terms' => 'nullable|string|max:1000',
             'notes' => 'nullable|string|max:1000',
             'reference' => 'nullable|string|max:255',
@@ -153,6 +169,52 @@ class PurchaseBillController extends Controller
         } else {
             $items = json_decode($validated['items'], true);
         }
+
+        // Recalculate item-level values for security and consistency
+        $grossAmount = 0;
+        foreach ($items as &$item) {
+            $quantity = (float) ($item['quantity'] ?? 0);
+            $rate = (float) ($item['unit_price'] ?? 0);
+            $itemDiscountPercent = (float) ($item['discount_percentage'] ?? 0);
+
+            $netRate = $rate - ($rate * $itemDiscountPercent / 100);
+            $netRate = round($netRate, 2);
+            $itemAmount = round($netRate * $quantity, 2);
+
+            $item['net_rate'] = $netRate;
+            $item['amount'] = $itemAmount;
+            $grossAmount += $itemAmount;
+        }
+        unset($item);
+
+        $deliveryCharges = (float) ($validated['delivery_charges'] ?? 0);
+        $gstType = $validated['gst_type'] ?? 'intra';
+        $cgstPercentage = (float) ($validated['cgst_percentage'] ?? 0);
+        $sgstPercentage = (float) ($validated['sgst_percentage'] ?? 0);
+        $igstPercentage = (float) ($validated['igst_percentage'] ?? 0);
+        $tcsPercentage = (float) ($validated['tcs_percentage'] ?? 0);
+        $roundOff = (float) ($validated['round_off'] ?? 0);
+
+        $baseInvoiceAmount = $grossAmount + $deliveryCharges;
+        $cgstAmount = 0;
+        $sgstAmount = 0;
+        $igstAmount = 0;
+
+        if ($gstType === 'intra') {
+            $cgstAmount = round($baseInvoiceAmount * ($cgstPercentage / 100), 2);
+            $sgstAmount = round($baseInvoiceAmount * ($sgstPercentage / 100), 2);
+        } else {
+            $igstAmount = round($baseInvoiceAmount * ($igstPercentage / 100), 2);
+        }
+
+        $gstTotal = $cgstAmount + $sgstAmount + $igstAmount;
+        $tcsAmount = round(($baseInvoiceAmount + $gstTotal) * ($tcsPercentage / 100), 2);
+
+        $netAmount = $baseInvoiceAmount + $gstTotal + $tcsAmount + $roundOff;
+        $netAmount = round($netAmount, 2);
+
+        $taxField = $gstTotal;
+        $computedTotal = $netAmount;
 
         DB::beginTransaction();
         
@@ -170,16 +232,44 @@ class PurchaseBillController extends Controller
                 'deliver_address' => $validated['deliver_address'],
                 'expected_delivery' => $validated['expected_delivery'],
                 'items' => $items,
-                'subtotal' => $validated['subtotal'],
-                'tax' => $validated['tax'] ?? 0,
+                'subtotal' => $grossAmount,
+                'delivery_charges' => $deliveryCharges,
+                'gst_type' => $gstType,
+                'cgst_percentage' => $cgstPercentage,
+                'sgst_percentage' => $sgstPercentage,
+                'igst_percentage' => $igstPercentage,
+                'cgst_amount' => $cgstAmount,
+                'sgst_amount' => $sgstAmount,
+                'igst_amount' => $igstAmount,
+                'tax' => $taxField,
+                'tcs_percentage' => $tcsPercentage,
+                'tcs_amount' => $tcsAmount,
+                'round_off' => $roundOff,
+                'gross_amount' => $baseInvoiceAmount,
                 'discount' => $validated['discount'] ?? 0,
-                'total' => $validated['total'],
+                'total' => $computedTotal,
+                'net_amount' => $netAmount,
                 'terms' => $validated['terms'],
                 'notes' => $validated['notes'],
                 'reference' => $validated['reference'],
                 'status' => 'draft',
                 'created_by' => Auth::id()
             ]);
+
+            // Create PurchaseBillItem records for each item
+            foreach ($items as $item) {
+                if (!empty($item['item_id'])) {
+                    PurchaseBillItem::create([
+                        'purchase_bill_id' => $purchaseBill->id,
+                        'item_id' => $item['item_id'],
+                        'quantity' => $item['quantity'] ?? 0,
+                        'unit_price' => $item['unit_price'] ?? 0,
+                        'discount_percentage' => $item['discount_percentage'] ?? 0,
+                        'total' => $item['amount'] ?? 0,
+                        'gst_percentage' => $item['gst_percentage'] ?? 0
+                    ]);
+                }
+            }
 
             // Handle file attachments
             if ($request->hasFile('attachments')) {
@@ -210,7 +300,6 @@ class PurchaseBillController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
             
-            // Log the error for debugging
             Log::error('Failed to create purchase bill:', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
@@ -263,9 +352,21 @@ class PurchaseBillController extends Controller
             'expected_delivery' => 'nullable|date',
             'items' => 'required', // Accept both string and array
             'subtotal' => 'required|numeric|min:0',
-            'tax' => 'nullable|numeric|min:0|max:100',
+            'delivery_charges' => 'nullable|numeric|min:0',
+            'gst_type' => 'required|in:intra,inter',
+            'cgst_percentage' => 'nullable|numeric|min:0|max:100',
+            'sgst_percentage' => 'nullable|numeric|min:0|max:100',
+            'igst_percentage' => 'nullable|numeric|min:0|max:100',
+            'cgst_amount' => 'nullable|numeric|min:0',
+            'sgst_amount' => 'nullable|numeric|min:0',
+            'igst_amount' => 'nullable|numeric|min:0',
+            'tcs_percentage' => 'nullable|numeric|min:0|max:100',
+            'tcs_amount' => 'nullable|numeric|min:0',
+            'round_off' => 'nullable|numeric',
+            'gross_amount' => 'nullable|numeric|min:0',
             'discount' => 'nullable|numeric|min:0',
             'total' => 'required|numeric|min:0',
+            'net_amount' => 'nullable|numeric|min:0',
             'terms' => 'nullable|string|max:1000',
             'notes' => 'nullable|string|max:1000',
             'reference' => 'nullable|string|max:255',
@@ -273,16 +374,59 @@ class PurchaseBillController extends Controller
             'status' => 'nullable|in:draft,sent,received,completed,cancelled'
         ]);
 
+        // Ensure items is converted to proper format
+        if (is_array($validated['items'])) {
+            $items = $validated['items'];
+        } else {
+            $items = json_decode($validated['items'], true);
+        }
+
+        // Recalculate item-level values for security and consistency
+        $grossAmount = 0;
+        foreach ($items as &$item) {
+            $quantity = (float) ($item['quantity'] ?? 0);
+            $rate = (float) ($item['unit_price'] ?? 0);
+            $itemDiscountPercent = (float) ($item['discount_percentage'] ?? 0);
+
+            $netRate = $rate - ($rate * $itemDiscountPercent / 100);
+            $netRate = round($netRate, 2);
+            $itemAmount = round($netRate * $quantity, 2);
+
+            $item['net_rate'] = $netRate;
+            $item['amount'] = $itemAmount;
+            $grossAmount += $itemAmount;
+        }
+        unset($item);
+
+        $deliveryCharges = (float) ($validated['delivery_charges'] ?? 0);
+        $gstType = $validated['gst_type'] ?? 'intra';
+        $cgstPercentage = (float) ($validated['cgst_percentage'] ?? 0);
+        $sgstPercentage = (float) ($validated['sgst_percentage'] ?? 0);
+        $igstPercentage = (float) ($validated['igst_percentage'] ?? 0);
+        $tcsPercentage = (float) ($validated['tcs_percentage'] ?? 0);
+        $roundOff = (float) ($validated['round_off'] ?? 0);
+
+        $baseInvoiceAmount = $grossAmount + $deliveryCharges;
+        $cgstAmount = 0;
+        $sgstAmount = 0;
+        $igstAmount = 0;
+
+        if ($gstType === 'intra') {
+            $cgstAmount = round($baseInvoiceAmount * ($cgstPercentage / 100), 2);
+            $sgstAmount = round($baseInvoiceAmount * ($sgstPercentage / 100), 2);
+        } else {
+            $igstAmount = round($baseInvoiceAmount * ($igstPercentage / 100), 2);
+        }
+
+        $gstTotal = $cgstAmount + $sgstAmount + $igstAmount;
+        $tcsAmount = round(($baseInvoiceAmount + $gstTotal) * ($tcsPercentage / 100), 2);
+
+        $netAmount = round($baseInvoiceAmount + $gstTotal + $tcsAmount + $roundOff, 2);
+        $taxField = $gstTotal;
+
         DB::beginTransaction();
-        
+
         try {
-            // Ensure items is converted to proper format
-            if (is_array($validated['items'])) {
-                $items = $validated['items'];
-            } else {
-                $items = json_decode($validated['items'], true);
-            }
-            
             // Update purchase bill
             $purchaseBill->update([
                 'po_date' => $validated['po_date'],
@@ -291,10 +435,23 @@ class PurchaseBillController extends Controller
                 'deliver_address' => $validated['deliver_address'],
                 'expected_delivery' => $validated['expected_delivery'],
                 'items' => $items,
-                'subtotal' => $validated['subtotal'],
-                'tax' => $validated['tax'] ?? 0,
+                'subtotal' => $grossAmount,
+                'delivery_charges' => $deliveryCharges,
+                'gst_type' => $gstType,
+                'cgst_percentage' => $cgstPercentage,
+                'sgst_percentage' => $sgstPercentage,
+                'igst_percentage' => $igstPercentage,
+                'cgst_amount' => $cgstAmount,
+                'sgst_amount' => $sgstAmount,
+                'igst_amount' => $igstAmount,
+                'tax' => $taxField,
+                'tcs_percentage' => $tcsPercentage,
+                'tcs_amount' => $tcsAmount,
+                'round_off' => $roundOff,
+                'gross_amount' => $baseInvoiceAmount,
                 'discount' => $validated['discount'] ?? 0,
-                'total' => $validated['total'],
+                'total' => $netAmount,
+                'net_amount' => $netAmount,
                 'terms' => $validated['terms'],
                 'notes' => $validated['notes'],
                 'reference' => $validated['reference'],
@@ -368,21 +525,27 @@ class PurchaseBillController extends Controller
     private function updateStockFromPurchaseBill(PurchaseBill $purchaseBill, array $items)
     {
         foreach ($items as $item) {
-            $itemName = $item['product'] ?? ''; // Changed from 'name' to 'product'
-            $quantity = (float)($item['quantity'] ?? 0);
-            $unitCost = (float)($item['unit_price'] ?? 0); // Changed from 'unit_cost' to 'unit_price'
-            $unit = $item['measurement'] ?? 'pcs'; // Changed from 'unit' to 'measurement'
+            $itemId = $item['item_id'] ?? null;
+            $quantity = (float) ($item['quantity'] ?? 0);
+            $unitCost = (float) ($item['unit_price'] ?? 0);
             
-            if (empty($itemName) || $quantity <= 0) {
+            if (empty($itemId) || $quantity <= 0) {
                 continue;
             }
 
-            // Find or create stock item
+            // Get the Item Master record
+            $itemMaster = Item::find($itemId);
+            if (!$itemMaster) {
+                continue;
+            }
+
+            // Find or create stock item linked to Item Master
             $stock = Stock::firstOrCreate(
-                ['item_name' => $itemName],
+                ['item_id' => $itemMaster->id],
                 [
-                    'item_description' => $item['description'] ?? '',
-                    'unit' => $unit,
+                    'item_name' => $itemMaster->name,
+                    'item_description' => $itemMaster->description ?? '',
+                    'unit' => $itemMaster->unit_type,
                     'quantity_on_hand' => 0,
                     'unit_cost' => $unitCost,
                     'selling_price' => $unitCost,

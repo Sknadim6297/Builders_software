@@ -31,6 +31,7 @@ class Invoice extends Model
         'cgst_percentage',
         'sgst_percentage',
         'discount',
+        'discount_percentage',
         'total',
         'amount_paid',
         'due_amount',
@@ -48,6 +49,7 @@ class Invoice extends Model
         'cgst_percentage' => 'decimal:2',
         'sgst_percentage' => 'decimal:2',
         'discount' => 'decimal:2',
+        'discount_percentage' => 'decimal:2',
         'total' => 'decimal:2',
         'amount_paid' => 'decimal:2',
         'due_amount' => 'decimal:2'
@@ -58,9 +60,16 @@ class Invoice extends Model
         return $this->belongsTo(Customer::class);
     }
 
+
     public function serviceItems(): HasMany
     {
         return $this->hasMany(InvoiceServiceItem::class);
+    }
+
+    // Alias for compatibility with code expecting 'invoiceServiceItems' relationship
+    public function invoiceServiceItems(): HasMany
+    {
+        return $this->hasMany(InvoiceServiceItem::class, 'invoice_id');
     }
 
     public function productItems(): HasMany

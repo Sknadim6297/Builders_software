@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Traits\LogsActivity;
 
 class Stock extends Model
@@ -13,6 +14,7 @@ class Stock extends Model
     use HasFactory, LogsActivity;
 
     protected $fillable = [
+        'item_id',
         'item_name',
         'item_description',
         'unit',
@@ -40,6 +42,14 @@ class Stock extends Model
     public function stockMovements(): HasMany
     {
         return $this->hasMany(StockMovement::class);
+    }
+
+    /**
+     * Get the item master for this stock.
+     */
+    public function item(): BelongsTo
+    {
+        return $this->belongsTo(Item::class);
     }
 
     public function consumableServices(): BelongsToMany

@@ -8,6 +8,7 @@ use App\Models\Payment;
 use App\Models\Service;
 use App\Models\Stock;
 use App\Models\StockMovement;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -90,7 +91,7 @@ class BillingController extends Controller
 			'cgst_percentage' => 'nullable|numeric|min:0|max:100',
 			'sgst_percentage' => 'nullable|numeric|min:0|max:100',
 			'gst_percentage' => 'nullable|numeric|min:0|max:100',
-			'discount' => 'nullable|numeric|min:0',
+			'discount_percentage' => 'nullable|numeric|min:0|max:100',
 			'advance_payment' => 'nullable|numeric|min:0',
 			'payment_method' => 'nullable|string|in:cash,card,upi,bank_transfer,cheque,other',
 			'buyer_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
@@ -199,7 +200,8 @@ class BillingController extends Controller
 			$sgstPercentage = (float) ($validated['sgst_percentage'] ?? 0);
 			$gstPercentage = $cgstPercentage + $sgstPercentage;
 			$gstAmount = ($subtotal * $gstPercentage) / 100;
-			$discount = (float) ($validated['discount'] ?? 0);
+			$discountPercent = (float) ($validated['discount_percentage'] ?? 0);
+			$discount = ($subtotal * $discountPercent) / 100;
 			$totalAmount = $subtotal + $gstAmount - $discount;
 			$advancePayment = min((float) ($validated['advance_payment'] ?? 0), $totalAmount);
 			$dueAmount = $totalAmount - $advancePayment;
@@ -220,6 +222,7 @@ class BillingController extends Controller
 				'cgst_percentage' => $cgstPercentage,
 				'sgst_percentage' => $sgstPercentage,
 				'discount' => $discount,
+				'discount_percentage' => $discountPercent,
 				'total' => $totalAmount,
 				'amount_paid' => $advancePayment,
 				'due_amount' => $dueAmount,
@@ -322,6 +325,9 @@ class BillingController extends Controller
 	{
 		$billing->load(['customer', 'serviceItems.service', 'productItems.stock', 'creator', 'payments.creator']);
 
+		// expose computed discount percent for the front-end display
+		$billing->setAttribute('invoice_discount_percent', (float) ($billing->discount_percentage ?? 0));
+
 		return Inertia::render('Billing/Show', [
 			'invoice' => $billing
 		]);
@@ -363,7 +369,7 @@ class BillingController extends Controller
 			'cgst_percentage' => 'nullable|numeric|min:0|max:100',
 			'sgst_percentage' => 'nullable|numeric|min:0|max:100',
 			'gst_percentage' => 'nullable|numeric|min:0|max:100',
-			'discount' => 'nullable|numeric|min:0',
+			'discount_percentage' => 'nullable|numeric|min:0|max:100',
 			'buyer_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
 			'notes' => 'nullable|string|max:1000',
 			'service_items' => 'nullable|array',
@@ -495,7 +501,8 @@ class BillingController extends Controller
 			$sgstPercentage = (float) ($validated['sgst_percentage'] ?? 0);
 			$gstPercentage = $cgstPercentage + $sgstPercentage;
 			$gstAmount = ($subtotal * $gstPercentage) / 100;
-			$discount = (float) ($validated['discount'] ?? 0);
+			$discountPercent = (float) ($validated['discount_percentage'] ?? 0);
+			$discount = ($subtotal * $discountPercent) / 100;
 			$totalAmount = $subtotal + $gstAmount - $discount;
 
 			$billing->update([
@@ -505,6 +512,7 @@ class BillingController extends Controller
 				'cgst_percentage' => $cgstPercentage,
 				'sgst_percentage' => $sgstPercentage,
 				'discount' => $discount,
+				'discount_percentage' => $discountPercent,
 				'total' => $totalAmount,
 				'buyer_logo' => $buyerLogoPath,
 				'notes' => $validated['notes'] ?? null,
@@ -574,10 +582,7 @@ class BillingController extends Controller
 	{
 		$billing->load(['customer', 'serviceItems.service', 'productItems.stock', 'creator', 'payments']);
 
-		$invoiceDiscountPercent = 0;
-		if ((float) ($billing->subtotal ?? 0) > 0 && (float) ($billing->discount ?? 0) > 0) {
-			$invoiceDiscountPercent = round(((float) ($billing->discount ?? 0) / (float) ($billing->subtotal ?? 0)) * 100, 2);
-		}
+		$invoiceDiscountPercent = (float) ($billing->discount_percentage ?? 0);
 
 		$lineItems = array_merge(
 			($billing->serviceItems ?? collect())->map(function ($item) {
@@ -630,7 +635,16 @@ class BillingController extends Controller
 			'net_value' => $netValue,
 			'amount_in_words' => $amountInWords,
 			'invoice_discount_percent' => $invoiceDiscountPercent,
-			'buyer_logo' => $billing->buyer_logo ?? null
+			'buyer_logo' => $billing->buyer_logo ?? null,
+			'payment_tc' => Setting::getValue('payment_terms_conditions', 'Billing date: From 5 days between payment. Late payment charges apply as below: After 7 days — 1% Debit Note. After 14 days — 2% Debit Note. After 20 days — 2.5% Debit Note. After 24 days — 2.7% Debit Note. After 30 days — 3% Debit Note. After 2 months — 4% Debit Note. After 3 months — 4.5% Debit Note. Interest @18% p.a. if not paid within 5 days. Any dispute regarding quality/quantity must be raised within 5 days of supply. No claim afterward.'),
+			'payment_mode' => Setting::getValue('payment_mode', 'CREDIT'),
+			'godown' => Setting::getValue('godown', 'CHALITAPARA'),
+			'transport' => Setting::getValue('transport', 'VAN (SELF)'),
+			'bank' => Setting::getValue('bank', 'Development Bank of Singapore'),
+			'account_no' => Setting::getValue('account_no', '8828210000007429'),
+			'ifsc' => Setting::getValue('ifsc', 'DBSS0IN0828'),
+			'branch' => Setting::getValue('branch', 'KOLKATA MAIN BRANCH'),
+			'account_type' => Setting::getValue('account_type', 'Trade & Forex CURRENT ACCOUNT')
 		]);
 
 		$filename = 'invoice-' . $billing->invoice_number . '.pdf';

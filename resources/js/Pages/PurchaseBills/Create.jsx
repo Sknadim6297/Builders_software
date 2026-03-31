@@ -16,16 +16,28 @@ export default function Create({ auth, vendors, customers, flash }) {
             {
                 product: '',
                 description: '',
-                quantity: '',
-                unit_price: '',
-                measurement: '',
-                total: 0
+                hsn_code: '',
+                quantity: '0',
+                unit_price: '0',
+                measurement: 'pcs',
+                discount_percentage: '0',
+                net_rate: 0,
+                amount: 0
             }
         ],
-        subtotal: '',
-        tax: '',
-        discount: '',
-        total: '',
+        subtotal: '0',
+        delivery_charges: '0',
+        gst_type: 'intra',
+        cgst_percentage: '9',
+        sgst_percentage: '9',
+        igst_percentage: '0',
+        tcs_percentage: '0',
+        round_off: '0',
+        gross_amount: '0',
+        discount: '0',
+        tax: '0',
+        total: '0',
+        net_amount: '0',
         terms: '',
         notes: '',
         reference: ''
@@ -71,10 +83,13 @@ export default function Create({ auth, vendors, customers, flash }) {
             {
                 product: '',
                 description: '',
-                quantity: '',
-                unit_price: '',
-                measurement: '',
-                total: 0
+                hsn_code: '',
+                quantity: '0',
+                unit_price: '0',
+                measurement: 'pcs',
+                discount_percentage: '0',
+                net_rate: 0,
+                amount: 0
             }
         ]);
     };
@@ -91,29 +106,62 @@ export default function Create({ auth, vendors, customers, flash }) {
     const updateItem = (index, field, value) => {
         const newItems = [...data.items];
         newItems[index][field] = value;
-        
-        // Calculate total for this item
-        if (field === 'quantity' || field === 'unit_price') {
-            const quantity = parseFloat(newItems[index].quantity) || 0;
-            const unitPrice = parseFloat(newItems[index].unit_price) || 0;
-            newItems[index].total = quantity * unitPrice;
-        }
-        
+
+        const quantity = parseFloat(newItems[index].quantity) || 0;
+        const rate = parseFloat(newItems[index].unit_price) || 0;
+        const discountPct = parseFloat(newItems[index].discount_percentage) || 0;
+
+        const netRate = rate - (rate * discountPct / 100);
+        const amount = netRate * quantity;
+
+        newItems[index].net_rate = Number(netRate.toFixed(2));
+        newItems[index].amount = Number(amount.toFixed(2));
+
         setData('items', newItems);
     };
 
     // Calculate totals
     useEffect(() => {
-        const subtotal = data.items.reduce((sum, item) => sum + (parseFloat(item.total) || 0), 0);
-        const taxAmount = (subtotal * (parseFloat(data.tax) || 0)) / 100;
-        const total = subtotal + taxAmount - (parseFloat(data.discount) || 0);
-        
+        const subtotal = data.items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+        const deliveryCharges = parseFloat(data.delivery_charges) || 0;
+        const gstType = data.gst_type || 'intra';
+        const cgstPct = parseFloat(data.cgst_percentage) || 0;
+        const sgstPct = parseFloat(data.sgst_percentage) || 0;
+        const igstPct = parseFloat(data.igst_percentage) || 0;
+        const tcsPct = parseFloat(data.tcs_percentage) || 0;
+        const roundOff = parseFloat(data.round_off) || 0;
+        const discount = parseFloat(data.discount) || 0;
+
+        const baseAmount = subtotal + deliveryCharges;
+
+        let cgstAmount = 0;
+        let sgstAmount = 0;
+        let igstAmount = 0;
+
+        if (gstType === 'intra') {
+            cgstAmount = (baseAmount * cgstPct) / 100;
+            sgstAmount = (baseAmount * sgstPct) / 100;
+        } else {
+            igstAmount = (baseAmount * igstPct) / 100;
+        }
+
+        const gstAmount = cgstAmount + sgstAmount + igstAmount;
+        const tcsAmount = ((baseAmount + gstAmount) * tcsPct) / 100;
+        const grossAmount = baseAmount;
+        const netAmount = Number((grossAmount + gstAmount + tcsAmount + roundOff - discount).toFixed(2));
+
         setData(prevData => ({
             ...prevData,
             subtotal: subtotal.toFixed(2),
-            total: total.toFixed(2)
+            gross_amount: grossAmount.toFixed(2),
+            cgst_amount: cgstAmount.toFixed(2),
+            sgst_amount: sgstAmount.toFixed(2),
+            igst_amount: igstAmount.toFixed(2),
+            tcs_amount: tcsAmount.toFixed(2),
+            total: netAmount.toFixed(2),
+            net_amount: netAmount.toFixed(2)
         }));
-    }, [data.items, data.tax, data.discount]);
+    }, [data.items, data.delivery_charges, data.gst_type, data.cgst_percentage, data.sgst_percentage, data.igst_percentage, data.tcs_percentage, data.round_off, data.discount]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -125,12 +173,22 @@ export default function Create({ auth, vendors, customers, flash }) {
                 ...item,
                 quantity: parseFloat(item.quantity) || 0,
                 unit_price: parseFloat(item.unit_price) || 0,
-                total: parseFloat(item.total) || 0
+                discount_percentage: parseFloat(item.discount_percentage) || 0,
+                net_rate: parseFloat(item.net_rate) || 0,
+                amount: parseFloat(item.amount) || 0
             }))),
-            tax: parseFloat(data.tax) || 0,
-            discount: parseFloat(data.discount) || 0,
             subtotal: parseFloat(data.subtotal) || 0,
-            total: parseFloat(data.total) || 0
+            delivery_charges: parseFloat(data.delivery_charges) || 0,
+            gst_type: data.gst_type || 'intra',
+            cgst_percentage: parseFloat(data.cgst_percentage) || 0,
+            sgst_percentage: parseFloat(data.sgst_percentage) || 0,
+            igst_percentage: parseFloat(data.igst_percentage) || 0,
+            tcs_percentage: parseFloat(data.tcs_percentage) || 0,
+            round_off: parseFloat(data.round_off) || 0,
+            gross_amount: parseFloat(data.gross_amount) || 0,
+            discount: parseFloat(data.discount) || 0,
+            total: parseFloat(data.total) || 0,
+            net_amount: parseFloat(data.net_amount) || 0
         };
 
         // Validate that items is a string
@@ -366,24 +424,28 @@ export default function Create({ auth, vendors, customers, flash }) {
                                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                                     <thead className="bg-primary-600 text-white">
                                         <tr>
-                                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Product</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Sl. No</th>
                                             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Description</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">HSN Code</th>
                                             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Quantity</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Unit Price</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Measurement</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Total</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Unit</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Rate (Rs.)</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Discount %</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Net Rate</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">Amount</th>
                                             <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                                         {data.items.map((item, index) => (
                                             <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+                                                <td className="px-4 py-3">{index + 1}</td>
                                                 <td className="px-4 py-3">
                                                     <input
                                                         type="text"
                                                         value={item.product}
                                                         onChange={(e) => updateItem(index, 'product', e.target.value)}
-                                                        placeholder="Product Name"
+                                                        placeholder="Description"
                                                         required
                                                         className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
                                                     />
@@ -391,9 +453,9 @@ export default function Create({ auth, vendors, customers, flash }) {
                                                 <td className="px-4 py-3">
                                                     <input
                                                         type="text"
-                                                        value={item.description}
-                                                        onChange={(e) => updateItem(index, 'description', e.target.value)}
-                                                        placeholder="Description"
+                                                        value={item.hsn_code}
+                                                        onChange={(e) => updateItem(index, 'hsn_code', e.target.value)}
+                                                        placeholder="HSN Code"
                                                         className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
                                                     />
                                                 </td>
@@ -402,11 +464,26 @@ export default function Create({ auth, vendors, customers, flash }) {
                                                         type="number"
                                                         value={item.quantity}
                                                         onChange={(e) => updateItem(index, 'quantity', e.target.value)}
-                                                        min="1"
+                                                        min="0"
+                                                        step="0.01"
                                                         placeholder="0"
                                                         required
                                                         className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
                                                     />
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <select
+                                                        value={item.measurement}
+                                                        onChange={(e) => updateItem(index, 'measurement', e.target.value)}
+                                                        required
+                                                        className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                                                    >
+                                                        {measurementUnits.map(unit => (
+                                                            <option key={unit} value={unit}>
+                                                                {unit.toUpperCase()}
+                                                            </option>
+                                                        ))}
+                                                    </select>
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <input
@@ -421,24 +498,29 @@ export default function Create({ auth, vendors, customers, flash }) {
                                                     />
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    <select
-                                                        value={item.measurement}
-                                                        onChange={(e) => updateItem(index, 'measurement', e.target.value)}
-                                                        required
+                                                    <input
+                                                        type="number"
+                                                        value={item.discount_percentage}
+                                                        onChange={(e) => updateItem(index, 'discount_percentage', e.target.value)}
+                                                        min="0"
+                                                        max="100"
+                                                        step="0.01"
+                                                        placeholder="0"
                                                         className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                                                    >
-                                                        <option value="">Select Unit</option>
-                                                        {measurementUnits.map(unit => (
-                                                            <option key={unit} value={unit}>
-                                                                {unit.toUpperCase()}
-                                                            </option>
-                                                        ))}
-                                                    </select>
+                                                    />
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <input
                                                         type="text"
-                                                        value={`₹${(parseFloat(item.total) || 0).toFixed(2)}`}
+                                                        value={`₹${(parseFloat(item.net_rate) || 0).toFixed(2)}`}
+                                                        readOnly
+                                                        className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white text-sm"
+                                                    />
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <input
+                                                        type="text"
+                                                        value={`₹${(parseFloat(item.amount) || 0).toFixed(2)}`}
                                                         readOnly
                                                         className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white text-sm"
                                                     />
@@ -464,58 +546,138 @@ export default function Create({ auth, vendors, customers, flash }) {
                         {/* Summary Section */}
                         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
                             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Summary</h2>
-                            
+
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Subtotal
-                                    </label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Gross Amount</label>
                                     <input
                                         type="text"
-                                        value={`₹${data.subtotal}`}
+                                        value={`₹${data.gross_amount}`}
                                         readOnly
                                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white"
                                     />
                                 </div>
-
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Tax (%)
-                                    </label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Delivery Charges</label>
                                     <input
                                         type="number"
-                                        value={data.tax}
-                                        onChange={(e) => setData('tax', e.target.value)}
+                                        value={data.delivery_charges}
+                                        onChange={(e) => setData('delivery_charges', e.target.value)}
+                                        min="0"
+                                        step="0.01"
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">GST Type</label>
+                                    <select
+                                        value={data.gst_type}
+                                        onChange={(e) => setData('gst_type', e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                    >
+                                        <option value="intra">Intra-state (CGST + SGST)</option>
+                                        <option value="inter">Inter-state (IGST)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">CGST %</label>
+                                    <input
+                                        type="number"
+                                        value={data.cgst_percentage}
+                                        onChange={(e) => setData('cgst_percentage', e.target.value)}
                                         min="0"
                                         max="100"
                                         step="0.01"
-                                        placeholder="0"
                                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                     />
                                 </div>
-
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Discount (₹)
-                                    </label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SGST %</label>
                                     <input
                                         type="number"
-                                        value={data.discount}
-                                        onChange={(e) => setData('discount', e.target.value)}
+                                        value={data.sgst_percentage}
+                                        onChange={(e) => setData('sgst_percentage', e.target.value)}
                                         min="0"
+                                        max="100"
                                         step="0.01"
-                                        placeholder="0.00"
                                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                     />
                                 </div>
-
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Total
-                                    </label>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">IGST %</label>
+                                    <input
+                                        type="number"
+                                        value={data.igst_percentage}
+                                        onChange={(e) => setData('igst_percentage', e.target.value)}
+                                        min="0"
+                                        max="100"
+                                        step="0.01"
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">CGST Amount</label>
                                     <input
                                         type="text"
-                                        value={`₹${data.total}`}
+                                        value={`₹${data.cgst_amount || '0.00'}`}
+                                        readOnly
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">SGST Amount</label>
+                                    <input
+                                        type="text"
+                                        value={`₹${data.sgst_amount || '0.00'}`}
+                                        readOnly
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">IGST Amount</label>
+                                    <input
+                                        type="text"
+                                        value={`₹${data.igst_amount || '0.00'}`}
+                                        readOnly
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">TCS %</label>
+                                    <input
+                                        type="number"
+                                        value={data.tcs_percentage}
+                                        onChange={(e) => setData('tcs_percentage', e.target.value)}
+                                        min="0"
+                                        max="100"
+                                        step="0.01"
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">TCS Amount</label>
+                                    <input
+                                        type="text"
+                                        value={`₹${data.tcs_amount || '0.00'}`}
+                                        readOnly
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Round Off</label>
+                                    <input
+                                        type="number"
+                                        value={data.round_off}
+                                        onChange={(e) => setData('round_off', e.target.value)}
+                                        step="0.01"
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Net Amount</label>
+                                    <input
+                                        type="text"
+                                        value={`₹${data.net_amount}`}
                                         readOnly
                                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white font-semibold"
                                     />

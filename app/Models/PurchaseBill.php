@@ -20,9 +20,21 @@ class PurchaseBill extends Model
         'expected_delivery',
         'items',
         'subtotal',
-        'tax',
+        'delivery_charges',
+        'gst_type',
+        'cgst_percentage',
+        'sgst_percentage',
+        'igst_percentage',
+        'cgst_amount',
+        'sgst_amount',
+        'igst_amount',
+        'tcs_percentage',
+        'tcs_amount',
+        'round_off',
+        'gross_amount',
         'discount',
         'total',
+        'net_amount',
         'terms',
         'notes',
         'reference',
@@ -38,9 +50,20 @@ class PurchaseBill extends Model
         'items' => 'array',
         'attachments' => 'array',
         'subtotal' => 'decimal:2',
-        'tax' => 'decimal:2',
+        'delivery_charges' => 'decimal:2',
+        'cgst_percentage' => 'decimal:2',
+        'sgst_percentage' => 'decimal:2',
+        'igst_percentage' => 'decimal:2',
+        'cgst_amount' => 'decimal:2',
+        'sgst_amount' => 'decimal:2',
+        'igst_amount' => 'decimal:2',
+        'tcs_percentage' => 'decimal:2',
+        'tcs_amount' => 'decimal:2',
+        'round_off' => 'decimal:2',
+        'gross_amount' => 'decimal:2',
         'discount' => 'decimal:2',
-        'total' => 'decimal:2'
+        'total' => 'decimal:2',
+        'net_amount' => 'decimal:2'
     ];
 
     /**
@@ -49,6 +72,14 @@ class PurchaseBill extends Model
     public function vendor(): BelongsTo
     {
         return $this->belongsTo(Vendor::class);
+    }
+
+    /**
+     * Get all items in this purchase bill.
+     */
+    public function purchaseBillItems()
+    {
+        return $this->hasMany(PurchaseBillItem::class);
     }
 
     /**

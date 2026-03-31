@@ -39,7 +39,7 @@ export default function Edit({ invoice, services, products, flash }) {
         buyer_logo: invoice.buyer_logo || undefined,
         service_items: initialServiceItems,
         product_items: initialProductItems,
-        discount: invoice.discount != null ? String(invoice.discount) : '',
+        discount_percentage: invoice.invoice_discount_percent != null ? String(invoice.invoice_discount_percent) : '',
         notes: invoice.notes || ''
     });
 
@@ -101,14 +101,18 @@ export default function Edit({ invoice, services, products, flash }) {
         return productTotal;
     }, [data.product_items]);
 
+    const discountAmount = useMemo(() => {
+        const percent = parseFloat(data.discount_percentage) || 0;
+        return (subtotal * percent) / 100;
+    }, [subtotal, data.discount_percentage]);
+
     const total = useMemo(() => {
         const cgstPercentage = parseFloat(data.cgst_percentage) || 0;
         const sgstPercentage = parseFloat(data.sgst_percentage) || 0;
         const gstPercentage = cgstPercentage + sgstPercentage || parseFloat(data.gst_percentage) || 0;
         const gstAmount = (subtotal * gstPercentage) / 100;
-        const discount = parseFloat(data.discount) || 0;
-        return subtotal + gstAmount - discount;
-    }, [subtotal, data.cgst_percentage, data.sgst_percentage, data.gst_percentage, data.discount]);
+        return subtotal + gstAmount - discountAmount;
+    }, [subtotal, data.cgst_percentage, data.sgst_percentage, data.gst_percentage, discountAmount]);
 
     const formatCurrency = (value) => {
         const amount = parseFloat(value || 0);
@@ -314,13 +318,14 @@ export default function Edit({ invoice, services, products, flash }) {
                         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Invoice Summary</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Discount</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Discount (%)</label>
                                 <input
                                     type="number"
                                     min="0"
+                                    max="100"
                                     step="0.01"
-                                    value={data.discount}
-                                    onChange={(e) => setData('discount', e.target.value)}
+                                    value={data.discount_percentage}
+                                    onChange={(e) => setData('discount_percentage', e.target.value)}
                                     className="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md"
                                 />
                             </div>
@@ -344,8 +349,8 @@ export default function Edit({ invoice, services, products, flash }) {
                                 <span className="font-medium text-gray-900 dark:text-white">{formatCurrency((subtotal * (parseFloat(data.gst_percentage || 0) || 0)) / 100)}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span>Discount</span>
-                                <span className="font-medium text-gray-900 dark:text-white">-{formatCurrency(data.discount)}</span>
+                                <span>Discount ({parseFloat(data.discount_percentage || 0).toFixed(2)}%)</span>
+                                <span className="font-medium text-gray-900 dark:text-white">-{formatCurrency(discountAmount)}</span>
                             </div>
                             <div className="flex justify-between text-base font-semibold">
                                 <span>Total</span>

@@ -262,25 +262,17 @@
     <div class="section notes" style="margin-top: 12px;">
         <div class="section-title">Payment T&C</div>
         <div style="font-size: 11px; line-height: 1.4;">
-            Billing date: From 5 days between payment. Late payment charges apply as below:
-            <br>After 7 days — 1% Debit Note
-            <br>After 14 days — 2% Debit Note
-            <br>After 20 days — 2.5% Debit Note
-            <br>After 24 days — 2.7% Debit Note
-            <br>After 30 days — 3% Debit Note
-            <br>After 2 months — 4% Debit Note
-            <br>After 3 months — 4.5% Debit Note
-            <br>Interest @18% p.a. if not paid within 5 days. Any dispute regarding quality/quantity must be raised within 5 days of supply. No claim afterward.
+            {{ nl2br(e($payment_tc ?? 'N/A')) }}
         </div>
         <div style="margin-top: 8px; font-size: 11px;">
-            <strong>Payment Mode:</strong> CREDIT<br>
-            <strong>GODOWN:</strong> CHALITAPARA<br>
-            <strong>TRANSPORT:</strong> VAN (SELF)<br>
-            <strong>BANK:</strong> Development Bank of Singapore<br>
-            <strong>ACCOUNT NO:</strong> 8828210000007429<br>
-            <strong>IFSC:</strong> DBSS0IN0828<br>
-            <strong>BRANCH:</strong> KOLKATA MAIN BRANCH<br>
-            <strong>ACCOUNT TYPE:</strong> Trade & Forex CURRENT ACCOUNT
+            <strong>Payment Mode:</strong> {{ $payment_mode ?? 'CREDIT' }}<br>
+            <strong>GODOWN:</strong> {{ $godown ?? 'CHALITAPARA' }}<br>
+            <strong>TRANSPORT:</strong> {{ $transport ?? 'VAN (SELF)' }}<br>
+            <strong>BANK:</strong> {{ $bank ?? 'Development Bank of Singapore' }}<br>
+            <strong>ACCOUNT NO:</strong> {{ $account_no ?? '8828210000007429' }}<br>
+            <strong>IFSC:</strong> {{ $ifsc ?? 'DBSS0IN0828' }}<br>
+            <strong>BRANCH:</strong> {{ $branch ?? 'KOLKATA MAIN BRANCH' }}<br>
+            <strong>ACCOUNT TYPE:</strong> {{ $account_type ?? 'Trade & Forex CURRENT ACCOUNT' }}
         </div>
     </div>
 

@@ -15,15 +15,27 @@ export default function Edit({ auth, purchaseBill, vendors, customers, flash }) 
         items: (purchaseBill.items || []).map(item => ({
             product: item.product || '',
             description: item.description || '',
-            quantity: parseFloat(item.quantity) || 1,
+            hsn_code: item.hsn_code || '',
+            quantity: parseFloat(item.quantity) || 0,
             unit_price: parseFloat(item.unit_price) || 0,
-            measurement: item.measurement || '',
-            total: parseFloat(item.total) || 0
+            measurement: item.measurement || 'pcs',
+            discount_percentage: parseFloat(item.discount_percentage) || 0,
+            net_rate: parseFloat(item.net_rate) || 0,
+            amount: parseFloat(item.amount) || 0
         })),
         subtotal: parseFloat(purchaseBill.subtotal) || 0,
-        tax: parseFloat(purchaseBill.tax) || 0,
+        delivery_charges: parseFloat(purchaseBill.delivery_charges) || 0,
+        gst_type: purchaseBill.gst_type || 'intra',
+        cgst_percentage: parseFloat(purchaseBill.cgst_percentage) || 0,
+        sgst_percentage: parseFloat(purchaseBill.sgst_percentage) || 0,
+        igst_percentage: parseFloat(purchaseBill.igst_percentage) || 0,
+        tcs_percentage: parseFloat(purchaseBill.tcs_percentage) || 0,
+        round_off: parseFloat(purchaseBill.round_off) || 0,
+        gross_amount: parseFloat(purchaseBill.gross_amount) || 0,
         discount: parseFloat(purchaseBill.discount) || 0,
+        tax: parseFloat(purchaseBill.tax) || 0,
         total: parseFloat(purchaseBill.total) || 0,
+        net_amount: parseFloat(purchaseBill.net_amount) || 0,
         terms: purchaseBill.terms || '',
         notes: purchaseBill.notes || '',
         reference: purchaseBill.reference || '',
@@ -80,10 +92,13 @@ export default function Edit({ auth, purchaseBill, vendors, customers, flash }) 
             {
                 product: '',
                 description: '',
-                quantity: 1,
+                hsn_code: '',
+                quantity: 0,
                 unit_price: 0,
-                measurement: '',
-                total: 0
+                measurement: 'pcs',
+                discount_percentage: 0,
+                net_rate: 0,
+                amount: 0
             }
         ]);
     };
@@ -100,27 +115,62 @@ export default function Edit({ auth, purchaseBill, vendors, customers, flash }) 
     const updateItem = (index, field, value) => {
         const newItems = [...data.items];
         newItems[index][field] = value;
-        
-        // Calculate total for this item
-        if (field === 'quantity' || field === 'unit_price') {
-            newItems[index].total = newItems[index].quantity * newItems[index].unit_price;
-        }
-        
+
+        const quantity = parseFloat(newItems[index].quantity) || 0;
+        const rate = parseFloat(newItems[index].unit_price) || 0;
+        const discountPct = parseFloat(newItems[index].discount_percentage) || 0;
+
+        const netRate = rate - (rate * discountPct / 100);
+        const amount = netRate * quantity;
+
+        newItems[index].net_rate = Number(netRate.toFixed(2));
+        newItems[index].amount = Number(amount.toFixed(2));
+
         setData('items', newItems);
     };
 
     // Calculate totals
     useEffect(() => {
-        const subtotal = data.items.reduce((sum, item) => sum + (parseFloat(item.total) || 0), 0);
-        const taxAmount = (subtotal * (parseFloat(data.tax) || 0)) / 100;
-        const total = subtotal + taxAmount - (parseFloat(data.discount) || 0);
-        
+        const subtotal = data.items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+        const deliveryCharges = parseFloat(data.delivery_charges) || 0;
+        const gstType = data.gst_type || 'intra';
+        const cgstPct = parseFloat(data.cgst_percentage) || 0;
+        const sgstPct = parseFloat(data.sgst_percentage) || 0;
+        const igstPct = parseFloat(data.igst_percentage) || 0;
+        const tcsPct = parseFloat(data.tcs_percentage) || 0;
+        const roundOff = parseFloat(data.round_off) || 0;
+        const discount = parseFloat(data.discount) || 0;
+
+        const baseAmount = subtotal + deliveryCharges;
+
+        let cgstAmount = 0;
+        let sgstAmount = 0;
+        let igstAmount = 0;
+
+        if (gstType === 'intra') {
+            cgstAmount = (baseAmount * cgstPct) / 100;
+            sgstAmount = (baseAmount * sgstPct) / 100;
+        } else {
+            igstAmount = (baseAmount * igstPct) / 100;
+        }
+
+        const gstAmount = cgstAmount + sgstAmount + igstAmount;
+        const tcsAmount = ((baseAmount + gstAmount) * tcsPct) / 100;
+        const grossAmount = baseAmount;
+        const netAmount = Number((grossAmount + gstAmount + tcsAmount + roundOff - discount).toFixed(2));
+
         setData(prevData => ({
             ...prevData,
             subtotal: subtotal.toFixed(2),
-            total: total.toFixed(2)
+            gross_amount: grossAmount.toFixed(2),
+            cgst_amount: cgstAmount.toFixed(2),
+            sgst_amount: sgstAmount.toFixed(2),
+            igst_amount: igstAmount.toFixed(2),
+            tcs_amount: tcsAmount.toFixed(2),
+            total: netAmount.toFixed(2),
+            net_amount: netAmount.toFixed(2)
         }));
-    }, [data.items, data.tax, data.discount]);
+    }, [data.items, data.delivery_charges, data.gst_type, data.cgst_percentage, data.sgst_percentage, data.igst_percentage, data.tcs_percentage, data.round_off, data.discount]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -132,12 +182,22 @@ export default function Edit({ auth, purchaseBill, vendors, customers, flash }) 
                 ...item,
                 quantity: parseFloat(item.quantity) || 0,
                 unit_price: parseFloat(item.unit_price) || 0,
-                total: parseFloat(item.total) || 0
+                discount_percentage: parseFloat(item.discount_percentage) || 0,
+                net_rate: parseFloat(item.net_rate) || 0,
+                amount: parseFloat(item.amount) || 0
             }))),
-            tax: parseFloat(data.tax) || 0,
-            discount: parseFloat(data.discount) || 0,
             subtotal: parseFloat(data.subtotal) || 0,
+            delivery_charges: parseFloat(data.delivery_charges) || 0,
+            gst_type: data.gst_type || 'intra',
+            cgst_percentage: parseFloat(data.cgst_percentage) || 0,
+            sgst_percentage: parseFloat(data.sgst_percentage) || 0,
+            igst_percentage: parseFloat(data.igst_percentage) || 0,
+            tcs_percentage: parseFloat(data.tcs_percentage) || 0,
+            round_off: parseFloat(data.round_off) || 0,
+            gross_amount: parseFloat(data.gross_amount) || 0,
+            discount: parseFloat(data.discount) || 0,
             total: parseFloat(data.total) || 0,
+            net_amount: parseFloat(data.net_amount) || 0,
             _method: 'PUT' // Add this for Laravel to recognize it as PUT
         };
 
@@ -407,24 +467,28 @@ export default function Edit({ auth, purchaseBill, vendors, customers, flash }) 
                                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                                     <thead className="bg-gray-50 dark:bg-gray-700">
                                         <tr>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Product</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Sl. No</th>
                                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Description</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">HSN Code</th>
                                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Quantity</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Unit Price</th>
                                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Unit</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Total</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Action</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Rate</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Discount %</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Net Rate</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Amount</th>
+                                            <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                         {data.items.map((item, index) => (
                                             <tr key={index}>
+                                                <td className="px-4 py-3">{index + 1}</td>
                                                 <td className="px-4 py-3">
                                                     <input
                                                         type="text"
                                                         value={item.product}
                                                         onChange={(e) => updateItem(index, 'product', e.target.value)}
-                                                        placeholder="Product Name"
+                                                        placeholder="Description"
                                                         className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                                         required
                                                     />
@@ -432,20 +496,10 @@ export default function Edit({ auth, purchaseBill, vendors, customers, flash }) 
                                                 <td className="px-4 py-3">
                                                     <input
                                                         type="text"
-                                                        value={item.description}
-                                                        onChange={(e) => updateItem(index, 'description', e.target.value)}
-                                                        placeholder="Description"
+                                                        value={item.hsn_code}
+                                                        onChange={(e) => updateItem(index, 'hsn_code', e.target.value)}
+                                                        placeholder="HSN Code"
                                                         className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                                    />
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    <input
-                                                        type="number"
-                                                        min="1"
-                                                        value={item.quantity}
-                                                        onChange={(e) => updateItem(index, 'quantity', parseFloat(e.target.value) || 0)}
-                                                        className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                                        required
                                                     />
                                                 </td>
                                                 <td className="px-4 py-3">
@@ -453,8 +507,8 @@ export default function Edit({ auth, purchaseBill, vendors, customers, flash }) 
                                                         type="number"
                                                         min="0"
                                                         step="0.01"
-                                                        value={item.unit_price}
-                                                        onChange={(e) => updateItem(index, 'unit_price', parseFloat(e.target.value) || 0)}
+                                                        value={item.quantity}
+                                                        onChange={(e) => updateItem(index, 'quantity', parseFloat(e.target.value) || 0)}
                                                         className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                                         required
                                                     />
@@ -476,8 +530,38 @@ export default function Edit({ auth, purchaseBill, vendors, customers, flash }) 
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <input
+                                                        type="number"
+                                                        min="0"
+                                                        step="0.01"
+                                                        value={item.unit_price}
+                                                        onChange={(e) => updateItem(index, 'unit_price', parseFloat(e.target.value) || 0)}
+                                                        className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                                        required
+                                                    />
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        max="100"
+                                                        step="0.01"
+                                                        value={item.discount_percentage}
+                                                        onChange={(e) => updateItem(index, 'discount_percentage', e.target.value)}
+                                                        className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                                    />
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <input
                                                         type="text"
-                                                        value={(parseFloat(item.total) || 0).toFixed(2)}
+                                                        value={`₹${(parseFloat(item.net_rate) || 0).toFixed(2)}`}
+                                                        readOnly
+                                                        className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white"
+                                                    />
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <input
+                                                        type="text"
+                                                        value={`₹${(parseFloat(item.amount) || 0).toFixed(2)}`}
                                                         readOnly
                                                         className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white"
                                                     />

@@ -9,6 +9,10 @@ use App\Http\Controllers\BillingController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GSTController;
+use App\Http\Controllers\ItemController;
+use App\Http\Controllers\PurchaseBillController;
+use App\Http\Controllers\SubAdminController;
+use App\Http\Controllers\SettingsController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -58,9 +62,13 @@ Route::middleware('auth')->group(function () {
         Route::resource('vendors', VendorController::class);
     });
     
+    // Item Master routes
+    Route::resource('items', ItemController::class);
+    Route::get('items-api/active', [ItemController::class, 'getActive'])->name('items.active');
+
     // Purchase Bills routes - require purchase_bills permission
     Route::middleware('permission:purchase_bills')->group(function () {
-        Route::resource('purchase-bills', \App\Http\Controllers\PurchaseBillController::class);
+        Route::resource('purchase-bills', PurchaseBillController::class);
     });
 
     // Billing routes (no permission gate)
@@ -84,6 +92,11 @@ Route::middleware('auth')->group(function () {
             'admin-users' => 'user'
         ]);
     });
+
+    // Sub-Admin Management routes (only for super admin)
+    Route::resource('sub-admins', SubAdminController::class)->parameters([
+        'sub-admins' => 'user'
+    ]);
     
     // Activity Logs routes - require activity-logs permission (only for super admin)
     Route::middleware('permission:activity-logs')->group(function () {
@@ -95,6 +108,10 @@ Route::middleware('auth')->group(function () {
         Route::post('activity-logs/verify-delete-otp', [ActivityLogController::class, 'verifyDeleteOtp'])->name('activity-logs.verify-delete-otp');
         Route::delete('activity-logs/{activityLog}', [ActivityLogController::class, 'destroy'])->name('activity-logs.destroy');
     });
+
+    // Settings routes - only for super admin
+    Route::get('settings', [SettingsController::class, 'edit'])->name('settings.edit');
+    Route::patch('settings', [SettingsController::class, 'update'])->name('settings.update');
 });
 
 require __DIR__.'/auth.php';
