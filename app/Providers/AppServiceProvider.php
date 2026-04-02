@@ -25,12 +25,33 @@ class AppServiceProvider extends ServiceProvider
     {
         Vite::prefetch(concurrency: 3);
         
-        // Share user permissions with all Inertia responses
+        // Share auth-related access data with all Inertia responses
         \Inertia\Inertia::share([
             'permissions' => function () {
                 if (Auth::check()) {
                     return Auth::user()->permissions;
                 }
+                return [];
+            },
+            'allowedMenus' => function () {
+                if (Auth::check()) {
+                    /** @var \App\Models\User $user */
+                    $user = Auth::user();
+
+                    if ($user->is_super_admin) {
+                        return \App\Models\Menu::active()
+                            ->orderBy('sort_order')
+                            ->pluck('name')
+                            ->values();
+                    }
+
+                    return $user->menus()
+                        ->where('is_active', true)
+                        ->orderBy('sort_order')
+                        ->pluck('name')
+                        ->values();
+                }
+
                 return [];
             },
         ]);

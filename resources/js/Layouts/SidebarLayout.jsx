@@ -5,7 +5,7 @@ import { route } from '@/utils/route';
 import Header from '../Components/Header/Header';
 
 export default function SidebarLayout({ children }) {
-    const { auth, permissions } = usePage().props;
+    const { auth, permissions, allowedMenus } = usePage().props;
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
 
@@ -24,7 +24,7 @@ export default function SidebarLayout({ children }) {
         setSidebarOpen(false);
     };
 
-    // Create navigation based on user permissions
+    // Create navigation based on assigned menus (with permission fallback)
     const navigation = useMemo(() => {
         const allMenus = [
             {
@@ -37,7 +37,8 @@ export default function SidebarLayout({ children }) {
                     </svg>
                 ),
                 current: route().current('dashboard'),
-                permission: 'dashboard'
+                permission: 'dashboard',
+                alwaysVisible: true
             },
             {
                 name: 'Customer Management',
@@ -49,6 +50,7 @@ export default function SidebarLayout({ children }) {
                 ),
                 current: route().current('customers.*'),
                 permission: 'customers',
+                menuKey: 'customers',
 
             },
             {
@@ -60,7 +62,8 @@ export default function SidebarLayout({ children }) {
                     </svg>
                 ),
                 current: route().current('categories.*'),
-                permission: 'categories'
+                permission: 'categories',
+                menuKey: 'categories'
             },
                 {
                 name: 'Customer Billing',
@@ -72,7 +75,8 @@ export default function SidebarLayout({ children }) {
                     </svg>
                 ),
                 current: route().current('billing.*'),
-                permission: null
+                permission: 'billing',
+                menuKey: 'billing'
             },
             {
                 name: 'GST Management',
@@ -83,7 +87,8 @@ export default function SidebarLayout({ children }) {
                     </svg>
                 ),
                 current: window.location.pathname === '/gst',
-                permission: 'gst_management'
+                permission: 'gst_management',
+                menuKey: 'gst_management'
             },
             {
                 name: 'Daily Reports',
@@ -94,7 +99,8 @@ export default function SidebarLayout({ children }) {
                     </svg>
                 ),
                 current: route().current('daily-reports.*'),
-                permission: null
+                permission: 'daily_reports',
+                menuKey: 'daily_reports'
             },
             {
                 name: 'Vendor Management',
@@ -105,7 +111,8 @@ export default function SidebarLayout({ children }) {
                     </svg>
                 ),
                 current: route().current('vendors.*'),
-                permission: 'vendors'
+                permission: 'vendors',
+                menuKey: 'vendors'
             },
             {
                 name: 'Item Master',
@@ -115,7 +122,9 @@ export default function SidebarLayout({ children }) {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M6 7h12" />
                     </svg>
                 ),
-                current: route().current('items.*')
+                current: route().current('items.*'),
+                permission: 'item_management',
+                menuKey: 'items'
             },
             {
                 name: 'Purchase Bill',
@@ -127,7 +136,8 @@ export default function SidebarLayout({ children }) {
                     </svg>
                 ),
                 current: route().current('purchase-bills.*'),
-                permission: 'purchase_bills'
+                permission: 'purchase_bills',
+                menuKey: 'purchase_bills'
             },
         
 
@@ -140,7 +150,8 @@ export default function SidebarLayout({ children }) {
                     </svg>
                 ),
                 current: route().current('stocks.*'),
-                permission: 'stock_management'
+                permission: 'stock_management',
+                menuKey: 'stock_management'
             },
             {
                 name: 'Admin User Creation',
@@ -229,12 +240,24 @@ export default function SidebarLayout({ children }) {
             return sortMenusByRequestedOrder(allMenus.filter(menu => !menu.disabled));
         }
 
-        // Otherwise, filter menus based on user permissions and exclude disabled ones and super admin only
+        // Otherwise, filter menus by assigned menu names. If assignments are missing,
+        // fallback to permission-based checks for backward compatibility.
         const userPermissions = permissions || [];
+        const assignedMenuNames = new Set(allowedMenus || []);
+        const hasAssignedMenus = assignedMenuNames.size > 0;
+
         return sortMenusByRequestedOrder(allMenus.filter(menu =>
-            !menu.disabled && !menu.superAdminOnly && (!menu.permission || userPermissions.some(permission => permission.name === menu.permission))
+            !menu.disabled &&
+            !menu.superAdminOnly &&
+            (
+                menu.alwaysVisible ||
+                (hasAssignedMenus
+                    ? !!menu.menuKey && assignedMenuNames.has(menu.menuKey)
+                    : (!menu.permission || userPermissions.some(permission => permission.name === menu.permission))
+                )
+            )
         ));
-    }, [auth, permissions]);
+    }, [auth, permissions, allowedMenus]);
 
     const handleLogout = () => {
         router.post(route('logout'), {}, {

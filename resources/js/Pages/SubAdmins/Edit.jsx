@@ -4,6 +4,19 @@ import SidebarLayout from '@/Layouts/SidebarLayout';
 import { route } from '@/utils/route';
 
 export default function Edit({ subAdmin, menus, roles }) {
+    const sidebarMenuLabels = {
+        customers: 'Customer Management',
+        categories: 'Categories',
+        billing: 'Customer Billing',
+        gst_management: 'GST Management',
+        vendors: 'Vendor Management',
+        items: 'Item Master',
+        purchase_bills: 'Purchase Bill',
+        stock_management: 'Stock Management'
+    };
+
+    const getMenuLabel = (menu) => sidebarMenuLabels[menu.name] || menu.display_name || menu.name;
+
     const { data, setData, post, processing, errors } = useForm({
         name: subAdmin.name,
         email: subAdmin.email,
@@ -137,7 +150,7 @@ export default function Edit({ subAdmin, menus, roles }) {
                                         className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                                     />
                                     <div>
-                                        <p className="text-sm font-medium text-gray-900 dark:text-white">{menu.name}</p>
+                                        <p className="text-sm font-medium text-gray-900 dark:text-white">{getMenuLabel(menu)}</p>
                                         {menu.description && <p className="text-xs text-gray-500 dark:text-gray-400">{menu.description}</p>}
                                     </div>
                                 </label>

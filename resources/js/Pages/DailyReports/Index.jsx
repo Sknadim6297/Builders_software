@@ -58,11 +58,11 @@ export default function Index({ report, filters }) {
         <SidebarLayout>
             <Head title="Daily Reports" />
 
-            <div className="p-6 space-y-6">
+            <div className="p-6 space-y-6 bg-gray-900 text-white">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Daily Reports</h1>
-                        <p className="text-gray-600 dark:text-gray-400 mt-1">
+                        <h1 className="text-3xl font-bold text-white">Daily Reports</h1>
+                        <p className="mt-1 text-gray-200">
                             Purchase, Sales, Due and Daily Cash tracking
                         </p>
                     </div>
@@ -75,10 +75,10 @@ export default function Index({ report, filters }) {
                     </button>
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+                <div className="rounded-lg border border-gray-700 bg-transparent p-4 sm:p-6">
                     <form onSubmit={applyFilters} className="grid grid-cols-1 md:grid-cols-6 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Filter Type</label>
+                            <label className="block text-sm font-medium text-white">Filter Type</label>
                             <select
                                 value={filterType}
                                 onChange={(e) => setFilterType(e.target.value)}
@@ -92,7 +92,7 @@ export default function Index({ report, filters }) {
 
                         {filterType === 'daily' && (
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date</label>
+                                <label className="block text-sm font-medium text-white">Date</label>
                                 <input
                                     type="date"
                                     value={reportDate}
@@ -104,7 +104,7 @@ export default function Index({ report, filters }) {
 
                         {filterType === 'monthly' && (
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Month</label>
+                                <label className="block text-sm font-medium text-white">Month</label>
                                 <input
                                     type="month"
                                     value={reportMonth}
@@ -117,7 +117,7 @@ export default function Index({ report, filters }) {
                         {filterType === 'custom' && (
                             <>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">From Date</label>
+                                    <label className="block text-sm font-medium text-white">From Date</label>
                                     <input
                                         type="date"
                                         value={fromDate}
@@ -126,7 +126,7 @@ export default function Index({ report, filters }) {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">To Date</label>
+                                    <label className="block text-sm font-medium text-white">To Date</label>
                                     <input
                                         type="date"
                                         value={toDate}
@@ -144,40 +144,40 @@ export default function Index({ report, filters }) {
                     </form>
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                        <div className="rounded-lg border border-gray-700 bg-transparent p-4">
+                    <div className="text-sm text-gray-200">
                         Report Period: {report?.period?.from || '-'} to {report?.period?.to || '-'}
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-                        <p className="text-sm text-gray-500">Total Purchase</p>
-                        <p className="text-2xl font-bold text-indigo-600">{formatCurrency(report?.purchase?.total_amount)}</p>
-                        <p className="text-xs text-gray-500">Bills: {report?.purchase?.count || 0}</p>
+                    <div className="rounded-lg border border-gray-700 bg-transparent p-4">
+                        <p className="text-sm text-gray-200">Total Purchase</p>
+                        <p className="text-2xl font-bold text-indigo-400">{formatCurrency(report?.purchase?.total_amount)}</p>
+                        <p className="text-xs text-gray-200">Bills: {report?.purchase?.count || 0}</p>
                     </div>
                     <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-                        <p className="text-sm text-gray-500">Total Sales</p>
-                        <p className="text-2xl font-bold text-emerald-600">{formatCurrency(report?.sales?.total_amount)}</p>
-                        <p className="text-xs text-gray-500">Invoices: {report?.sales?.count || 0}</p>
+                        <p className="text-sm text-gray-200">Total Sales</p>
+                        <p className="text-2xl font-bold text-emerald-400">{formatCurrency(report?.sales?.total_amount)}</p>
+                        <p className="text-xs text-gray-200">Invoices: {report?.sales?.count || 0}</p>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-                        <p className="text-sm text-gray-500">Outstanding Due</p>
-                        <p className="text-2xl font-bold text-amber-600">{formatCurrency(report?.due?.total_outstanding)}</p>
-                        <p className="text-xs text-gray-500">Due Invoices: {report?.due?.count || 0}</p>
+                    <div className="rounded-lg border border-gray-700 bg-transparent p-4">
+                        <p className="text-sm text-gray-200">Outstanding Due</p>
+                        <p className="text-2xl font-bold text-amber-400">{formatCurrency(report?.due?.total_outstanding)}</p>
+                        <p className="text-xs text-gray-200">Due Invoices: {report?.due?.count || 0}</p>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-                        <p className="text-sm text-gray-500">Closing Cash</p>
-                        <p className="text-2xl font-bold text-blue-600">{formatCurrency(report?.cash?.closing_balance)}</p>
-                        <p className="text-xs text-gray-500">Opening: {formatCurrency(report?.cash?.opening_balance)}</p>
+                    <div className="rounded-lg border border-gray-700 bg-transparent p-4">
+                        <p className="text-sm text-gray-200">Closing Cash</p>
+                        <p className="text-2xl font-bold text-blue-400">{formatCurrency(report?.cash?.closing_balance)}</p>
+                        <p className="text-xs text-gray-200">Opening: {formatCurrency(report?.cash?.opening_balance)}</p>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-x-auto">
-                        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 font-semibold">Purchase Report</div>
+                    <div className="rounded-lg border border-gray-700 bg-transparent overflow-x-auto">
+                        <div className="px-4 py-3 border-b border-gray-700 font-semibold">Purchase Report</div>
                         <table className="min-w-full text-sm">
-                            <thead className="bg-gray-50 dark:bg-gray-700">
+                            <thead className="bg-gray-800">
                                 <tr>
                                     <th className="px-4 py-2 text-left">PO No.</th>
                                     <th className="px-4 py-2 text-left">Date</th>
@@ -187,10 +187,10 @@ export default function Index({ report, filters }) {
                             </thead>
                             <tbody>
                                 {(report?.purchase?.details || []).length === 0 ? (
-                                    <tr><td colSpan="4" className="px-4 py-3 text-center text-gray-500">No purchase records</td></tr>
+                                    <tr><td colSpan="4" className="px-4 py-3 text-center text-gray-200">No purchase records</td></tr>
                                 ) : (
                                     report.purchase.details.map((row, idx) => (
-                                        <tr key={idx} className="border-t border-gray-100 dark:border-gray-700">
+                                        <tr key={idx} className="border-t border-gray-700">
                                             <td className="px-4 py-2">{row.po_number}</td>
                                             <td className="px-4 py-2">{row.po_date}</td>
                                             <td className="px-4 py-2">{row.supplier_name}</td>
@@ -202,10 +202,10 @@ export default function Index({ report, filters }) {
                         </table>
                     </div>
 
-                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-x-auto">
-                        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 font-semibold">Sales Report</div>
+                    <div className="rounded-lg border border-gray-700 bg-transparent overflow-x-auto">
+                        <div className="px-4 py-3 border-b border-gray-700 font-semibold">Sales Report</div>
                         <table className="min-w-full text-sm">
-                            <thead className="bg-gray-50 dark:bg-gray-700">
+                            <thead className="bg-gray-800">
                                 <tr>
                                     <th className="px-4 py-2 text-left">Invoice No.</th>
                                     <th className="px-4 py-2 text-left">Date</th>
@@ -215,10 +215,10 @@ export default function Index({ report, filters }) {
                             </thead>
                             <tbody>
                                 {(report?.sales?.details || []).length === 0 ? (
-                                    <tr><td colSpan="4" className="px-4 py-3 text-center text-gray-500">No sales records</td></tr>
+                                    <tr><td colSpan="4" className="px-4 py-3 text-center text-gray-200">No sales records</td></tr>
                                 ) : (
                                     report.sales.details.map((row, idx) => (
-                                        <tr key={idx} className="border-t border-gray-100 dark:border-gray-700">
+                                        <tr key={idx} className="border-t border-gray-700">
                                             <td className="px-4 py-2">{row.invoice_number}</td>
                                             <td className="px-4 py-2">{row.invoice_date}</td>
                                             <td className="px-4 py-2">{row.customer_name}</td>
@@ -230,10 +230,10 @@ export default function Index({ report, filters }) {
                         </table>
                     </div>
 
-                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-x-auto">
-                        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 font-semibold">Due Report</div>
+                    <div className="rounded-lg border border-gray-700 bg-transparent overflow-x-auto">
+                        <div className="px-4 py-3 border-b border-gray-700 font-semibold">Due Report</div>
                         <table className="min-w-full text-sm">
-                            <thead className="bg-gray-50 dark:bg-gray-700">
+                            <thead className="bg-gray-800">
                                 <tr>
                                     <th className="px-4 py-2 text-left">Invoice No.</th>
                                     <th className="px-4 py-2 text-left">Customer</th>
@@ -243,10 +243,10 @@ export default function Index({ report, filters }) {
                             </thead>
                             <tbody>
                                 {(report?.due?.details || []).length === 0 ? (
-                                    <tr><td colSpan="4" className="px-4 py-3 text-center text-gray-500">No due records</td></tr>
+                                    <tr><td colSpan="4" className="px-4 py-3 text-center text-gray-200">No due records</td></tr>
                                 ) : (
                                     report.due.details.map((row, idx) => (
-                                        <tr key={idx} className="border-t border-gray-100 dark:border-gray-700">
+                                        <tr key={idx} className="border-t border-gray-700">
                                             <td className="px-4 py-2">{row.invoice_number}</td>
                                             <td className="px-4 py-2">{row.customer_name}</td>
                                             <td className="px-4 py-2 text-right">{formatCurrency(row.due_amount)}</td>
@@ -258,25 +258,25 @@ export default function Index({ report, filters }) {
                         </table>
                     </div>
 
-                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-x-auto">
-                        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 font-semibold">Daily Cash Report</div>
+                    <div className="rounded-lg border border-gray-700 bg-transparent overflow-x-auto">
+                        <div className="px-4 py-3 border-b border-gray-700 font-semibold">Daily Cash Report</div>
                         <div className="p-4 grid grid-cols-2 gap-3 text-sm">
-                            <div className="text-gray-500">Opening Cash</div>
+                            <div className="text-gray-200">Opening Cash</div>
                             <div className="text-right font-semibold">{formatCurrency(report?.cash?.opening_balance)}</div>
-                            <div className="text-gray-500">Cash Received</div>
-                            <div className="text-right font-semibold text-green-600">{formatCurrency(report?.cash?.cash_received)}</div>
-                            <div className="text-gray-500">Cash Paid</div>
-                            <div className="text-right font-semibold text-red-600">{formatCurrency(report?.cash?.cash_paid)}</div>
-                            <div className="text-gray-500">Closing Cash</div>
-                            <div className="text-right font-semibold text-blue-600">{formatCurrency(report?.cash?.closing_balance)}</div>
+                            <div className="text-gray-200">Cash Received</div>
+                            <div className="text-right font-semibold text-green-400">{formatCurrency(report?.cash?.cash_received)}</div>
+                            <div className="text-gray-200">Cash Paid</div>
+                            <div className="text-right font-semibold text-red-400">{formatCurrency(report?.cash?.cash_paid)}</div>
+                            <div className="text-gray-200">Closing Cash</div>
+                            <div className="text-right font-semibold text-blue-400">{formatCurrency(report?.cash?.closing_balance)}</div>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-x-auto">
-                    <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 font-semibold">Supplier-wise Purchase Breakdown</div>
+                <div className="rounded-lg border border-gray-700 bg-transparent overflow-x-auto">
+                    <div className="px-4 py-3 border-b border-gray-700 font-semibold">Supplier-wise Purchase Breakdown</div>
                     <table className="min-w-full text-sm">
-                        <thead className="bg-gray-50 dark:bg-gray-700">
+                        <thead className="bg-gray-800">
                             <tr>
                                 <th className="px-4 py-2 text-left">Supplier</th>
                                 <th className="px-4 py-2 text-right">Bills</th>
