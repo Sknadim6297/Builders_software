@@ -56,6 +56,8 @@ class ItemController extends Controller
             'name' => 'required|string|max:255|unique:items',
             'description' => 'nullable|string|max:1000',
             'unit_type' => 'required|string|max:50',
+            'default_unit_price' => 'nullable|numeric|min:0',
+            'default_discount_percentage' => 'nullable|numeric|min:0|max:100',
             'gst_percentage' => 'nullable|numeric|min:0|max:100'
         ]);
 
@@ -97,6 +99,8 @@ class ItemController extends Controller
             'name' => 'required|string|max:255|unique:items,name,' . $item->id,
             'description' => 'nullable|string|max:1000',
             'unit_type' => 'required|string|max:50',
+            'default_unit_price' => 'nullable|numeric|min:0',
+            'default_discount_percentage' => 'nullable|numeric|min:0|max:100',
             'gst_percentage' => 'nullable|numeric|min:0|max:100',
             'is_active' => 'boolean'
         ]);
@@ -129,7 +133,7 @@ class ItemController extends Controller
     public function getActive()
     {
         return response()->json(
-            Item::active()->get(['id', 'item_code', 'name', 'unit_type', 'gst_percentage'])
+            Item::active()->get(['id', 'item_code', 'name', 'unit_type', 'default_unit_price', 'default_discount_percentage', 'gst_percentage'])
         );
     }
 }

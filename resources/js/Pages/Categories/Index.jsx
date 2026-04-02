@@ -48,20 +48,12 @@ export default function Index({ categories, flash, filters }) {
 
     const handleDelete = (category) => {
         if (confirm(`Are you sure you want to delete "${category.name}"?`)) {
-            router.delete(route('categories.destroy', category.id), {
-                onSuccess: () => {
-                    window.showSuccess('Category deleted successfully');
-                }
-            });
+            router.delete(route('categories.destroy', category.id));
         }
     };
 
     const toggleStatus = (category) => {
-        router.patch(route('categories.toggle-status', category.id), {}, {
-            onSuccess: () => {
-                window.showSuccess(`Category ${category.is_active ? 'deactivated' : 'activated'} successfully`);
-            }
-        });
+        router.patch(route('categories.toggle-status', category.id));
     };
 
     return (

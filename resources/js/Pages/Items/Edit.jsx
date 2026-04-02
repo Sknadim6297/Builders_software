@@ -11,6 +11,8 @@ export default function Edit({ item, flash }) {
         name: item.name || '',
         description: item.description || '',
         unit_type: item.unit_type || 'Piece',
+        default_unit_price: item.default_unit_price || '0',
+        default_discount_percentage: item.default_discount_percentage || '0',
         gst_percentage: item.gst_percentage || '0',
         is_active: item.is_active || true
     });
@@ -86,6 +88,33 @@ export default function Edit({ item, flash }) {
                             </div>
 
                             {/* GST Percentage */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Default Unit Price</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    value={data.default_unit_price}
+                                    onChange={(e) => setData('default_unit_price', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                />
+                                {errors.default_unit_price && <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.default_unit_price}</p>}
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Default Discount (%)</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    max="100"
+                                    value={data.default_discount_percentage}
+                                    onChange={(e) => setData('default_discount_percentage', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                />
+                                {errors.default_discount_percentage && <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.default_discount_percentage}</p>}
+                            </div>
+
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">GST Percentage (%)</label>
                                 <input

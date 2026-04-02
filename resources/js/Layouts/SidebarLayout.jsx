@@ -86,6 +86,17 @@ export default function SidebarLayout({ children }) {
                 permission: 'gst_management'
             },
             {
+                name: 'Daily Reports',
+                href: route('daily-reports.index'),
+                icon: (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-6m3 6V7m3 10v-3m5 7H4a1 1 0 01-1-1V4a1 1 0 011-1h16a1 1 0 011 1v16a1 1 0 01-1 1z" />
+                    </svg>
+                ),
+                current: route().current('daily-reports.*'),
+                permission: null
+            },
+            {
                 name: 'Vendor Management',
                 href: route('vendors.index'),
                 icon: (
@@ -107,7 +118,7 @@ export default function SidebarLayout({ children }) {
                 current: route().current('items.*')
             },
             {
-                name: 'Manage Purchase Bill',
+                name: 'Purchase Bill',
                 href: route('purchase-bills.index'),
                 icon: (
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -166,18 +177,63 @@ export default function SidebarLayout({ children }) {
                 permission: 'activity_logs',
                 disabled: true
 
+            },
+            {
+                name: 'Settings',
+                icon: (
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317a1 1 0 011.35-.936l.733.42a1 1 0 00.99 0l.733-.42a1 1 0 011.35.936l.083.84a1 1 0 00.606.82l.778.312a1 1 0 01.553 1.246l-.25.805a1 1 0 00.167.965l.523.662a1 1 0 01-.09 1.32l-.62.62a1 1 0 00-.242.964l.25.805a1 1 0 01-.553 1.246l-.778.312a1 1 0 00-.606.82l-.083.84a1 1 0 01-1.35.936l-.733-.42a1 1 0 00-.99 0l-.733.42a1 1 0 01-1.35-.936l-.083-.84a1 1 0 00-.606-.82l-.778-.312a1 1 0 01-.553-1.246l.25-.805a1 1 0 00-.167-.964l-.523-.663a1 1 0 01.09-1.32l.62-.62a1 1 0 00.242-.964l-.25-.805a1 1 0 01.553-1.246l.778-.312a1 1 0 00.606-.82l.083-.84z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                ),
+                current: route().current('settings.*'),
+                superAdminOnly: true,
+                children: [
+                    {
+                        name: 'Invoice Settings',
+                        href: route('settings.edit'),
+                        current: route().current('settings.*')
+                    }
+                ]
             }
         ];
 
+        const requestedMenuOrder = [
+            'Dashboard',
+            'Customer Management',
+            'Vendor Management',
+            'Categories',
+            'Item Master',
+            'Customer Billing',
+            'Purchase Bill',
+            'Stock Management',
+            'GST Management',
+            'Daily Reports',
+            'Sub-Admin Management',
+            'Settings'
+        ];
+
+        const sortMenusByRequestedOrder = (menus) => {
+            return [...menus].sort((a, b) => {
+                const indexA = requestedMenuOrder.indexOf(a.name);
+                const indexB = requestedMenuOrder.indexOf(b.name);
+
+                if (indexA === -1 && indexB === -1) return 0;
+                if (indexA === -1) return 1;
+                if (indexB === -1) return -1;
+                return indexA - indexB;
+            });
+        };
+
         if (auth.user.is_super_admin) {
-            return allMenus.filter(menu => !menu.disabled);
+            return sortMenusByRequestedOrder(allMenus.filter(menu => !menu.disabled));
         }
 
         // Otherwise, filter menus based on user permissions and exclude disabled ones and super admin only
         const userPermissions = permissions || [];
-        return allMenus.filter(menu =>
+        return sortMenusByRequestedOrder(allMenus.filter(menu =>
             !menu.disabled && !menu.superAdminOnly && (!menu.permission || userPermissions.some(permission => permission.name === menu.permission))
-        );
+        ));
     }, [auth, permissions]);
 
     const handleLogout = () => {
@@ -291,6 +347,7 @@ export default function SidebarLayout({ children }) {
                                     <div className={`absolute inset-0 bg-primary-200/20 dark:bg-primary-600/20 rounded-xl blur-sm transition-all duration-300 ${item.current ? 'opacity-100 scale-110' : 'opacity-0 scale-100'
                                         }`}></div>
 
+                                    {item.href ? (
                                     <Link
                                         href={item.href}
                                         className={`${item.current
@@ -327,6 +384,60 @@ export default function SidebarLayout({ children }) {
                                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-1000 ease-out"></div>
                                         )}
                                     </Link>
+                                    ) : (
+                                    <div
+                                        className={`${item.current
+                                            ? 'bg-primary-700 text-white shadow-xl border border-primary-600/30'
+                                            : 'text-gray-600 dark:text-gray-300 bg-gray-50/80 dark:bg-gray-700/40 border border-transparent'
+                                            } group relative flex items-center px-3 py-3 text-base font-medium rounded-xl transition-all duration-300 overflow-hidden backdrop-blur-sm`}
+                                        style={{
+                                            boxShadow: item.current
+                                                ? '0 8px 32px rgba(164, 125, 181, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                                                : '0 2px 8px rgba(0, 0, 0, 0.05)'
+                                        }}
+                                    >
+                                        {/* Hover ripple effect */}
+                                        <div className="absolute inset-0 bg-primary-200/10 dark:bg-primary-600/10 translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-out"></div>
+
+                                        <div className={`mr-4 flex-shrink-0 transform transition-all duration-300 group-hover:scale-125 group-hover:rotate-12 relative z-10 ${item.current ? 'text-white drop-shadow-sm' : ''
+                                            }`}>
+                                            {item.icon}
+                                        </div>
+                                        <span className="truncate relative z-10 font-medium">{item.name}</span>
+
+                                        {/* Active indicator with animation */}
+                                        <div className={`ml-auto relative z-10 transition-all duration-300 transform ${item.current ? 'opacity-100 scale-100 translate-x-0' : 'opacity-0 scale-75 translate-x-4 group-hover:opacity-60 group-hover:scale-100 group-hover:translate-x-0'
+                                            }`}>
+                                            <div className={`w-2 h-2 rounded-full ${item.current
+                                                ? 'bg-white shadow-lg animate-pulse'
+                                                : 'bg-primary-400 group-hover:bg-primary-500'
+                                                }`}></div>
+                                        </div>
+
+                                        {/* Shine effect for active items */}
+                                        {item.current && (
+                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-1000 ease-out"></div>
+                                        )}
+                                    </div>
+                                    )}
+
+                                    {item.children && (
+                                        <div className="ml-6 mt-2 space-y-2">
+                                            {item.children.map((child) => (
+                                                <Link
+                                                    key={child.name}
+                                                    href={child.href}
+                                                    className={`${child.current
+                                                        ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-200 border-primary-300 dark:border-primary-700'
+                                                        : 'text-gray-600 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-900/20'
+                                                        } block px-3 py-2 text-sm font-medium rounded-lg border border-transparent transition-all duration-200`}
+                                                    onClick={closeMobileSidebar}
+                                                >
+                                                    {child.name}
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </nav>
@@ -391,17 +502,48 @@ export default function SidebarLayout({ children }) {
                             </div>
                         </div>
                         <nav className="flex-1 px-2 space-y-2">
-                            {navigation.map((item) => (<Link
-                                key={item.name}
-                                href={item.href}
-                                className={`${item.current
-                                    ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg border-l-4 border-primary-500'
-                                    : 'text-gray-600 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-800 hover:text-gray-900 dark:hover:text-white hover:border-l-4 hover:border-primary-300 dark:hover:border-primary-600'
-                                    } group flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 transform hover:scale-105`}
-                            >
-                                <div className="mr-3 flex-shrink-0">{item.icon}</div>
-                                <span className="truncate">{item.name}</span>
-                            </Link>
+                            {navigation.map((item) => (
+                                <div key={item.name}>
+                                    {item.href ? (
+                                        <Link
+                                            href={item.href}
+                                            className={`${item.current
+                                                ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg border-l-4 border-primary-500'
+                                                : 'text-gray-600 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-800 hover:text-gray-900 dark:hover:text-white hover:border-l-4 hover:border-primary-300 dark:hover:border-primary-600'
+                                                } group flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 transform hover:scale-105`}
+                                        >
+                                            <div className="mr-3 flex-shrink-0">{item.icon}</div>
+                                            <span className="truncate">{item.name}</span>
+                                        </Link>
+                                    ) : (
+                                        <div
+                                            className={`${item.current
+                                                ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg border-l-4 border-primary-500'
+                                                : 'text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/40'
+                                                } group flex items-center px-3 py-3 text-sm font-medium rounded-lg`}
+                                        >
+                                            <div className="mr-3 flex-shrink-0">{item.icon}</div>
+                                            <span className="truncate">{item.name}</span>
+                                        </div>
+                                    )}
+
+                                    {item.children && (
+                                        <div className="ml-6 mt-2 space-y-2">
+                                            {item.children.map((child) => (
+                                                <Link
+                                                    key={child.name}
+                                                    href={child.href}
+                                                    className={`${child.current
+                                                        ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-200 border-l-4 border-primary-500'
+                                                        : 'text-gray-600 dark:text-gray-300 hover:bg-primary-50 dark:hover:bg-primary-800 hover:text-gray-900 dark:hover:text-white hover:border-l-4 hover:border-primary-300 dark:hover:border-primary-600'
+                                                        } block px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200`}
+                                                >
+                                                    {child.name}
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             ))}
                         </nav>
                     </div>

@@ -18,6 +18,7 @@ export default function SettingsIndex(props) {
         ifsc: props.ifsc || 'DBSS0IN0828',
         branch: props.branch || 'KOLKATA MAIN BRANCH',
         account_type: props.account_type || 'Trade & Forex CURRENT ACCOUNT',
+        invoice_logo: null,
     });
 
     const handleSubmit = (e) => {
@@ -213,6 +214,57 @@ export default function SettingsIndex(props) {
                                         <p className="text-red-500 text-sm mt-1">{errors.account_type}</p>
                                     )}
                                 </div>
+                            </div>
+                        </div>
+
+                        <div className="border-b border-gray-200 dark:border-gray-700 pb-8">
+                            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                                Invoice Logo
+                            </h2>
+                            <div className="max-w-2xl">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Invoice Logo (Optional)
+                                </label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => setData('invoice_logo', e.target.files?.[0] || null)}
+                                    className="w-full border border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                {errors.invoice_logo && (
+                                    <p className="text-red-500 text-sm mt-1">{errors.invoice_logo}</p>
+                                )}
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                    Upload a company logo to display in the invoice PDF header. If you leave it empty, the PDF will show text branding only.
+                                </p>
+
+                                {props.invoice_logo_url && !data.invoice_logo && (
+                                    <div className="mt-4 flex items-center gap-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-4 py-3">
+                                        <img
+                                            src={props.invoice_logo_url}
+                                            alt="Current invoice logo"
+                                            className="h-16 w-16 object-contain rounded-md bg-white p-2 border border-gray-200"
+                                        />
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-900 dark:text-white">Current logo preview</p>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400">This logo appears on customer invoices.</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {data.invoice_logo && data.invoice_logo instanceof File && (
+                                    <div className="mt-4 flex items-center gap-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-4 py-3">
+                                        <img
+                                            src={URL.createObjectURL(data.invoice_logo)}
+                                            alt="Invoice logo preview"
+                                            className="h-16 w-16 object-contain rounded-md bg-white p-2 border border-gray-200"
+                                        />
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-900 dark:text-white">New upload preview</p>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400">This will replace the current logo when you save.</p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
 

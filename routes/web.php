@@ -13,6 +13,7 @@ use App\Http\Controllers\ItemController;
 use App\Http\Controllers\PurchaseBillController;
 use App\Http\Controllers\SubAdminController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\DailyReportController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -79,6 +80,10 @@ Route::middleware('auth')->group(function () {
     
     // GST Management routes - require gst_management permission
     Route::get('gst', [GSTController::class, 'index'])->name('gst.index')->middleware('permission:gst_management');
+
+    // Daily Reports routes
+    Route::get('daily-reports', [DailyReportController::class, 'index'])->name('daily-reports.index');
+    Route::get('daily-reports/export', [DailyReportController::class, 'export'])->name('daily-reports.export');
     
     // Stock Management routes - require stock_management permission (Read-only)
     Route::middleware('permission:stock_management')->group(function () {

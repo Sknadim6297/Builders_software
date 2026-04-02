@@ -135,11 +135,14 @@ export default function Index({     items, filters }) {
                         {items.links.map((link, index) => (
                             <Link
                                 key={index}
-                                href={link.url}
+                                href={link.url || '#'}
+                                as={link.url ? 'a' : 'span'}
                                 className={`px-3 py-1 rounded border ${
                                     link.active
                                         ? 'bg-blue-600 text-white border-blue-600'
                                         : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                } ${
+                                    !link.url ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
                                 }`}
                                 dangerouslySetInnerHTML={{ __html: link.label }}
                             />

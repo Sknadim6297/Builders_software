@@ -98,6 +98,10 @@ export default function Show({ auth, purchaseBill }) {
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Reference</label>
                                         <p className="text-sm text-gray-900 dark:text-gray-100">{purchaseBill.reference || 'None'}</p>
                                     </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">INV/CHA No.</label>
+                                        <p className="text-sm text-gray-900 dark:text-gray-100">{purchaseBill.inv_cha_no || 'None'}</p>
+                                    </div>
                                 </div>
                             </div>
 

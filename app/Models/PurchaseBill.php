@@ -13,6 +13,7 @@ class PurchaseBill extends Model
 
     protected $fillable = [
         'po_number',
+        'inv_cha_no',
         'po_date',
         'vendor_id',
         'vendor_address',

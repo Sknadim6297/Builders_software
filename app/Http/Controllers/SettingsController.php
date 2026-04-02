@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class SettingsController extends Controller
@@ -29,6 +30,7 @@ class SettingsController extends Controller
         $ifsc = Setting::getValue('ifsc', 'DBSS0IN0828');
         $branch = Setting::getValue('branch', 'KOLKATA MAIN BRANCH');
         $accountType = Setting::getValue('account_type', 'Trade & Forex CURRENT ACCOUNT');
+        $invoiceLogo = Setting::getValue('invoice_logo', '');
 
         return Inertia::render('Settings/Index', [
             'payment_tc' => $paymentTc,
@@ -40,7 +42,9 @@ class SettingsController extends Controller
             'account_no' => $accountNo,
             'ifsc' => $ifsc,
             'branch' => $branch,
-            'account_type' => $accountType
+            'account_type' => $accountType,
+            'invoice_logo' => $invoiceLogo,
+            'invoice_logo_url' => $invoiceLogo ? asset('storage/' . $invoiceLogo) : null
         ]);
     }
 
@@ -63,8 +67,20 @@ class SettingsController extends Controller
             'account_no' => 'required|string|max:50',
             'ifsc' => 'required|string|max:50',
             'branch' => 'required|string|max:255',
-            'account_type' => 'required|string|max:255'
+            'account_type' => 'required|string|max:255',
+            'invoice_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120'
         ]);
+
+        $invoiceLogoPath = Setting::getValue('invoice_logo', '');
+        if ($request->hasFile('invoice_logo')) {
+            $uploadedLogo = $request->file('invoice_logo')->store('invoice-logos', 'public');
+
+            if (!empty($invoiceLogoPath)) {
+                Storage::disk('public')->delete($invoiceLogoPath);
+            }
+
+            $invoiceLogoPath = $uploadedLogo;
+        }
 
         Setting::setValue('payment_terms_conditions', $validated['payment_tc'] ?? '');
         Setting::setValue('payment_mode', $validated['payment_mode']);
@@ -75,6 +91,10 @@ class SettingsController extends Controller
         Setting::setValue('ifsc', $validated['ifsc']);
         Setting::setValue('branch', $validated['branch']);
         Setting::setValue('account_type', $validated['account_type']);
+
+        if (!empty($invoiceLogoPath)) {
+            Setting::setValue('invoice_logo', $invoiceLogoPath);
+        }
 
         return redirect()->back()->with('success', 'Settings updated successfully');
     }

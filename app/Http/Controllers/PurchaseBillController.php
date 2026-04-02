@@ -113,7 +113,7 @@ class PurchaseBillController extends Controller
     {
         $vendors = Vendor::select('id', 'name', 'address')->orderBy('name')->get();
         $customers = Customer::select('id', 'name', 'address')->orderBy('name')->get();
-        $items = Item::active()->get(['id', 'item_code', 'name', 'unit_type', 'gst_percentage']);
+        $items = Item::active()->get(['id', 'item_code', 'name', 'unit_type', 'default_unit_price', 'default_discount_percentage', 'gst_percentage']);
 
         return Inertia::render('PurchaseBills/CreateNew', [
             'vendors' => $vendors,
@@ -136,6 +136,7 @@ class PurchaseBillController extends Controller
         
         $validated = $request->validate([
             'po_date' => 'required|date',
+            'inv_cha_no' => 'nullable|string|max:100',
             'vendor_id' => 'required|exists:vendors,id',
             'vendor_address' => 'required|string|max:500',
             'deliver_address' => 'required|string|max:500',
@@ -226,6 +227,7 @@ class PurchaseBillController extends Controller
             // Create purchase bill
             $purchaseBill = PurchaseBill::create([
                 'po_number' => $poNumber,
+                'inv_cha_no' => $validated['inv_cha_no'] ?? null,
                 'po_date' => $validated['po_date'],
                 'vendor_id' => $validated['vendor_id'],
                 'vendor_address' => $validated['vendor_address'],

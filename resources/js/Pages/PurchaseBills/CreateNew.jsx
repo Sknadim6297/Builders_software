@@ -7,6 +7,7 @@ import { route } from '@/utils/route';
 export default function Create({ auth, vendors, items: allItems, flash }) {
     const { data, setData, post, processing, errors } = useForm({
         po_date: new Date().toISOString().split('T')[0],
+        inv_cha_no: '',
         vendor_id: '',
         vendor_address: '',
         deliver_address: '',
@@ -112,7 +113,8 @@ export default function Create({ auth, vendors, items: allItems, flash }) {
             const item = itemMap.get(value);
             if (item) {
                 newItems[index].gst_percentage = item.gst_percentage || 0;
-                // Don't auto-set price, let user enter it
+                newItems[index].unit_price = String(item.default_unit_price || 0);
+                newItems[index].discount_percentage = String(item.default_discount_percentage || 0);
             }
         }
 
@@ -187,6 +189,7 @@ export default function Create({ auth, vendors, items: allItems, flash }) {
         // Prepare submission data
         const submitData = {
             po_date: data.po_date,
+            inv_cha_no: data.inv_cha_no || '',
             vendor_id: data.vendor_id,
             vendor_address: data.vendor_address,
             deliver_address: data.deliver_address,
@@ -299,6 +302,20 @@ export default function Create({ auth, vendors, items: allItems, flash }) {
                                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                                     />
                                     {errors.po_date && <div className="text-red-500 text-sm mt-1">{errors.po_date}</div>}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        INV/CHA No.
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={data.inv_cha_no}
+                                        onChange={(e) => setData('inv_cha_no', e.target.value)}
+                                        placeholder="Enter invoice/challan number"
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                    />
+                                    {errors.inv_cha_no && <div className="text-red-500 text-sm mt-1">{errors.inv_cha_no}</div>}
                                 </div>
 
                                 <div>
@@ -449,22 +466,22 @@ export default function Create({ auth, vendors, items: allItems, flash }) {
                                                         <input
                                                             type="number"
                                                             value={item.unit_price}
-                                                            onChange={(e) => updateItem(index, 'unit_price', e.target.value)}
                                                             min="0"
                                                             step="0.01"
                                                             required
-                                                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                                                            readOnly
+                                                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white text-sm"
                                                         />
                                                     </td>
                                                     <td className="px-4 py-3">
                                                         <input
                                                             type="number"
                                                             value={item.discount_percentage}
-                                                            onChange={(e) => updateItem(index, 'discount_percentage', e.target.value)}
                                                             min="0"
                                                             max="100"
                                                             step="0.01"
-                                                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                                                            readOnly
+                                                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white text-sm"
                                                         />
                                                     </td>
                                                     <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">

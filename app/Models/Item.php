@@ -17,6 +17,8 @@ class Item extends Model
         'name',
         'description',
         'unit_type',
+        'default_unit_price',
+        'default_discount_percentage',
         'gst_percentage',
         'is_active',
         'created_by',
@@ -24,6 +26,8 @@ class Item extends Model
     ];
 
     protected $casts = [
+        'default_unit_price' => 'decimal:2',
+        'default_discount_percentage' => 'decimal:2',
         'gst_percentage' => 'decimal:2',
         'is_active' => 'boolean'
     ];

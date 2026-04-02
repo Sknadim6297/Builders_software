@@ -636,6 +636,7 @@ class BillingController extends Controller
 			'amount_in_words' => $amountInWords,
 			'invoice_discount_percent' => $invoiceDiscountPercent,
 			'buyer_logo' => $billing->buyer_logo ?? null,
+			'invoice_logo' => Setting::getValue('invoice_logo', ''),
 			'payment_tc' => Setting::getValue('payment_terms_conditions', 'Billing date: From 5 days between payment. Late payment charges apply as below: After 7 days — 1% Debit Note. After 14 days — 2% Debit Note. After 20 days — 2.5% Debit Note. After 24 days — 2.7% Debit Note. After 30 days — 3% Debit Note. After 2 months — 4% Debit Note. After 3 months — 4.5% Debit Note. Interest @18% p.a. if not paid within 5 days. Any dispute regarding quality/quantity must be raised within 5 days of supply. No claim afterward.'),
 			'payment_mode' => Setting::getValue('payment_mode', 'CREDIT'),
 			'godown' => Setting::getValue('godown', 'CHALITAPARA'),

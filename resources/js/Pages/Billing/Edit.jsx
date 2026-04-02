@@ -210,7 +210,7 @@ export default function Edit({ invoice, services, products, flash }) {
                                 {errors.gst_percentage && <div className="text-red-600 text-sm mt-1">{errors.gst_percentage}</div>}
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Buyer Logo (Image Upload)</label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Buyer Logo (Optional Image Upload)</label>
                                 <input
                                     type="file"
                                     accept="image/*"
