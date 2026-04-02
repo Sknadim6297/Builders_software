@@ -330,12 +330,12 @@ class PurchaseBillController extends Controller
     {
         $purchaseBill = PurchaseBill::with(['vendor'])->findOrFail($id);
         $vendors = Vendor::select('id', 'name', 'address')->orderBy('name')->get();
-        $customers = Customer::select('id', 'name', 'address')->orderBy('name')->get();
+        $items = Item::active()->get(['id', 'item_code', 'name', 'unit_type', 'default_unit_price', 'default_discount_percentage', 'gst_percentage']);
 
         return Inertia::render('PurchaseBills/Edit', [
             'purchaseBill' => $purchaseBill,
             'vendors' => $vendors,
-            'customers' => $customers
+            'items' => $items
         ]);
     }
 
@@ -348,6 +348,7 @@ class PurchaseBillController extends Controller
 
         $validated = $request->validate([
             'po_date' => 'required|date',
+            'inv_cha_no' => 'nullable|string|max:100',
             'vendor_id' => 'required|exists:vendors,id',
             'vendor_address' => 'required|string|max:500',
             'deliver_address' => 'required|string|max:500',
@@ -432,6 +433,7 @@ class PurchaseBillController extends Controller
             // Update purchase bill
             $purchaseBill->update([
                 'po_date' => $validated['po_date'],
+                'inv_cha_no' => $validated['inv_cha_no'] ?? null,
                 'vendor_id' => $validated['vendor_id'],
                 'vendor_address' => $validated['vendor_address'],
                 'deliver_address' => $validated['deliver_address'],

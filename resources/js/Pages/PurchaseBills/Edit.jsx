@@ -1,127 +1,114 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
 import SidebarLayout from '../../Layouts/SidebarLayout';
 import { ArrowLeftIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { route } from '@/utils/route';
 
-export default function Edit({ auth, purchaseBill, vendors, customers, flash }) {
-    const { data, setData, put, processing, errors, reset } = useForm({
-        po_date: purchaseBill.po_date,
-        vendor_id: purchaseBill.vendor_id,
-        vendor_address: purchaseBill.vendor_address,
-        deliver_address: purchaseBill.deliver_address,
-        expected_delivery: purchaseBill.expected_delivery,
+export default function Edit({ purchaseBill, vendors, items: allItems = [], flash }) {
+    const { data, setData, put, processing, errors } = useForm({
+        po_date: purchaseBill.po_date || new Date().toISOString().split('T')[0],
+        inv_cha_no: purchaseBill.inv_cha_no || '',
+        status: purchaseBill.status || 'draft',
+        vendor_id: purchaseBill.vendor_id || '',
+        vendor_address: purchaseBill.vendor_address || '',
+        deliver_address: purchaseBill.deliver_address || '',
+        expected_delivery: purchaseBill.expected_delivery || '',
         attachments: [],
-        items: (purchaseBill.items || []).map(item => ({
-            product: item.product || '',
-            description: item.description || '',
-            hsn_code: item.hsn_code || '',
-            quantity: parseFloat(item.quantity) || 0,
-            unit_price: parseFloat(item.unit_price) || 0,
-            measurement: item.measurement || 'pcs',
-            discount_percentage: parseFloat(item.discount_percentage) || 0,
-            net_rate: parseFloat(item.net_rate) || 0,
-            amount: parseFloat(item.amount) || 0
-        })),
-        subtotal: parseFloat(purchaseBill.subtotal) || 0,
-        delivery_charges: parseFloat(purchaseBill.delivery_charges) || 0,
+        items: (purchaseBill.items || []).length
+            ? (purchaseBill.items || []).map((item) => ({
+                item_id: item.item_id ? String(item.item_id) : '',
+                quantity: String(item.quantity ?? '0'),
+                unit_price: String(item.unit_price ?? '0'),
+                discount_percentage: String(item.discount_percentage ?? '0'),
+                net_rate: parseFloat(item.net_rate ?? 0),
+                amount: parseFloat(item.amount ?? 0),
+                gst_percentage: parseFloat(item.gst_percentage ?? 0),
+            }))
+            : [{ item_id: '', quantity: '0', unit_price: '0', discount_percentage: '0', net_rate: 0, amount: 0, gst_percentage: 0 }],
+        subtotal: String(purchaseBill.subtotal ?? '0'),
+        delivery_charges: String(purchaseBill.delivery_charges ?? '0'),
         gst_type: purchaseBill.gst_type || 'intra',
-        cgst_percentage: parseFloat(purchaseBill.cgst_percentage) || 0,
-        sgst_percentage: parseFloat(purchaseBill.sgst_percentage) || 0,
-        igst_percentage: parseFloat(purchaseBill.igst_percentage) || 0,
-        tcs_percentage: parseFloat(purchaseBill.tcs_percentage) || 0,
-        round_off: parseFloat(purchaseBill.round_off) || 0,
-        gross_amount: parseFloat(purchaseBill.gross_amount) || 0,
-        discount: parseFloat(purchaseBill.discount) || 0,
-        tax: parseFloat(purchaseBill.tax) || 0,
-        total: parseFloat(purchaseBill.total) || 0,
-        net_amount: parseFloat(purchaseBill.net_amount) || 0,
+        cgst_percentage: String(purchaseBill.cgst_percentage ?? '9'),
+        sgst_percentage: String(purchaseBill.sgst_percentage ?? '9'),
+        igst_percentage: String(purchaseBill.igst_percentage ?? '0'),
+        tcs_percentage: String(purchaseBill.tcs_percentage ?? '0'),
+        round_off: String(purchaseBill.round_off ?? '0'),
+        gross_amount: String(purchaseBill.gross_amount ?? '0'),
+        discount: String(purchaseBill.discount ?? '0'),
+        total: String(purchaseBill.total ?? '0'),
+        net_amount: String(purchaseBill.net_amount ?? '0'),
         terms: purchaseBill.terms || '',
         notes: purchaseBill.notes || '',
         reference: purchaseBill.reference || '',
-        status: purchaseBill.status
     });
 
-    const [selectedVendor, setSelectedVendor] = useState(
-        vendors.find(v => v.id === purchaseBill.vendor_id) || null
-    );
     const [fileList, setFileList] = useState([]);
-
-    const measurementUnits = ['kg', 'g', 'l', 'ml', 'pcs', 'box', 'pack', 'meter', 'feet'];
 
     const statusOptions = [
         { value: 'draft', label: 'Draft' },
         { value: 'sent', label: 'Sent' },
         { value: 'received', label: 'Received' },
         { value: 'completed', label: 'Completed' },
-        { value: 'cancelled', label: 'Cancelled' }
+        { value: 'cancelled', label: 'Cancelled' },
     ];
 
-    // Show flash messages as toasts
+    const itemMap = useMemo(() => {
+        const map = new Map();
+        allItems.forEach((item) => map.set(String(item.id), item));
+        return map;
+    }, [allItems]);
+
     useEffect(() => {
-        if (flash?.success) {
-            window.showSuccess(flash.success);
-        }
-        if (flash?.error) {
-            window.showError(flash.error);
-        }
+        if (flash?.success) window.showSuccess?.(flash.success);
+        if (flash?.error) window.showError?.(flash.error);
     }, [flash]);
 
-    // Handle vendor selection
     const handleVendorChange = (vendorId) => {
-        const vendor = vendors.find(v => v.id === parseInt(vendorId));
-        setSelectedVendor(vendor);
-        setData(prevData => ({
-            ...prevData,
+        const vendor = vendors.find((v) => v.id === parseInt(vendorId, 10));
+        setData((prev) => ({
+            ...prev,
             vendor_id: vendorId,
-            vendor_address: vendor ? vendor.address || '' : ''
+            vendor_address: vendor ? vendor.address || '' : '',
         }));
     };
 
-    // Handle file upload
     const handleFileChange = (e) => {
-        const files = Array.from(e.target.files);
+        const files = Array.from(e.target.files || []);
         setFileList(files);
         setData('attachments', files);
     };
 
-    // Add new item row
     const addItem = () => {
         setData('items', [
             ...data.items,
-            {
-                product: '',
-                description: '',
-                hsn_code: '',
-                quantity: 0,
-                unit_price: 0,
-                measurement: 'pcs',
-                discount_percentage: 0,
-                net_rate: 0,
-                amount: 0
-            }
+            { item_id: '', quantity: '0', unit_price: '0', discount_percentage: '0', net_rate: 0, amount: 0, gst_percentage: 0 },
         ]);
     };
 
-    // Remove item row
     const removeItem = (index) => {
-        if (data.items.length > 1) {
-            const newItems = data.items.filter((_, i) => i !== index);
-            setData('items', newItems);
-        }
+        if (data.items.length <= 1) return;
+        setData('items', data.items.filter((_, i) => i !== index));
     };
 
-    // Update item field
     const updateItem = (index, field, value) => {
         const newItems = [...data.items];
         newItems[index][field] = value;
 
-        const quantity = parseFloat(newItems[index].quantity) || 0;
+        if (field === 'item_id') {
+            const selected = itemMap.get(value);
+            if (selected) {
+                newItems[index].gst_percentage = parseFloat(selected.gst_percentage || 0);
+                newItems[index].unit_price = String(selected.default_unit_price || 0);
+                newItems[index].discount_percentage = String(selected.default_discount_percentage || 0);
+            }
+        }
+
+        const qty = parseFloat(newItems[index].quantity) || 0;
         const rate = parseFloat(newItems[index].unit_price) || 0;
         const discountPct = parseFloat(newItems[index].discount_percentage) || 0;
 
         const netRate = rate - (rate * discountPct / 100);
-        const amount = netRate * quantity;
+        const amount = netRate * qty;
 
         newItems[index].net_rate = Number(netRate.toFixed(2));
         newItems[index].amount = Number(amount.toFixed(2));
@@ -129,7 +116,6 @@ export default function Edit({ auth, purchaseBill, vendors, customers, flash }) 
         setData('items', newItems);
     };
 
-    // Calculate totals
     useEffect(() => {
         const subtotal = data.items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
         const deliveryCharges = parseFloat(data.delivery_charges) || 0;
@@ -159,33 +145,44 @@ export default function Edit({ auth, purchaseBill, vendors, customers, flash }) 
         const grossAmount = baseAmount;
         const netAmount = Number((grossAmount + gstAmount + tcsAmount + roundOff - discount).toFixed(2));
 
-        setData(prevData => ({
-            ...prevData,
+        setData((prev) => ({
+            ...prev,
             subtotal: subtotal.toFixed(2),
             gross_amount: grossAmount.toFixed(2),
             cgst_amount: cgstAmount.toFixed(2),
             sgst_amount: sgstAmount.toFixed(2),
             igst_amount: igstAmount.toFixed(2),
             tcs_amount: tcsAmount.toFixed(2),
+            tax: gstAmount.toFixed(2),
             total: netAmount.toFixed(2),
-            net_amount: netAmount.toFixed(2)
+            net_amount: netAmount.toFixed(2),
         }));
     }, [data.items, data.delivery_charges, data.gst_type, data.cgst_percentage, data.sgst_percentage, data.igst_percentage, data.tcs_percentage, data.round_off, data.discount]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        
-        // Prepare data for submission
+
+        const hasValidItems = data.items.some((item) => item.item_id && parseFloat(item.quantity) > 0);
+        if (!hasValidItems) {
+            window.showError?.('Please add at least one item from Item Master');
+            return;
+        }
+
         const submitData = {
-            ...data,
-            items: JSON.stringify(data.items.map(item => ({
-                ...item,
+            po_date: data.po_date,
+            inv_cha_no: data.inv_cha_no || '',
+            status: data.status || 'draft',
+            vendor_id: data.vendor_id,
+            vendor_address: data.vendor_address,
+            deliver_address: data.deliver_address,
+            expected_delivery: data.expected_delivery || '',
+            items: data.items.map((item) => ({
+                item_id: item.item_id,
                 quantity: parseFloat(item.quantity) || 0,
                 unit_price: parseFloat(item.unit_price) || 0,
                 discount_percentage: parseFloat(item.discount_percentage) || 0,
-                net_rate: parseFloat(item.net_rate) || 0,
-                amount: parseFloat(item.amount) || 0
-            }))),
+                gst_percentage: parseFloat(item.gst_percentage) || 0,
+            })),
             subtotal: parseFloat(data.subtotal) || 0,
             delivery_charges: parseFloat(data.delivery_charges) || 0,
             gst_type: data.gst_type || 'intra',
@@ -198,266 +195,154 @@ export default function Edit({ auth, purchaseBill, vendors, customers, flash }) 
             discount: parseFloat(data.discount) || 0,
             total: parseFloat(data.total) || 0,
             net_amount: parseFloat(data.net_amount) || 0,
-            _method: 'PUT' // Add this for Laravel to recognize it as PUT
+            cgst_amount: parseFloat(data.cgst_amount) || 0,
+            sgst_amount: parseFloat(data.sgst_amount) || 0,
+            igst_amount: parseFloat(data.igst_amount) || 0,
+            tcs_amount: parseFloat(data.tcs_amount) || 0,
+            terms: data.terms || '',
+            notes: data.notes || '',
+            reference: data.reference || '',
         };
 
         if (data.attachments && data.attachments.length > 0) {
-            // Use FormData for file uploads
             const formData = new FormData();
-            
-            // Add all non-file fields first
-            formData.append('po_date', data.po_date);
-            formData.append('vendor_id', data.vendor_id);
-            formData.append('vendor_address', data.vendor_address);
-            formData.append('deliver_address', data.deliver_address);
-            formData.append('expected_delivery', data.expected_delivery || '');
-            formData.append('items', submitData.items); // Use the JSON string from submitData
-            formData.append('subtotal', submitData.subtotal);
-            formData.append('tax', submitData.tax);
-            formData.append('discount', submitData.discount);
-            formData.append('total', submitData.total);
-            formData.append('terms', data.terms || '');
-            formData.append('notes', data.notes || '');
-            formData.append('reference', data.reference || '');
-            formData.append('status', data.status || '');
-            formData.append('_method', 'PUT'); // Important for Laravel
-            
-            // Add file attachments
+            Object.keys(submitData).forEach((key) => {
+                if (key === 'items') {
+                    formData.append(key, JSON.stringify(submitData[key]));
+                } else {
+                    formData.append(key, submitData[key]);
+                }
+            });
+            formData.append('_method', 'PUT');
             data.attachments.forEach((file, index) => {
                 formData.append(`attachments[${index}]`, file);
             });
 
-            // Use POST with _method=PUT for FormData
             router.post(route('purchase-bills.update', purchaseBill.id), formData, {
                 forceFormData: true,
-                preserveScroll: false, // Allow redirect
-                onSuccess: () => {
-                    setFileList([]);
-                    // No custom toast here - let backend flash message handle it
+                preserveScroll: false,
+                onError: (formErrors) => {
+                    Object.keys(formErrors).forEach((key) => window.showError?.(`${key}: ${formErrors[key]}`));
                 },
-                onError: (errors) => {
-                    console.log('Form submission errors:', errors);
-                    // Show validation errors in toast
-                    Object.keys(errors).forEach(key => {
-                        if (window.showError) {
-                            window.showError(`${key}: ${errors[key]}`);
-                        }
-                    });
-                }
             });
-        } else {
-            // Use regular form submission without files
-            put(route('purchase-bills.update', purchaseBill.id), submitData, {
-                preserveScroll: false, // Allow redirect
-                onSuccess: () => {
-                    setFileList([]);
-                    // No custom toast here - let backend flash message handle it
-                },
-                onError: (errors) => {
-                    console.log('Form submission errors:', errors);
-                    // Show validation errors in toast
-                    Object.keys(errors).forEach(key => {
-                        if (window.showError) {
-                            window.showError(`${key}: ${errors[key]}`);
-                        }
-                    });
-                }
-            });
+            return;
         }
+
+        put(route('purchase-bills.update', purchaseBill.id), {
+            ...submitData,
+            items: JSON.stringify(submitData.items),
+        }, {
+            preserveScroll: false,
+            onError: (formErrors) => {
+                Object.keys(formErrors).forEach((key) => window.showError?.(`${key}: ${formErrors[key]}`));
+            },
+        });
     };
 
     return (
         <SidebarLayout>
-            <Head title="Edit Purchase Bill" />
-            
-            <div className="py-6 bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-200">
+            <Head title={`Edit Purchase Bill ${purchaseBill.po_number}`} />
+
+            <div className="py-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    {/* Header */}
                     <div className="mb-8">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4">
-                                <button
-                                    type="button"
-                                    onClick={() => router.visit(route('purchase-bills.index'))}
-                                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200"
-                                >
-                                    <ArrowLeftIcon className="w-4 h-4 mr-2" />
-                                    Back to Purchase Bills
-                                </button>
-                                <div className="h-6 border-l border-gray-300 dark:border-gray-600"></div>
-                                <div>
-                                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white font-heading">
-                                        Edit Purchase Bill {purchaseBill.po_number}
-                                    </h1>
-                                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                                        Update purchase order details and specifications
-                                    </p>
-                                </div>
+                        <div className="flex items-center space-x-4">
+                            <button
+                                type="button"
+                                onClick={() => router.visit(route('purchase-bills.index'))}
+                                className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900"
+                            >
+                                <ArrowLeftIcon className="w-6 h-6" />
+                            </button>
+                            <div>
+                                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                                    Edit Purchase Bill {purchaseBill.po_number}
+                                </h1>
+                                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                    Update purchase order details and specifications
+                                </p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Form */}
                     <form onSubmit={handleSubmit} className="space-y-8">
-                        {/* Basic Information Section */}
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Basic Information</h2>
-                            
+
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label htmlFor="po_date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        PO Date *
-                                    </label>
-                                    <input
-                                        type="date"
-                                        id="po_date"
-                                        value={data.po_date}
-                                        onChange={(e) => setData('po_date', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
-                                        required
-                                    />
-                                    {errors.po_date && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.po_date}</p>}
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">PO Date *</label>
+                                    <input type="date" value={data.po_date} onChange={(e) => setData('po_date', e.target.value)} required className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+                                    {errors.po_date && <div className="text-red-500 text-sm mt-1">{errors.po_date}</div>}
                                 </div>
 
                                 <div>
-                                    <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Status
-                                    </label>
-                                    <select
-                                        id="status"
-                                        value={data.status}
-                                        onChange={(e) => setData('status', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
-                                    >
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
+                                    <select value={data.status} onChange={(e) => setData('status', e.target.value)} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                                         {statusOptions.map((option) => (
-                                            <option key={option.value} value={option.value}>
-                                                {option.label}
-                                            </option>
+                                            <option key={option.value} value={option.value}>{option.label}</option>
                                         ))}
                                     </select>
-                                    {errors.status && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.status}</p>}
+                                    {errors.status && <div className="text-red-500 text-sm mt-1">{errors.status}</div>}
                                 </div>
 
                                 <div>
-                                    <label htmlFor="vendor_id" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Vendor *
-                                    </label>
-                                    <select
-                                        id="vendor_id"
-                                        value={data.vendor_id}
-                                        onChange={(e) => handleVendorChange(e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
-                                        required
-                                    >
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Vendor *</label>
+                                    <select value={data.vendor_id} onChange={(e) => handleVendorChange(e.target.value)} required className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                                         <option value="">Select Vendor</option>
                                         {vendors.map((vendor) => (
-                                            <option key={vendor.id} value={vendor.id}>
-                                                {vendor.name}
-                                            </option>
+                                            <option key={vendor.id} value={vendor.id}>{vendor.name}</option>
                                         ))}
                                     </select>
-                                    {errors.vendor_id && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.vendor_id}</p>}
+                                    {errors.vendor_id && <div className="text-red-500 text-sm mt-1">{errors.vendor_id}</div>}
                                 </div>
 
                                 <div>
-                                    <label htmlFor="vendor_address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Vendor Address *
-                                    </label>
-                                    <textarea
-                                        id="vendor_address"
-                                        rows="2"
-                                        value={data.vendor_address}
-                                        onChange={(e) => setData('vendor_address', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
-                                        required
-                                        readOnly
-                                    />
-                                    {errors.vendor_address && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.vendor_address}</p>}
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">INV/CHA No.</label>
+                                    <input type="text" value={data.inv_cha_no} onChange={(e) => setData('inv_cha_no', e.target.value)} placeholder="Enter invoice/challan number" className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+                                    {errors.inv_cha_no && <div className="text-red-500 text-sm mt-1">{errors.inv_cha_no}</div>}
                                 </div>
 
                                 <div>
-                                    <label htmlFor="deliver_address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Deliver Address *
-                                    </label>
-                                    <textarea
-                                        id="deliver_address"
-                                        rows="2"
-                                        value={data.deliver_address}
-                                        onChange={(e) => setData('deliver_address', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
-                                        required
-                                    />
-                                    {errors.deliver_address && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.deliver_address}</p>}
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Vendor Address *</label>
+                                    <textarea value={data.vendor_address} onChange={(e) => setData('vendor_address', e.target.value)} rows={2} readOnly className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white" />
                                 </div>
 
                                 <div>
-                                    <label htmlFor="expected_delivery" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Expected Delivery Date
-                                    </label>
-                                    <input
-                                        type="date"
-                                        id="expected_delivery"
-                                        value={data.expected_delivery}
-                                        onChange={(e) => setData('expected_delivery', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
-                                    />
-                                    {errors.expected_delivery && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.expected_delivery}</p>}
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Delivery Address *</label>
+                                    <textarea value={data.deliver_address} onChange={(e) => setData('deliver_address', e.target.value)} rows={2} required className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+                                    {errors.deliver_address && <div className="text-red-500 text-sm mt-1">{errors.deliver_address}</div>}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Expected Delivery Date</label>
+                                    <input type="date" value={data.expected_delivery} onChange={(e) => setData('expected_delivery', e.target.value)} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
                                 </div>
                             </div>
 
-                            {/* File Upload */}
                             <div className="mt-6">
-                                <label htmlFor="attachments" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Add Files to Purchase Order
-                                </label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Add Files to Purchase Order</label>
                                 <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 hover:border-primary-400 dark:hover:border-primary-500 transition-colors duration-200">
-                                    <input
-                                        type="file"
-                                        id="attachments"
-                                        multiple
-                                        onChange={handleFileChange}
-                                        className="hidden"
-                                        accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
-                                    />
-                                    <label
-                                        htmlFor="attachments"
-                                        className="cursor-pointer flex flex-col items-center justify-center"
-                                    >
-                                        <svg className="w-8 h-8 text-gray-400 dark:text-gray-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                                        </svg>
-                                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                                            Click to select files or drag and drop
-                                        </span>
-                                        <span className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                                            PDF, DOC, XLS, JPG, PNG up to 10MB each
-                                        </span>
+                                    <input type="file" id="attachments" multiple onChange={handleFileChange} className="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" />
+                                    <label htmlFor="attachments" className="cursor-pointer flex flex-col items-center justify-center">
+                                        <span className="text-sm text-gray-600 dark:text-gray-400">Click to select files or drag and drop</span>
+                                        <span className="text-xs text-gray-500 dark:text-gray-500 mt-1">PDF, DOC, XLS, JPG, PNG up to 10MB each</span>
                                     </label>
                                 </div>
                                 {fileList.length > 0 && (
-                                    <div className="mt-3">
-                                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Selected files:</p>
-                                        <ul className="space-y-1">
-                                            {fileList.map((file, index) => (
-                                                <li key={index} className="text-sm text-gray-600 dark:text-gray-400">
-                                                    {file.name} ({(file.size / 1024).toFixed(1)} KB)
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
+                                    <ul className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                        {fileList.map((file, index) => (
+                                            <li key={index}>� {file.name}</li>
+                                        ))}
+                                    </ul>
                                 )}
                             </div>
                         </div>
 
-                        {/* Items Section */}
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Items</h2>
-                                <button
-                                    type="button"
-                                    onClick={addItem}
-                                    className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-primary-700 hover:bg-primary-800 rounded-lg transition-colors duration-200"
-                                >
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Items from Master</h2>
+                                <button type="button" onClick={addItem} className="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg">
                                     <PlusIcon className="w-4 h-4 mr-2" />
                                     Add Item
                                 </button>
@@ -465,252 +350,108 @@ export default function Edit({ auth, purchaseBill, vendors, customers, flash }) 
 
                             <div className="overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                    <thead className="bg-gray-50 dark:bg-gray-700">
+                                    <thead className="bg-blue-600 text-white">
                                         <tr>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Sl. No</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Description</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">HSN Code</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Quantity</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Unit</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Rate</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Discount %</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Net Rate</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Amount</th>
-                                            <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Action</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium uppercase">Sl. No</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium uppercase">Item Master *</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium uppercase">Unit Type</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium uppercase">Quantity *</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium uppercase">Unit Price *</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium uppercase">Discount %</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium uppercase">GST %</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium uppercase">Amount</th>
+                                            <th className="px-4 py-3 text-center text-xs font-medium uppercase">Action</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                        {data.items.map((item, index) => (
-                                            <tr key={index}>
-                                                <td className="px-4 py-3">{index + 1}</td>
-                                                <td className="px-4 py-3">
-                                                    <input
-                                                        type="text"
-                                                        value={item.product}
-                                                        onChange={(e) => updateItem(index, 'product', e.target.value)}
-                                                        placeholder="Description"
-                                                        className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                                        required
-                                                    />
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    <input
-                                                        type="text"
-                                                        value={item.hsn_code}
-                                                        onChange={(e) => updateItem(index, 'hsn_code', e.target.value)}
-                                                        placeholder="HSN Code"
-                                                        className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                                    />
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    <input
-                                                        type="number"
-                                                        min="0"
-                                                        step="0.01"
-                                                        value={item.quantity}
-                                                        onChange={(e) => updateItem(index, 'quantity', parseFloat(e.target.value) || 0)}
-                                                        className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                                        required
-                                                    />
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    <select
-                                                        value={item.measurement}
-                                                        onChange={(e) => updateItem(index, 'measurement', e.target.value)}
-                                                        className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                                        required
-                                                    >
-                                                        <option value="">Select Unit</option>
-                                                        {measurementUnits.map((unit) => (
-                                                            <option key={unit} value={unit}>
-                                                                {unit.toUpperCase()}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    <input
-                                                        type="number"
-                                                        min="0"
-                                                        step="0.01"
-                                                        value={item.unit_price}
-                                                        onChange={(e) => updateItem(index, 'unit_price', parseFloat(e.target.value) || 0)}
-                                                        className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                                        required
-                                                    />
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    <input
-                                                        type="number"
-                                                        min="0"
-                                                        max="100"
-                                                        step="0.01"
-                                                        value={item.discount_percentage}
-                                                        onChange={(e) => updateItem(index, 'discount_percentage', e.target.value)}
-                                                        className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                                    />
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    <input
-                                                        type="text"
-                                                        value={`₹${(parseFloat(item.net_rate) || 0).toFixed(2)}`}
-                                                        readOnly
-                                                        className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white"
-                                                    />
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    <input
-                                                        type="text"
-                                                        value={`₹${(parseFloat(item.amount) || 0).toFixed(2)}`}
-                                                        readOnly
-                                                        className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white"
-                                                    />
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeItem(index)}
-                                                        disabled={data.items.length === 1}
-                                                        className="inline-flex items-center p-1 text-red-600 hover:text-red-700 disabled:text-gray-400 disabled:cursor-not-allowed"
-                                                    >
-                                                        <TrashIcon className="w-4 h-4" />
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                                        {data.items.map((item, index) => {
+                                            const selectedItem = itemMap.get(item.item_id);
+                                            return (
+                                                <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                                    <td className="px-4 py-3 text-sm">{index + 1}</td>
+                                                    <td className="px-4 py-3">
+                                                        <select value={item.item_id} onChange={(e) => updateItem(index, 'item_id', e.target.value)} required className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
+                                                            <option value="">Select Item</option>
+                                                            {allItems.map((itm) => (
+                                                                <option key={itm.id} value={itm.id}>{itm.item_code} - {itm.name}</option>
+                                                            ))}
+                                                        </select>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{selectedItem?.unit_type || '-'}</td>
+                                                    <td className="px-4 py-3">
+                                                        <input type="number" value={item.quantity} onChange={(e) => updateItem(index, 'quantity', e.target.value)} min="0" step="0.01" required className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <input type="number" value={item.unit_price} min="0" step="0.01" required readOnly className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white text-sm" />
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <input type="number" value={item.discount_percentage} min="0" max="100" step="0.01" readOnly className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white text-sm" />
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{item.gst_percentage}%</td>
+                                                    <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">?{item.amount.toFixed(2)}</td>
+                                                    <td className="px-4 py-3 text-center">
+                                                        {data.items.length > 1 && (
+                                                            <button type="button" onClick={() => removeItem(index)} className="text-red-600 hover:text-red-900 dark:hover:text-red-400">
+                                                                <TrashIcon className="w-4 h-4" />
+                                                            </button>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
                                     </tbody>
                                 </table>
                             </div>
                         </div>
 
-                        {/* Summary Section */}
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Summary</h2>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                                <div>
-                                    <label htmlFor="subtotal" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Subtotal
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="subtotal"
-                                        value={`₹${data.subtotal}`}
-                                        readOnly
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white"
-                                    />
-                                </div>
 
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                                 <div>
-                                    <label htmlFor="tax" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Tax (%)
-                                    </label>
-                                    <input
-                                        type="number"
-                                        id="tax"
-                                        min="0"
-                                        max="100"
-                                        step="0.01"
-                                        value={data.tax}
-                                        onChange={(e) => setData('tax', parseFloat(e.target.value) || 0)}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
-                                    />
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Subtotal</label>
+                                    <input type="text" value={`?${parseFloat(data.subtotal || 0).toFixed(2)}`} readOnly className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white" />
                                 </div>
-
                                 <div>
-                                    <label htmlFor="discount" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Discount
-                                    </label>
-                                    <input
-                                        type="number"
-                                        id="discount"
-                                        min="0"
-                                        step="0.01"
-                                        value={data.discount}
-                                        onChange={(e) => setData('discount', parseFloat(e.target.value) || 0)}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
-                                    />
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tax (%)</label>
+                                    <input type="number" value={data.gst_type === 'intra' ? (parseFloat(data.cgst_percentage || 0) + parseFloat(data.sgst_percentage || 0)) : parseFloat(data.igst_percentage || 0)} readOnly className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white" />
                                 </div>
-
                                 <div>
-                                    <label htmlFor="total" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Total
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="total"
-                                        value={`₹${data.total}`}
-                                        readOnly
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white font-semibold"
-                                    />
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Discount</label>
+                                    <input type="number" value={data.discount} onChange={(e) => setData('discount', e.target.value)} min="0" step="0.01" className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Total</label>
+                                    <input type="text" value={`?${parseFloat(data.total || 0).toFixed(2)}`} readOnly className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white font-semibold" />
                                 </div>
                             </div>
                         </div>
 
-                        {/* Terms & Notes Section */}
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-200">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Terms & Notes</h2>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label htmlFor="terms" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Terms & Conditions
-                                    </label>
-                                    <textarea
-                                        id="terms"
-                                        rows="4"
-                                        value={data.terms}
-                                        onChange={(e) => setData('terms', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
-                                        placeholder="Enter terms and conditions..."
-                                    />
-                                </div>
 
+                            <div className="space-y-4">
                                 <div>
-                                    <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Customer Notes
-                                    </label>
-                                    <textarea
-                                        id="notes"
-                                        rows="4"
-                                        value={data.notes}
-                                        onChange={(e) => setData('notes', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
-                                        placeholder="Enter customer notes..."
-                                    />
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Terms & Conditions</label>
+                                    <textarea value={data.terms} onChange={(e) => setData('terms', e.target.value)} rows="3" className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
                                 </div>
-
-                                <div className="md:col-span-2">
-                                    <label htmlFor="reference" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Reference #
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="reference"
-                                        value={data.reference}
-                                        onChange={(e) => setData('reference', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-colors duration-200"
-                                        placeholder="Enter reference number..."
-                                    />
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Customer Notes</label>
+                                    <textarea value={data.notes} onChange={(e) => setData('notes', e.target.value)} rows="3" className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reference #</label>
+                                    <input type="text" value={data.reference} onChange={(e) => setData('reference', e.target.value)} placeholder="Optional reference" className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
                                 </div>
                             </div>
                         </div>
 
-                        {/* Submit Section */}
-                        <div className="flex items-center justify-between">
-                            <button
-                                type="button"
-                                onClick={() => router.visit(route('purchase-bills.index'))}
-                                className="inline-flex items-center px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm text-base font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={processing}
-                                className="inline-flex items-center px-6 py-3 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-primary-700 hover:bg-primary-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
-                            >
+                        <div className="flex gap-4">
+                            <button type="submit" disabled={processing} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 font-medium">
                                 {processing ? 'Updating...' : 'Update Purchase Bill'}
+                            </button>
+                            <button type="button" onClick={() => router.visit(route('purchase-bills.index'))} className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium">
+                                Cancel
                             </button>
                         </div>
                     </form>

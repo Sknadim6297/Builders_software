@@ -117,7 +117,9 @@ class GSTController extends Controller
         $details = [];
 
         foreach ($invoices as $invoice) {
-            $taxable = max(0, (float) $invoice->subtotal - (float) ($invoice->discount ?? 0));
+            // Keep GST computation consistent with billing/invoice total logic:
+            // GST is calculated on subtotal, while discount is applied separately.
+            $taxable = max(0, (float) $invoice->subtotal);
             $effectiveRate = (float) ($invoice->gst_percentage ?? 0);
             $invoiceGST = round($taxable * ($effectiveRate / 100), 2);
 

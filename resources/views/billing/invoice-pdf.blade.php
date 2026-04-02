@@ -137,6 +137,14 @@
             background-color: #f8fbff;
             border-radius: 10px;
         }
+        .terms-list {
+            margin: 0;
+            padding-left: 16px;
+        }
+        .terms-list li {
+            margin-bottom: 4px;
+            line-height: 1.45;
+        }
         .footer {
             margin-top: 14px;
             padding: 0 12px 12px 12px;
@@ -315,7 +323,32 @@
         <div class="section">
             <div class="notes">
                 <div class="section-title">Payment Terms & Conditions</div>
-                <div style="font-size: 10px; line-height: 1.5; white-space: pre-line;">{{ $payment_tc ?? 'N/A' }}</div>
+                @php
+                    $rawTerms = trim((string) ($payment_tc ?? ''));
+                    $rawTerms = preg_replace('/\r\n|\r/', "\n", $rawTerms);
+
+                    // If admin enters one paragraph, split into readable points.
+                    if (strpos($rawTerms, "\n") === false) {
+                        $rawTerms = preg_replace('/\s+/', ' ', $rawTerms);
+                        $rawTerms = preg_replace('/\s*(After\s+\d+\s*(?:days?|months?)\s*[—-])/', "\n$1", $rawTerms);
+                        $rawTerms = preg_replace('/\s*(Interest\s*@)/', "\n$1", $rawTerms);
+                        $rawTerms = preg_replace('/\s*(Any\s+dispute)/i', "\n$1", $rawTerms);
+                    }
+
+                    $paymentTermsLines = array_values(array_filter(array_map('trim', explode("\n", $rawTerms)), function ($line) {
+                        return $line !== '';
+                    }));
+                @endphp
+
+                @if(count($paymentTermsLines) > 0)
+                    <ul class="terms-list" style="font-size: 10px;">
+                        @foreach($paymentTermsLines as $termLine)
+                            <li>{{ $termLine }}</li>
+                        @endforeach
+                    </ul>
+                @else
+                    <div style="font-size: 10px; line-height: 1.5;">N/A</div>
+                @endif
                 <table style="width: 100%; margin-top: 10px; border-collapse: collapse; font-size: 10px;">
                     <tr>
                         <td style="width: 50%; vertical-align: top; padding-right: 10px;">
