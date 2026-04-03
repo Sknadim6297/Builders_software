@@ -1,7 +1,7 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import SidebarLayout from '@/Layouts/SidebarLayout';
 import { route } from '@/utils/route';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 export default function Show({ invoice, flash }) {
     const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -29,6 +29,65 @@ export default function Show({ invoice, flash }) {
         const amount = parseFloat(value || 0);
         return `₹${amount.toFixed(2)}`;
     };
+
+    const amountToWords = (value) => {
+        const number = parseFloat(value || 0);
+
+        if (!Number.isFinite(number) || number < 0) {
+            return '';
+        }
+
+        const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+        const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+        const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+        const twoDigitsToWords = (n) => {
+            if (n < 10) return ones[n];
+            if (n < 20) return teens[n - 10];
+            const tenPart = tens[Math.floor(n / 10)];
+            const onePart = ones[n % 10];
+            return `${tenPart}${onePart ? ` ${onePart}` : ''}`;
+        };
+
+        const threeDigitsToWords = (n) => {
+            const hundred = Math.floor(n / 100);
+            const rest = n % 100;
+            const hundredPart = hundred ? `${ones[hundred]} Hundred` : '';
+            const restPart = rest ? twoDigitsToWords(rest) : '';
+            if (hundredPart && restPart) return `${hundredPart} ${restPart}`;
+            return hundredPart || restPart;
+        };
+
+        const integerPart = Math.floor(number);
+        const paisePart = Math.round((number - integerPart) * 100);
+
+        if (integerPart === 0 && paisePart === 0) {
+            return 'Zero Rupees only';
+        }
+
+        let n = integerPart;
+        const crore = Math.floor(n / 10000000);
+        n %= 10000000;
+        const lakh = Math.floor(n / 100000);
+        n %= 100000;
+        const thousand = Math.floor(n / 1000);
+        n %= 1000;
+        const remainder = n;
+
+        const parts = [];
+        if (crore) parts.push(`${threeDigitsToWords(crore)} Crore`);
+        if (lakh) parts.push(`${threeDigitsToWords(lakh)} Lakh`);
+        if (thousand) parts.push(`${threeDigitsToWords(thousand)} Thousand`);
+        if (remainder) parts.push(threeDigitsToWords(remainder));
+
+        const rupeesWords = parts.join(' ').trim() || 'Zero';
+        if (paisePart > 0) {
+            return `${rupeesWords} Rupees and ${twoDigitsToWords(paisePart)} Paise only`;
+        }
+        return `${rupeesWords} Rupees only`;
+    };
+
+    const dueAmountInWords = useMemo(() => amountToWords(invoice.due_amount), [invoice.due_amount]);
 
     const handleAddPayment = (e) => {
         e.preventDefault();
@@ -228,6 +287,9 @@ export default function Show({ invoice, flash }) {
                                     <span>Due Amount</span>
                                     <span>{invoice.due_amount > 0 ? formatCurrency(invoice.due_amount) : 'No Pending'}</span>
                                 </div>
+                                {invoice.due_amount > 0 && (
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">{dueAmountInWords}</p>
+                                )}
                             </div>
                         </div>
 
@@ -304,6 +366,9 @@ export default function Show({ invoice, flash }) {
                                         required
                                     />
                                     <p className="text-xs text-gray-500 mt-1">Due amount: {formatCurrency(invoice.due_amount)}</p>
+                                    {invoice.due_amount > 0 && (
+                                        <p className="text-xs text-gray-500 mt-1">{dueAmountInWords}</p>
+                                    )}
                                     {errors.amount && <div className="text-red-600 text-sm mt-1">{errors.amount}</div>}
                                 </div>
 
