@@ -4,7 +4,7 @@ import SidebarLayout from '@/Layouts/SidebarLayout';
 import { ArrowLeftIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { route } from '@/utils/route';
 
-export default function Edit({ invoice, services, products, flash }) {
+export default function Edit({ invoice, services, categories, products, flash }) {
     const toDateInput = (value) => {
         if (!value) {
             return '';
@@ -24,9 +24,16 @@ export default function Edit({ invoice, services, products, flash }) {
     }));
 
     const initialProductItems = (invoice.product_items || []).map((item) => ({
+        category_id: item.category_id ? String(item.category_id) : (item.category?.id ? String(item.category.id) : ''),
         stock_id: item.stock_id ? String(item.stock_id) : '',
         quantity: item.quantity != null ? String(item.quantity) : '1',
         unit_price: item.unit_price != null ? String(item.unit_price) : '',
+        discount_percentage: item.discount_percentage != null ? String(item.discount_percentage) : '',
+        discount_amount: item.discount_amount != null ? String(item.discount_amount) : '',
+        original_stock_id: item.stock_id ? String(item.stock_id) : '',
+        original_quantity: item.quantity != null ? String(item.quantity) : '0',
+        available_stock: 0,
+        stock_warning: false,
         total: parseFloat(item.total) || 0
     }));
 
@@ -61,32 +68,128 @@ export default function Edit({ invoice, services, products, flash }) {
         }
     }, [data.cgst_percentage, data.sgst_percentage]);
 
+    const roundToTwo = (value) => Math.round((parseFloat(value) || 0) * 100) / 100;
+
+    const categoryMap = useMemo(() => {
+        const map = new Map();
+        categories.forEach((category) => map.set(String(category.id), category));
+        return map;
+    }, [categories]);
+
     const productMap = useMemo(() => {
         const map = new Map();
-        products.forEach((product) => map.set(String(product.id), product));
+        categories.forEach((category) => {
+            (category.items || []).forEach((product) => {
+                (product.stocks || []).forEach((stock) => {
+                    map.set(String(stock.id), {
+                        ...stock,
+                        category_id: String(category.id),
+                        category_name: category.name,
+                        category_discount_percentage: category.discount_percentage ?? 0,
+                        product_name: product.name,
+                        product_unit_type: product.unit_type,
+                    });
+                });
+            });
+        });
+        products.forEach((product) => {
+            if (!map.has(String(product.id))) {
+                map.set(String(product.id), {
+                    ...product,
+                    category_id: product.item?.category_id ? String(product.item.category_id) : '',
+                    category_name: product.item?.category?.name || '',
+                    category_discount_percentage: product.item?.category?.discount_percentage ?? 0,
+                });
+            }
+        });
         return map;
-    }, [products]);
+    }, [categories, products]);
+
+    const getCategoryProducts = (categoryId) => {
+        const category = categoryMap.get(String(categoryId));
+        return category?.items || [];
+    };
 
     const addProductItem = () => {
         setData('product_items', [
             ...data.product_items,
-            { stock_id: '', quantity: '1', unit_price: '', total: 0 }
+            {
+                category_id: '',
+                stock_id: '',
+                quantity: '1',
+                unit_price: '',
+                discount_percentage: '',
+                discount_amount: '',
+                original_stock_id: '',
+                original_quantity: '0',
+                available_stock: 0,
+                stock_warning: false,
+                total: 0,
+            }
         ]);
+    };
+
+    const evaluateStockWarning = (row) => {
+        const product = productMap.get(String(row.stock_id));
+        const baseAvailable = parseFloat(product?.quantity_on_hand || 0);
+        const originalQty = parseFloat(row.original_quantity || 0);
+        const restoredQty = row.stock_id && row.original_stock_id && String(row.stock_id) === String(row.original_stock_id)
+            ? originalQty
+            : 0;
+        const availableStock = baseAvailable + restoredQty;
+        const requiredQty = parseFloat(row.quantity || 0);
+        const insufficient = !!row.stock_id && requiredQty > 0 && requiredQty > availableStock;
+
+        return {
+            insufficient,
+            availableStock,
+        };
     };
 
     const updateProductItem = (index, field, value) => {
         const items = [...data.product_items];
+        const wasInsufficient = !!items[index].stock_warning;
         items[index][field] = value;
+
+        if (field === 'category_id') {
+            const category = categoryMap.get(String(value));
+            items[index].stock_id = '';
+            items[index].unit_price = '';
+            items[index].discount_percentage = category ? String(category.discount_percentage ?? 0) : '0';
+            items[index].discount_amount = '';
+        }
 
         if (field === 'stock_id') {
             const product = productMap.get(value);
             const defaultPrice = product ? (parseFloat(product.selling_price) || parseFloat(product.unit_cost) || 0) : '';
             items[index].unit_price = defaultPrice;
+            if (!items[index].category_id && product?.category_id) {
+                items[index].category_id = String(product.category_id);
+            }
+            if (!items[index].discount_percentage || parseFloat(items[index].discount_percentage) === 0) {
+                items[index].discount_percentage = product ? String(product.category_discount_percentage ?? 0) : '0';
+            }
         }
 
         const quantity = parseFloat(items[index].quantity) || 0;
         const unitPrice = parseFloat(items[index].unit_price) || 0;
-        items[index].total = quantity * unitPrice;
+        const discountPercent = parseFloat(items[index].discount_percentage) || 0;
+        const grossAmount = quantity * unitPrice;
+        const discountAmount = roundToTwo(grossAmount * discountPercent / 100);
+        items[index].discount_amount = discountAmount;
+        items[index].total = Math.max(0, roundToTwo(grossAmount - discountAmount));
+
+        const stockState = evaluateStockWarning(items[index]);
+        items[index].available_stock = stockState.availableStock;
+        items[index].stock_warning = stockState.insufficient;
+
+        if (stockState.insufficient && !wasInsufficient) {
+            if (window.showWarning) {
+                window.showWarning('This product has insufficient stock');
+            } else {
+                alert('This product has insufficient stock');
+            }
+        }
 
         setData('product_items', items);
     };
@@ -256,22 +359,41 @@ export default function Edit({ invoice, services, products, flash }) {
                             <div className="space-y-3">
                                 {data.product_items.map((item, index) => (
                                     <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-                                        <div className="md:col-span-5">
+                                        <div className="md:col-span-3">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Category</label>
+                                            <select
+                                                value={item.category_id}
+                                                onChange={(e) => updateProductItem(index, 'category_id', e.target.value)}
+                                                className="mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md"
+                                            >
+                                                <option value="">Select category</option>
+                                                {categories.map((category) => (
+                                                    <option key={category.id} value={category.id}>
+                                                        {category.name} ({parseFloat(category.discount_percentage || 0).toFixed(2)}%)
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="md:col-span-3">
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Product</label>
                                             <select
                                                 value={item.stock_id}
                                                 onChange={(e) => updateProductItem(index, 'stock_id', e.target.value)}
                                                 className="mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md"
+                                                disabled={!item.category_id}
                                             >
                                                 <option value="">Select product</option>
-                                                {products.map((product) => (
-                                                    <option key={product.id} value={product.id}>
-                                                        {product.item_name} ({product.unit?.toUpperCase()})
-                                                    </option>
+                                                {getCategoryProducts(item.category_id).map((product) => (
+                                                    (product.stocks || []).map((stock) => (
+                                                        <option key={stock.id} value={stock.id}>
+                                                            {product.name} ({product.unit_type})
+                                                        </option>
+                                                    ))
                                                 ))}
                                             </select>
+                                            {!item.category_id && <p className="mt-1 text-xs text-gray-500">Choose a category first.</p>}
                                         </div>
-                                        <div className="md:col-span-2">
+                                        <div className="md:col-span-1">
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Qty</label>
                                             <input
                                                 type="number"
@@ -281,6 +403,12 @@ export default function Edit({ invoice, services, products, flash }) {
                                                 onChange={(e) => updateProductItem(index, 'quantity', e.target.value)}
                                                 className="mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md"
                                             />
+                                            {item.stock_id && (
+                                                <p className="mt-1 text-xs text-gray-500">Available: {parseFloat(item.available_stock || 0).toFixed(2)}</p>
+                                            )}
+                                            {item.stock_warning && (
+                                                <p className="mt-1 text-xs text-red-600 dark:text-red-400">This product has insufficient stock</p>
+                                            )}
                                         </div>
                                         <div className="md:col-span-2">
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Unit Price</label>
@@ -294,6 +422,24 @@ export default function Edit({ invoice, services, products, flash }) {
                                             />
                                         </div>
                                         <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Discount %</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                step="0.01"
+                                                value={item.discount_percentage}
+                                                onChange={(e) => updateProductItem(index, 'discount_percentage', e.target.value)}
+                                                className="mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md"
+                                            />
+                                        </div>
+                                        <div className="md:col-span-2">
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Discount</label>
+                                            <div className="mt-1 text-sm text-gray-900 dark:text-gray-100">
+                                                - {formatCurrency(item.discount_amount)}
+                                            </div>
+                                        </div>
+                                        <div className="md:col-span-1">
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Total</label>
                                             <div className="mt-1 text-sm text-gray-900 dark:text-gray-100">
                                                 {formatCurrency(item.total)}

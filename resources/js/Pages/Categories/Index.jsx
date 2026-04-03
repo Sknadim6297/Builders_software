@@ -118,6 +118,9 @@ export default function Index({ categories, flash, filters }) {
                                             Name
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                            Discount
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                             Description
                                         </th>
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -134,7 +137,7 @@ export default function Index({ categories, flash, filters }) {
                                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                     {categories.data.length === 0 ? (
                                         <tr>
-                                            <td colSpan="5" className="px-6 py-12 text-center">
+                                            <td colSpan="6" className="px-6 py-12 text-center">
                                                 <div className="text-gray-500 dark:text-gray-400">
                                                     {searchTerm ? 'No categories found matching your search.' : 'No categories found. Create your first category to get started.'}
                                                 </div>
@@ -147,6 +150,9 @@ export default function Index({ categories, flash, filters }) {
                                                     <div className="text-sm font-medium text-gray-900 dark:text-white">
                                                         {category.name}
                                                     </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                                    {parseFloat(category.discount_percentage || 0).toFixed(2)}%
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <div className="text-sm text-gray-700 dark:text-gray-300 max-w-xs truncate">

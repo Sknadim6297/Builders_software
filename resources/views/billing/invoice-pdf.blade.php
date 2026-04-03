@@ -241,12 +241,13 @@
                         <tr>
                             <th style="width: 5%;">S.No</th>
                             <th style="width: 30%;">Particular Item</th>
+                            <th style="width: 12%;">Category</th>
                             <th style="width: 9%;">Unit</th>
                             <th style="width: 11%;">HSN Code</th>
                             <th class="text-right" style="width: 8%;">Qty</th>
                             <th class="text-right" style="width: 14%;">Rate/Unit</th>
                             <th class="text-right" style="width: 10%;">Discount</th>
-                            <th class="text-right" style="width: 13%;">Amount</th>
+                            <th class="text-right" style="width: 10%;">Amount</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -259,15 +260,13 @@
                                         <div class="muted" style="font-size: 9px; margin-top: 2px;">{{ $item['description'] }}</div>
                                     @endif
                                 </td>
+                                <td>{{ $item['category'] ?? '-' }}</td>
                                 <td>{{ $item['unit'] ?? '-' }}</td>
                                 <td>{{ $item['hsn_code'] ?? '-' }}</td>
                                 <td class="text-right">{{ number_format($item['quantity'], 2) }}</td>
                                 <td class="text-right">₹ {{ number_format($item['unit_price'], 2) }}</td>
                                 <td class="text-right">
-                                    @php
-                                        $lineDiscount = isset($item['discount']) ? (float) $item['discount'] : null;
-                                    @endphp
-                                    {{ $lineDiscount !== null && $lineDiscount > 0 ? number_format($lineDiscount, 2) . '%' : (($invoice_discount_percent ?? 0) > 0 ? number_format($invoice_discount_percent, 2) . '%' : '-') }}
+                                    {{ number_format($item['discount_percentage'] ?? 0, 2) }}% / ₹ {{ number_format($item['discount_amount'] ?? 0, 2) }}
                                 </td>
                                 <td class="text-right"><strong>₹ {{ number_format($item['total'], 2) }}</strong></td>
                             </tr>

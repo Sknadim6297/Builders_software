@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Payment;
@@ -62,14 +63,16 @@ class BillingController extends Controller
 	{
 		$customers = Customer::select('id', 'name', 'mobile_number')->orderBy('name')->get();
 		$services = Service::select('id', 'name', 'final_price')->where('is_active', true)->orderBy('name')->get();
-		$products = Stock::select('id', 'item_name', 'unit', 'selling_price', 'unit_cost', 'quantity_on_hand')
-			->orderBy('item_name')
-			->get();
+		$categories = Category::with(['items' => function ($query) {
+			$query->active()->orderBy('name')->with(['stocks' => function ($stockQuery) {
+				$stockQuery->orderBy('id');
+			}]);
+		}])->where('is_active', true)->orderBy('name')->get(['id', 'name', 'discount_percentage']);
 
 		return Inertia::render('Billing/Create', [
 			'customers' => $customers,
 			'services' => $services,
-			'products' => $products,
+			'categories' => $categories,
 			'prefillCustomerId' => $request->get('customer_id')
 		]);
 	}
@@ -102,8 +105,11 @@ class BillingController extends Controller
 			'service_items.*.unit_price' => 'required_with:service_items|numeric|min:0',
 			'product_items' => 'nullable|array',
 			'product_items.*.stock_id' => 'required_with:product_items|exists:stocks,id',
+			'product_items.*.category_id' => 'required_with:product_items|exists:categories,id',
 			'product_items.*.quantity' => 'required_with:product_items|numeric|min:0.01',
-			'product_items.*.unit_price' => 'required_with:product_items|numeric|min:0'
+			'product_items.*.unit_price' => 'required_with:product_items|numeric|min:0',
+			'product_items.*.discount_percentage' => 'nullable|numeric|min:0|max:100',
+			'product_items.*.discount_amount' => 'nullable|numeric|min:0'
 		]);
 
 		$buyerLogoPath = null;
@@ -120,6 +126,20 @@ class BillingController extends Controller
 
 		$serviceIds = collect($serviceItems)->pluck('service_id')->unique()->filter()->values();
 		$services = Service::with('consumables')->whereIn('id', $serviceIds)->get()->keyBy('id');
+		$categoryIds = collect($productItems)->pluck('category_id')->unique()->filter()->values();
+		$categories = Category::whereIn('id', $categoryIds)->get()->keyBy('id');
+		$stocksForProducts = Stock::with('item.category')->whereIn('id', collect($productItems)->pluck('stock_id')->filter()->unique()->values())->get()->keyBy('id');
+
+		foreach ($productItems as $item) {
+			$stock = $stocksForProducts->get((int) $item['stock_id']);
+			$submittedCategoryId = (int) (filled($item['category_id'] ?? null) ? $item['category_id'] : 0);
+			$resolvedCategoryId = (int) ($stock->item->category_id ?? 0);
+			if (!$stock || !$stock->item || $submittedCategoryId !== $resolvedCategoryId) {
+				return back()->withErrors([
+					'product_items' => 'Selected product does not belong to the chosen category.'
+				]);
+			}
+		}
 
 		$requiredByStock = [];
 		foreach ($productItems as $item) {
@@ -185,13 +205,27 @@ class BillingController extends Controller
 			foreach ($productItems as $item) {
 				$quantity = (float) $item['quantity'];
 				$unitPrice = (float) $item['unit_price'];
-				$total = $quantity * $unitPrice;
+				$grossAmount = $quantity * $unitPrice;
+				$discountPercent = (float) ($item['discount_percentage'] ?? 0);
+				$discountAmount = (float) ($item['discount_amount'] ?? 0);
+				$stock = $stocksForProducts->get((int) $item['stock_id']);
+				$categoryId = (int) ($item['category_id'] ?? ($stock->item->category_id ?? 0));
+				$category = $categories->get($categoryId);
+				$defaultCategoryDiscount = (float) ($category->discount_percentage ?? 0);
+				$appliedDiscountPercent = $discountPercent > 0 ? $discountPercent : $defaultCategoryDiscount;
+				if ($discountAmount <= 0 && $appliedDiscountPercent > 0) {
+					$discountAmount = round($grossAmount * $appliedDiscountPercent / 100, 2);
+				}
+				$total = max(0, round($grossAmount - $discountAmount, 2));
 				$subtotal += $total;
 
 				$productRows[] = [
 					'stock_id' => $item['stock_id'],
+					'category_id' => $categoryId ?: null,
 					'quantity' => $quantity,
 					'unit_price' => $unitPrice,
+					'discount_percentage' => $appliedDiscountPercent,
+					'discount_amount' => $discountAmount,
 					'total' => $total
 				];
 			}
@@ -323,7 +357,7 @@ class BillingController extends Controller
 
 	public function show(Invoice $billing)
 	{
-		$billing->load(['customer', 'serviceItems.service', 'productItems.stock', 'creator', 'payments.creator']);
+		$billing->load(['customer', 'serviceItems.service', 'productItems.stock.item.category', 'productItems.category', 'creator', 'payments.creator']);
 
 		// expose computed discount percent for the front-end display
 		$billing->setAttribute('invoice_discount_percent', (float) ($billing->discount_percentage ?? 0));
@@ -335,15 +369,30 @@ class BillingController extends Controller
 
 	public function edit(Invoice $billing)
 	{
-		$billing->load(['customer', 'serviceItems.service', 'productItems.stock']);
+		$billing->load(['customer', 'serviceItems.service', 'productItems.stock.item.category', 'productItems.category']);
 		$services = Service::select('id', 'name', 'final_price')->where('is_active', true)->orderBy('name')->get();
-		$products = Stock::select('id', 'item_name', 'unit', 'selling_price', 'unit_cost', 'quantity_on_hand')
+		$existingCategoryIds = $billing->productItems->pluck('category_id')->filter()->unique()->values();
+		$categories = Category::with(['items' => function ($query) {
+			$query->active()->orderBy('name')->with(['stocks' => function ($stockQuery) {
+				$stockQuery->orderBy('id');
+			}]);
+		}])
+			->where(function ($query) use ($existingCategoryIds) {
+				$query->where('is_active', true);
+				if ($existingCategoryIds->isNotEmpty()) {
+					$query->orWhereIn('id', $existingCategoryIds);
+				}
+			})
+			->orderBy('name')
+			->get(['id', 'name', 'discount_percentage', 'is_active']);
+		$products = Stock::with('item.category')->select('id', 'item_name', 'unit', 'selling_price', 'unit_cost', 'quantity_on_hand')
 			->orderBy('item_name')
 			->get();
 
 		return Inertia::render('Billing/Edit', [
 			'invoice' => $billing,
 			'services' => $services,
+			'categories' => $categories,
 			'products' => $products
 		]);
 	}
@@ -378,8 +427,11 @@ class BillingController extends Controller
 			'service_items.*.unit_price' => 'required_with:service_items|numeric|min:0',
 			'product_items' => 'nullable|array',
 			'product_items.*.stock_id' => 'required_with:product_items|exists:stocks,id',
+			'product_items.*.category_id' => 'required_with:product_items|exists:categories,id',
 			'product_items.*.quantity' => 'required_with:product_items|numeric|min:0.01',
-			'product_items.*.unit_price' => 'required_with:product_items|numeric|min:0'
+			'product_items.*.unit_price' => 'required_with:product_items|numeric|min:0',
+			'product_items.*.discount_percentage' => 'nullable|numeric|min:0|max:100',
+			'product_items.*.discount_amount' => 'nullable|numeric|min:0'
 		]);
 
 		$serviceItems = $validated['service_items'] ?? [];
@@ -391,8 +443,22 @@ class BillingController extends Controller
 
 		$serviceIds = collect($serviceItems)->pluck('service_id')->unique()->filter()->values();
 		$services = Service::with('consumables')->whereIn('id', $serviceIds)->get()->keyBy('id');
+		$categoryIds = collect($productItems)->pluck('category_id')->unique()->filter()->values();
+		$categories = Category::whereIn('id', $categoryIds)->get()->keyBy('id');
+		$stocksForProducts = Stock::with('item.category')->whereIn('id', collect($productItems)->pluck('stock_id')->filter()->unique()->values())->get()->keyBy('id');
 
-		$billing->load(['serviceItems.service.consumables', 'productItems.stock']);
+		foreach ($productItems as $item) {
+			$stock = $stocksForProducts->get((int) $item['stock_id']);
+			$submittedCategoryId = (int) (filled($item['category_id'] ?? null) ? $item['category_id'] : 0);
+			$resolvedCategoryId = (int) ($stock->item->category_id ?? 0);
+			if (!$stock || !$stock->item || $submittedCategoryId !== $resolvedCategoryId) {
+				return back()->withErrors([
+					'product_items' => 'Selected product does not belong to the chosen category.'
+				]);
+			}
+		}
+
+		$billing->load(['serviceItems.service.consumables', 'productItems.stock.item.category', 'productItems.category']);
 		$oldRequiredByStock = [];
 		foreach ($billing->productItems as $item) {
 			$stockId = (int) $item->stock_id;
@@ -486,13 +552,27 @@ class BillingController extends Controller
 			foreach ($productItems as $item) {
 				$quantity = (float) $item['quantity'];
 				$unitPrice = (float) $item['unit_price'];
-				$total = $quantity * $unitPrice;
+				$grossAmount = $quantity * $unitPrice;
+				$discountPercent = (float) ($item['discount_percentage'] ?? 0);
+				$discountAmount = (float) ($item['discount_amount'] ?? 0);
+				$stock = $stocksForProducts->get((int) $item['stock_id']);
+				$categoryId = (int) ($item['category_id'] ?? ($stock->item->category_id ?? 0));
+				$category = $categories->get($categoryId);
+				$defaultCategoryDiscount = (float) ($category->discount_percentage ?? 0);
+				$appliedDiscountPercent = $discountPercent > 0 ? $discountPercent : $defaultCategoryDiscount;
+				if ($discountAmount <= 0 && $appliedDiscountPercent > 0) {
+					$discountAmount = round($grossAmount * $appliedDiscountPercent / 100, 2);
+				}
+				$total = max(0, round($grossAmount - $discountAmount, 2));
 				$subtotal += $total;
 
 				$productRows[] = [
 					'stock_id' => $item['stock_id'],
+					'category_id' => $categoryId ?: null,
 					'quantity' => $quantity,
 					'unit_price' => $unitPrice,
+					'discount_percentage' => $appliedDiscountPercent,
+					'discount_amount' => $discountAmount,
 					'total' => $total
 				];
 			}
@@ -580,7 +660,7 @@ class BillingController extends Controller
 
 	public function download(Invoice $billing)
 	{
-		$billing->load(['customer', 'serviceItems.service', 'productItems.stock', 'creator', 'payments']);
+		$billing->load(['customer', 'serviceItems.service', 'productItems.stock.item.category', 'productItems.category', 'creator', 'payments']);
 
 		$invoiceDiscountPercent = (float) ($billing->discount_percentage ?? 0);
 
@@ -602,12 +682,14 @@ class BillingController extends Controller
 				return [
 					'type' => 'Product',
 					'name' => $item->stock->item_name ?? 'Product',
+					'category' => $item->category->name ?? $item->stock->item->category->name ?? '-',
 					'description' => $item->stock->item_description ?? '-',
 					'unit' => $item->stock->unit ?? '-',
 					'hsn_code' => $item->stock->hsn_code ?? '-',
 					'quantity' => $item->quantity,
 					'unit_price' => $item->unit_price,
-					'discount' => $item->discount ?? 0,
+					'discount_percentage' => $item->discount_percentage ?? 0,
+					'discount_amount' => $item->discount_amount ?? 0,
 					'total' => $item->total
 				];
 			})->toArray()

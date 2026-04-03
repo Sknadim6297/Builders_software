@@ -30,6 +30,13 @@ export default function Show({ item }) {
                                 </div>
 
                                 <div>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">Category</p>
+                                    <p className="text-lg font-medium text-gray-900 dark:text-white">
+                                        {item.category?.name || 'Unassigned'}
+                                    </p>
+                                </div>
+
+                                <div>
                                     <p className="text-sm text-gray-600 dark:text-gray-400">Name</p>
                                     <p className="text-lg font-medium text-gray-900 dark:text-white">{item.name}</p>
                                 </div>

@@ -81,6 +81,7 @@ export default function Index({     items, filters }) {
                         <thead className="bg-gray-50 dark:bg-gray-700">
                             <tr>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Code</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Category</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Name</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Unit Type</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">GST %</th>
@@ -93,6 +94,7 @@ export default function Index({     items, filters }) {
                                 items.data.map((item) => (
                                     <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                                         <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{item.item_code}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{item.category?.name || 'Unassigned'}</td>
                                         <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{item.name}</td>
                                         <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{item.unit_type}</td>
                                         <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{item.gst_percentage}%</td>
@@ -120,7 +122,7 @@ export default function Index({     items, filters }) {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="6" className="px-6 py-8 text-center text-gray-600 dark:text-gray-400">
+                                    <td colSpan="7" className="px-6 py-8 text-center text-gray-600 dark:text-gray-400">
                                         No items found
                                     </td>
                                 </tr>

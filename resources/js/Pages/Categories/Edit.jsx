@@ -6,6 +6,7 @@ import { route } from '@/utils/route';
 export default function Edit({ category, flash }) {
     const { data, setData, put, processing, errors } = useForm({
         name: category.name || '',
+        discount_percentage: category.discount_percentage != null ? String(category.discount_percentage) : '0',
         description: category.description || '',
         is_active: category.is_active ?? true,
     });
@@ -76,6 +77,25 @@ export default function Edit({ category, flash }) {
                                         required
                                     />
                                     {errors.name && <div className="text-red-600 text-sm mt-1">{errors.name}</div>}
+                                </div>
+
+                                {/* Discount */}
+                                <div>
+                                    <label htmlFor="discount_percentage" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Discount (%)
+                                    </label>
+                                    <input
+                                        id="discount_percentage"
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        step="0.01"
+                                        value={data.discount_percentage}
+                                        className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 rounded-md shadow-sm"
+                                        onChange={(e) => setData('discount_percentage', e.target.value)}
+                                        placeholder="0.00"
+                                    />
+                                    {errors.discount_percentage && <div className="text-red-600 text-sm mt-1">{errors.discount_percentage}</div>}
                                 </div>
 
                                 {/* Description */}

@@ -80,6 +80,15 @@ export default function Show({ category }) {
                                             </p>
                                         </div>
 
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                                                Discount (%)
+                                            </label>
+                                            <p className="mt-1 text-gray-900 dark:text-white">
+                                                {parseFloat(category.discount_percentage || 0).toFixed(2)}%
+                                            </p>
+                                        </div>
+
                                         <div className="md:col-span-2">
                                             <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
                                                 Description

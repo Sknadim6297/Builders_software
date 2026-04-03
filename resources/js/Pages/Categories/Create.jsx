@@ -6,6 +6,7 @@ import { route } from '@/utils/route';
 export default function Create({ flash }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
+        discount_percentage: '0',
         description: '',
         is_active: true,
     });
@@ -78,6 +79,25 @@ export default function Create({ flash }) {
                                 </div>
 
                                 {/* Description */}
+                                <div>
+                                    <label htmlFor="discount_percentage" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Discount (%)
+                                    </label>
+                                    <input
+                                        id="discount_percentage"
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        step="0.01"
+                                        value={data.discount_percentage}
+                                        className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 rounded-md shadow-sm"
+                                        onChange={(e) => setData('discount_percentage', e.target.value)}
+                                        placeholder="0.00"
+                                    />
+                                    {errors.discount_percentage && <div className="text-red-600 text-sm mt-1">{errors.discount_percentage}</div>}
+                                    <p className="text-sm text-gray-500 mt-1">Default discount automatically applied to products in this category.</p>
+                                </div>
+
                                 <div>
                                     <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                         Description

@@ -6,8 +6,9 @@ import { route } from '@/utils/route';
 
 const UNIT_TYPES = ['Packet', 'Box', 'Piece', 'KG', 'Liter', 'Meter', 'Square Meter', 'Bundle', 'Bag', 'Carton'];
 
-export default function Edit({ item, flash }) {
+export default function Edit({ item, categories, flash }) {
     const { data, setData, put, processing, errors } = useForm({
+        category_id: item.category_id ? String(item.category_id) : '',
         name: item.name || '',
         description: item.description || '',
         unit_type: item.unit_type || 'Piece',
@@ -49,6 +50,23 @@ export default function Edit({ item, flash }) {
                     <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-6">
                         <form onSubmit={handleSubmit} className="space-y-6">
                             {/* Name */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category *</label>
+                                <select
+                                    value={data.category_id}
+                                    onChange={(e) => setData('category_id', e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value="">Select category</option>
+                                    {categories?.map((category) => (
+                                        <option key={category.id} value={category.id}>
+                                            {category.name} {category.discount_percentage ? `(${parseFloat(category.discount_percentage).toFixed(2)}% default discount)` : ''}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.category_id && <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.category_id}</p>}
+                            </div>
+
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Item Name *</label>
                                 <input

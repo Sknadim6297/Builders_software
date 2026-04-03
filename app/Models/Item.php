@@ -14,6 +14,7 @@ class Item extends Model
 
     protected $fillable = [
         'item_code',
+        'category_id',
         'name',
         'description',
         'unit_type',
@@ -26,11 +27,17 @@ class Item extends Model
     ];
 
     protected $casts = [
+        'category_id' => 'integer',
         'default_unit_price' => 'decimal:2',
         'default_discount_percentage' => 'decimal:2',
         'gst_percentage' => 'decimal:2',
         'is_active' => 'boolean'
     ];
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
 
     // Auto-generate item code before saving
     protected static function boot()

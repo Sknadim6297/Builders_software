@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Item;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -14,7 +15,7 @@ class ItemController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Item::orderBy('created_at', 'desc');
+        $query = Item::with('category:id,name,discount_percentage')->orderBy('created_at', 'desc');
 
         // Search functionality
         if ($request->filled('search')) {
@@ -44,7 +45,11 @@ class ItemController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Items/Create');
+        return Inertia::render('Items/Create', [
+            'categories' => Category::where('is_active', true)
+                ->orderBy('name')
+                ->get(['id', 'name', 'discount_percentage']),
+        ]);
     }
 
     /**
@@ -54,6 +59,7 @@ class ItemController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:items',
+            'category_id' => 'required|exists:categories,id',
             'description' => 'nullable|string|max:1000',
             'unit_type' => 'required|string|max:50',
             'default_unit_price' => 'nullable|numeric|min:0',
@@ -76,7 +82,7 @@ class ItemController extends Controller
     public function show(Item $item)
     {
         return Inertia::render('Items/Show', [
-            'item' => $item->load('creator', 'updater')
+            'item' => $item->load('creator', 'updater', 'category')
         ]);
     }
 
@@ -86,7 +92,11 @@ class ItemController extends Controller
     public function edit(Item $item)
     {
         return Inertia::render('Items/Edit', [
-            'item' => $item
+            'item' => $item,
+            'categories' => Category::where('is_active', true)
+                ->orWhere('id', $item->category_id)
+                ->orderBy('name')
+                ->get(['id', 'name', 'discount_percentage']),
         ]);
     }
 
@@ -97,6 +107,7 @@ class ItemController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:items,name,' . $item->id,
+            'category_id' => 'required|exists:categories,id',
             'description' => 'nullable|string|max:1000',
             'unit_type' => 'required|string|max:50',
             'default_unit_price' => 'nullable|numeric|min:0',
@@ -133,7 +144,9 @@ class ItemController extends Controller
     public function getActive()
     {
         return response()->json(
-            Item::active()->get(['id', 'item_code', 'name', 'unit_type', 'default_unit_price', 'default_discount_percentage', 'gst_percentage'])
+            Item::active()
+                ->with('category:id,name,discount_percentage')
+                ->get(['id', 'item_code', 'name', 'category_id', 'unit_type', 'default_unit_price', 'default_discount_percentage', 'gst_percentage'])
         );
     }
 }

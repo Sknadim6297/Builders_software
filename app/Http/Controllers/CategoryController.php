@@ -50,6 +50,7 @@ class CategoryController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:categories,name',
+            'discount_percentage' => 'nullable|numeric|min:0|max:100',
             'description' => 'nullable|string|max:1000',
             'is_active' => 'boolean',
         ]);
@@ -86,6 +87,7 @@ class CategoryController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
+            'discount_percentage' => 'nullable|numeric|min:0|max:100',
             'description' => 'nullable|string|max:1000',
             'is_active' => 'boolean',
         ]);

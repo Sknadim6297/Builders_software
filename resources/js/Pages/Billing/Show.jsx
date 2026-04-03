@@ -75,10 +75,13 @@ export default function Show({ invoice, flash }) {
             id: `product-${item.id}`,
             type: 'Product',
             name: item.stock?.item_name || 'Product',
+            category: item.category?.name || item.stock?.item?.category?.name || '-',
             description: item.stock?.item_description || '-',
             measurement: item.stock?.unit || '-',
             quantity: item.quantity,
             unit_price: item.unit_price,
+            discount_percentage: item.discount_percentage || 0,
+            discount_amount: item.discount_amount || 0,
             total: item.total
         }))
     ];
@@ -157,9 +160,11 @@ export default function Show({ invoice, flash }) {
                                     <thead className="bg-gray-50 dark:bg-gray-700">
                                         <tr>
                                             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-300">Item</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-300">Category</th>
                                             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-300">Description</th>
                                             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-300">Qty</th>
                                             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-300">Unit Price</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-300">Discount</th>
                                             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-300">Measurement</th>
                                             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-300">Total</th>
                                         </tr>
@@ -168,9 +173,11 @@ export default function Show({ invoice, flash }) {
                                         {lineItems.map((item) => (
                                             <tr key={item.id}>
                                                 <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{item.name}</td>
+                                                <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{item.category}</td>
                                                 <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{item.description}</td>
                                                 <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{parseFloat(item.quantity).toFixed(2)}</td>
                                                 <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{formatCurrency(item.unit_price)}</td>
+                                                <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{parseFloat(item.discount_percentage || 0).toFixed(2)}% / -{formatCurrency(item.discount_amount || 0)}</td>
                                                 <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{item.measurement}</td>
                                                 <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{formatCurrency(item.total)}</td>
                                             </tr>
