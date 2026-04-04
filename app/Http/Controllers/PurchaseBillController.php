@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use App\Models\PurchaseBill;
 use App\Models\Vendor;
 use App\Models\Customer;
@@ -113,7 +114,7 @@ class PurchaseBillController extends Controller
     {
         $vendors = Vendor::select('id', 'name', 'address')->orderBy('name')->get();
         $customers = Customer::select('id', 'name', 'address')->orderBy('name')->get();
-        $items = Item::active()->get(['id', 'item_code', 'name', 'unit_type', 'default_unit_price', 'default_discount_percentage', 'gst_percentage']);
+        $items = Item::active()->get(['id', 'item_code', 'name', 'hsn_code', 'unit_type', 'default_unit_price', 'default_discount_percentage', 'gst_percentage']);
 
         return Inertia::render('PurchaseBills/CreateNew', [
             'vendors' => $vendors,
@@ -164,6 +165,8 @@ class PurchaseBillController extends Controller
             'attachments.*' => 'nullable|file|max:10240'
         ]);
 
+        $gstData = $this->validatePurchaseBillGst($validated);
+
         // Ensure items is converted to proper format
         if (is_array($validated['items'])) {
             $items = $validated['items'];
@@ -171,12 +174,16 @@ class PurchaseBillController extends Controller
             $items = json_decode($validated['items'], true);
         }
 
+        $this->validatePurchaseBillItemsHsn($items);
+        $this->syncItemMasterHsnCodes($items);
+
         // Recalculate item-level values for security and consistency
         $grossAmount = 0;
         foreach ($items as &$item) {
             $quantity = (float) ($item['quantity'] ?? 0);
             $rate = (float) ($item['unit_price'] ?? 0);
             $itemDiscountPercent = (float) ($item['discount_percentage'] ?? 0);
+            $item['discount_percentage'] = $itemDiscountPercent;
 
             $netRate = $rate - ($rate * $itemDiscountPercent / 100);
             $netRate = round($netRate, 2);
@@ -189,10 +196,10 @@ class PurchaseBillController extends Controller
         unset($item);
 
         $deliveryCharges = (float) ($validated['delivery_charges'] ?? 0);
-        $gstType = $validated['gst_type'] ?? 'intra';
-        $cgstPercentage = (float) ($validated['cgst_percentage'] ?? 0);
-        $sgstPercentage = (float) ($validated['sgst_percentage'] ?? 0);
-        $igstPercentage = (float) ($validated['igst_percentage'] ?? 0);
+        $gstType = $gstData['gst_type'];
+        $cgstPercentage = $gstData['cgst_percentage'];
+        $sgstPercentage = $gstData['sgst_percentage'];
+        $igstPercentage = $gstData['igst_percentage'];
         $tcsPercentage = (float) ($validated['tcs_percentage'] ?? 0);
         $roundOff = (float) ($validated['round_off'] ?? 0);
 
@@ -264,6 +271,7 @@ class PurchaseBillController extends Controller
                     PurchaseBillItem::create([
                         'purchase_bill_id' => $purchaseBill->id,
                         'item_id' => $item['item_id'],
+                        'hsn_code' => $item['hsn_code'] ?? null,
                         'quantity' => $item['quantity'] ?? 0,
                         'unit_price' => $item['unit_price'] ?? 0,
                         'discount_percentage' => $item['discount_percentage'] ?? 0,
@@ -330,7 +338,7 @@ class PurchaseBillController extends Controller
     {
         $purchaseBill = PurchaseBill::with(['vendor'])->findOrFail($id);
         $vendors = Vendor::select('id', 'name', 'address')->orderBy('name')->get();
-        $items = Item::active()->get(['id', 'item_code', 'name', 'unit_type', 'default_unit_price', 'default_discount_percentage', 'gst_percentage']);
+        $items = Item::active()->get(['id', 'item_code', 'name', 'hsn_code', 'unit_type', 'default_unit_price', 'default_discount_percentage', 'gst_percentage']);
 
         return Inertia::render('PurchaseBills/Edit', [
             'purchaseBill' => $purchaseBill,
@@ -377,6 +385,8 @@ class PurchaseBillController extends Controller
             'status' => 'nullable|in:draft,sent,received,completed,cancelled'
         ]);
 
+        $gstData = $this->validatePurchaseBillGst($validated);
+
         // Ensure items is converted to proper format
         if (is_array($validated['items'])) {
             $items = $validated['items'];
@@ -384,12 +394,16 @@ class PurchaseBillController extends Controller
             $items = json_decode($validated['items'], true);
         }
 
+        $this->validatePurchaseBillItemsHsn($items);
+        $this->syncItemMasterHsnCodes($items);
+
         // Recalculate item-level values for security and consistency
         $grossAmount = 0;
         foreach ($items as &$item) {
             $quantity = (float) ($item['quantity'] ?? 0);
             $rate = (float) ($item['unit_price'] ?? 0);
             $itemDiscountPercent = (float) ($item['discount_percentage'] ?? 0);
+            $item['discount_percentage'] = $itemDiscountPercent;
 
             $netRate = $rate - ($rate * $itemDiscountPercent / 100);
             $netRate = round($netRate, 2);
@@ -402,10 +416,10 @@ class PurchaseBillController extends Controller
         unset($item);
 
         $deliveryCharges = (float) ($validated['delivery_charges'] ?? 0);
-        $gstType = $validated['gst_type'] ?? 'intra';
-        $cgstPercentage = (float) ($validated['cgst_percentage'] ?? 0);
-        $sgstPercentage = (float) ($validated['sgst_percentage'] ?? 0);
-        $igstPercentage = (float) ($validated['igst_percentage'] ?? 0);
+        $gstType = $gstData['gst_type'];
+        $cgstPercentage = $gstData['cgst_percentage'];
+        $sgstPercentage = $gstData['sgst_percentage'];
+        $igstPercentage = $gstData['igst_percentage'];
         $tcsPercentage = (float) ($validated['tcs_percentage'] ?? 0);
         $roundOff = (float) ($validated['round_off'] ?? 0);
 
@@ -520,6 +534,84 @@ class PurchaseBillController extends Controller
 
         } catch (\Exception $e) {
             return back()->withErrors(['error' => 'Failed to delete purchase bill: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Validate purchase bill GST structure.
+     */
+    private function validatePurchaseBillGst(array $data): array
+    {
+        $cgstPercentage = (float) ($data['cgst_percentage'] ?? 0);
+        $sgstPercentage = (float) ($data['sgst_percentage'] ?? 0);
+        $igstPercentage = (float) ($data['igst_percentage'] ?? 0);
+
+        $hasCgst = $cgstPercentage > 0;
+        $hasSgst = $sgstPercentage > 0;
+        $hasIgst = $igstPercentage > 0;
+
+        if (!$hasCgst && !$hasSgst && !$hasIgst) {
+            throw ValidationException::withMessages([
+                'gst_rule' => 'Please enter either IGST or CGST & SGST.',
+            ]);
+        }
+
+        if (($hasCgst xor $hasSgst)) {
+            throw ValidationException::withMessages([
+                'gst_rule' => 'Both CGST and SGST are required.',
+            ]);
+        }
+
+        if ($hasIgst && ($hasCgst || $hasSgst)) {
+            throw ValidationException::withMessages([
+                'gst_rule' => 'You cannot enter IGST with CGST & SGST.',
+            ]);
+        }
+
+        return [
+            'gst_type' => $hasIgst ? 'inter' : 'intra',
+            'cgst_percentage' => $hasCgst ? $cgstPercentage : 0,
+            'sgst_percentage' => $hasSgst ? $sgstPercentage : 0,
+            'igst_percentage' => $hasIgst ? $igstPercentage : 0,
+        ];
+    }
+
+    /**
+     * Ensure every purchase bill item has an HSN code.
+     */
+    private function validatePurchaseBillItemsHsn(array $items): void
+    {
+        foreach ($items as $item) {
+            if (empty($item['item_id'])) {
+                continue;
+            }
+
+            $hsnCode = trim((string) ($item['hsn_code'] ?? ''));
+            if ($hsnCode === '') {
+                throw ValidationException::withMessages([
+                    'items' => 'HSN Code is required for this product.',
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Keep item master HSN in sync with latest purchase bill entries.
+     */
+    private function syncItemMasterHsnCodes(array $items): void
+    {
+        foreach ($items as $item) {
+            $itemId = (int) ($item['item_id'] ?? 0);
+            if ($itemId <= 0) {
+                continue;
+            }
+
+            $hsnCode = trim((string) ($item['hsn_code'] ?? ''));
+            if ($hsnCode === '') {
+                continue;
+            }
+
+            Item::where('id', $itemId)->update(['hsn_code' => $hsnCode]);
         }
     }
 

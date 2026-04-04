@@ -16,6 +16,7 @@ class Item extends Model
         'item_code',
         'category_id',
         'name',
+        'hsn_code',
         'description',
         'unit_type',
         'default_unit_price',

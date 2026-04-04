@@ -2,7 +2,7 @@ import InputError from '@/Components/InputError';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { Head, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Login({ status }) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -12,6 +12,22 @@ export default function Login({ status }) {
     });
 
     const [showPassword, setShowPassword] = useState(false);
+    const [companySettings, setCompanySettings] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        // Fetch company settings
+        fetch('/api/company-settings')
+            .then(res => res.json())
+            .then(data => {
+                setCompanySettings(data);
+                setLoading(false);
+            })
+            .catch(err => {
+                console.error('Failed to load company settings:', err);
+                setLoading(false);
+            });
+    }, []);
 
     const submit = (e) => {
         e.preventDefault();
@@ -47,8 +63,8 @@ export default function Login({ status }) {
                     <div className="text-center">
                         <div className="mx-auto h-28 w-28 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-lg p-2">
                             <img 
-                                src="/images/sayan-sita-logo.png" 
-                                alt="Sayan Sita Builders" 
+                                src={companySettings?.company_logo || "/images/sayan-sita-logo.png"} 
+                                alt="Company Logo" 
                                 className="h-full w-full object-contain rounded-xl"
                             />
                         </div>
@@ -170,13 +186,13 @@ export default function Login({ status }) {
 
                     {/* Footer */}
                     <div className="text-center text-sm text-gray-500">
-                        <p>Sayan Sita Builders Management Portal</p>
+                        <p>{companySettings?.company_name || 'Sayan Sita Builders'} Management Portal</p>
                         <p className="mt-1">Professional business administration</p>
                     </div>
                 </div>
             </div>
 
-            {/* Right Side - Background Image/Design */}
+            {/* Right Side - Company Information */}
             <div className="hidden lg:flex flex-1 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800"></div>
                 <div className="absolute inset-0 bg-black opacity-20"></div>
@@ -188,40 +204,61 @@ export default function Login({ status }) {
                 <div className="absolute bottom-20 right-20 w-20 h-20 bg-white opacity-10 rounded-lg rotate-12"></div>
                 
                 {/* Content */}
-                <div className="relative z-10 flex flex-col justify-center items-center text-white p-16">
-                    <div className="max-w-md text-center">
-                        <h1 className="text-4xl font-bold mb-6">
-                            Sayan Sita Builders
-                        </h1>
-                        <p className="text-xl mb-8 opacity-90">
-                            Complete management system for construction and projects
-                        </p>
-                        <div className="space-y-4">
-                            <div className="flex items-center space-x-3">
-                                <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
-                                    </svg>
+                <div className="relative z-10 flex flex-col justify-center items-center text-white p-16 w-full">
+                    <div className="max-w-md w-full text-center">
+                        {!loading && companySettings ? (
+                            <>
+                          
+
+                                {/* Company Name */}
+                                <h1 className="text-4xl font-bold mb-6 leading-tight">
+                                    {companySettings?.company_name || 'SAYAN SITA BUILDERS'}
+                                </h1>
+
+                                {/* Divider */}
+                                <div className="h-1 w-16 bg-white mx-auto mb-6 rounded-full opacity-50"></div>
+
+                                {/* Address */}
+                                <div className="mb-8">
+                                    <p className="text-lg leading-relaxed opacity-95">
+                                        {companySettings?.company_address || 'Chalitapara, Ajodhya, Shyampur, Howrah – 711312'}
+                                    </p>
                                 </div>
-                                <span>Client Management</span>
-                            </div>
-                            <div className="flex items-center space-x-3">
-                                <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
-                                    </svg>
+
+                                {/* Contact Info */}
+                                <div className="space-y-3 bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-6">
+                                    <h3 className="text-sm font-semibold uppercase tracking-wider mb-4">Contact Us</h3>
+                                    <div className="flex items-center justify-center space-x-2 text-base">
+                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773c.26.559.738 1.382 1.547 2.191.81.81 1.633 1.288 2.192 1.547l.773-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path>
+                                        </svg>
+                                        <span className="text-lg font-semibold">{companySettings?.company_phone_1 || '6289249399'}</span>
+                                    </div>
+                                    {companySettings?.company_phone_2 && (
+                                        <div className="flex items-center justify-center space-x-2 text-base">
+                                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773c.26.559.738 1.382 1.547 2.191.81.81 1.633 1.288 2.192 1.547l.773-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path>
+                                            </svg>
+                                            <span className="text-lg font-semibold">{companySettings?.company_phone_2}</span>
+                                        </div>
+                                    )}
+                                    {companySettings?.company_phone_3 && (
+                                        <div className="flex items-center justify-center space-x-2 text-base">
+                                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773c.26.559.738 1.382 1.547 2.191.81.81 1.633 1.288 2.192 1.547l.773-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path>
+                                            </svg>
+                                            <span className="text-lg font-semibold">{companySettings?.company_phone_3}</span>
+                                        </div>
+                                    )}
                                 </div>
-                                <span>Service Billing</span>
+                            </>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="mx-auto h-32 w-32 bg-white bg-opacity-20 rounded-2xl animate-pulse"></div>
+                                <div className="h-8 bg-white bg-opacity-20 rounded animate-pulse"></div>
+                                <div className="h-6 bg-white bg-opacity-20 rounded animate-pulse w-3/4 mx-auto"></div>
                             </div>
-                            <div className="flex items-center space-x-3">
-                                <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
-                                    </svg>
-                                </div>
-                                <span>Inventory Control</span>
-                            </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             </div>

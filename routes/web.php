@@ -33,6 +33,8 @@ Route::get('/csrf-token', function () {
     return response()->json(['csrf_token' => csrf_token()]);
 })->name('csrf.token');
 
+Route::get('/api/company-settings', [SettingsController::class, 'getCompanySettings'])->name('api.company-settings');
+
 Route::get('/', function () {
     if (Auth::check()) {
         return redirect()->route('dashboard');
@@ -115,8 +117,14 @@ Route::middleware('auth')->group(function () {
     });
 
     // Settings routes - only for super admin
-    Route::get('settings', [SettingsController::class, 'edit'])->name('settings.edit');
-    Route::patch('settings', [SettingsController::class, 'update'])->name('settings.update');
+    Route::get('settings', [SettingsController::class, 'edit'])->name('settings.edit'); // legacy
+    Route::patch('settings', [SettingsController::class, 'update'])->name('settings.update'); // legacy
+
+    Route::get('settings/website', [SettingsController::class, 'editWebsite'])->name('settings.website.edit');
+    Route::patch('settings/website', [SettingsController::class, 'updateWebsite'])->name('settings.website.update');
+
+    Route::get('settings/invoice', [SettingsController::class, 'editInvoice'])->name('settings.invoice.edit');
+    Route::patch('settings/invoice', [SettingsController::class, 'updateInvoice'])->name('settings.invoice.update');
 });
 
 require __DIR__.'/auth.php';

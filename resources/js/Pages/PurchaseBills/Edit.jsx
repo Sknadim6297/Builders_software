@@ -17,6 +17,7 @@ export default function Edit({ purchaseBill, vendors, items: allItems = [], flas
         items: (purchaseBill.items || []).length
             ? (purchaseBill.items || []).map((item) => ({
                 item_id: item.item_id ? String(item.item_id) : '',
+                hsn_code: item.hsn_code || '',
                 quantity: String(item.quantity ?? '0'),
                 unit_price: String(item.unit_price ?? '0'),
                 discount_percentage: String(item.discount_percentage ?? '0'),
@@ -24,7 +25,7 @@ export default function Edit({ purchaseBill, vendors, items: allItems = [], flas
                 amount: parseFloat(item.amount ?? 0),
                 gst_percentage: parseFloat(item.gst_percentage ?? 0),
             }))
-            : [{ item_id: '', quantity: '0', unit_price: '0', discount_percentage: '0', net_rate: 0, amount: 0, gst_percentage: 0 }],
+            : [{ item_id: '', hsn_code: '', quantity: '0', unit_price: '0', discount_percentage: '0', net_rate: 0, amount: 0, gst_percentage: 0 }],
         subtotal: String(purchaseBill.subtotal ?? '0'),
         delivery_charges: String(purchaseBill.delivery_charges ?? '0'),
         gst_type: purchaseBill.gst_type || 'intra',
@@ -81,7 +82,7 @@ export default function Edit({ purchaseBill, vendors, items: allItems = [], flas
     const addItem = () => {
         setData('items', [
             ...data.items,
-            { item_id: '', quantity: '0', unit_price: '0', discount_percentage: '0', net_rate: 0, amount: 0, gst_percentage: 0 },
+            { item_id: '', hsn_code: '', quantity: '0', unit_price: '0', discount_percentage: '0', net_rate: 0, amount: 0, gst_percentage: 0 },
         ]);
     };
 
@@ -97,9 +98,9 @@ export default function Edit({ purchaseBill, vendors, items: allItems = [], flas
         if (field === 'item_id') {
             const selected = itemMap.get(value);
             if (selected) {
+                newItems[index].hsn_code = selected.hsn_code || '';
                 newItems[index].gst_percentage = parseFloat(selected.gst_percentage || 0);
                 newItems[index].unit_price = String(selected.default_unit_price || 0);
-                newItems[index].discount_percentage = String(selected.default_discount_percentage || 0);
             }
         }
 
@@ -168,6 +169,34 @@ export default function Edit({ purchaseBill, vendors, items: allItems = [], flas
             return;
         }
 
+        const cgstPct = parseFloat(data.cgst_percentage) || 0;
+        const sgstPct = parseFloat(data.sgst_percentage) || 0;
+        const igstPct = parseFloat(data.igst_percentage) || 0;
+        const hasCgst = cgstPct > 0;
+        const hasSgst = sgstPct > 0;
+        const hasIgst = igstPct > 0;
+
+        if (!hasCgst && !hasSgst && !hasIgst) {
+            window.showError?.('Please enter either IGST or CGST & SGST.');
+            return;
+        }
+
+        if ((hasCgst && !hasSgst) || (!hasCgst && hasSgst)) {
+            window.showError?.('Both CGST and SGST are required.');
+            return;
+        }
+
+        if (hasIgst && (hasCgst || hasSgst)) {
+            window.showError?.('You cannot enter IGST with CGST & SGST.');
+            return;
+        }
+
+        const hasMissingHsn = data.items.some((item) => item.item_id && !(item.hsn_code || '').trim());
+        if (hasMissingHsn) {
+            window.showError?.('HSN Code is required for this product.');
+            return;
+        }
+
         const submitData = {
             po_date: data.po_date,
             inv_cha_no: data.inv_cha_no || '',
@@ -178,6 +207,7 @@ export default function Edit({ purchaseBill, vendors, items: allItems = [], flas
             expected_delivery: data.expected_delivery || '',
             items: data.items.map((item) => ({
                 item_id: item.item_id,
+                hsn_code: (item.hsn_code || '').trim(),
                 quantity: parseFloat(item.quantity) || 0,
                 unit_price: parseFloat(item.unit_price) || 0,
                 discount_percentage: parseFloat(item.discount_percentage) || 0,
@@ -222,7 +252,7 @@ export default function Edit({ purchaseBill, vendors, items: allItems = [], flas
                 forceFormData: true,
                 preserveScroll: false,
                 onError: (formErrors) => {
-                    Object.keys(formErrors).forEach((key) => window.showError?.(`${key}: ${formErrors[key]}`));
+                    Object.keys(formErrors).forEach((key) => window.showError?.(formErrors[key]));
                 },
             });
             return;
@@ -234,7 +264,7 @@ export default function Edit({ purchaseBill, vendors, items: allItems = [], flas
         }, {
             preserveScroll: false,
             onError: (formErrors) => {
-                Object.keys(formErrors).forEach((key) => window.showError?.(`${key}: ${formErrors[key]}`));
+                Object.keys(formErrors).forEach((key) => window.showError?.(formErrors[key]));
             },
         });
     };
@@ -332,7 +362,7 @@ export default function Edit({ purchaseBill, vendors, items: allItems = [], flas
                                 {fileList.length > 0 && (
                                     <ul className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                                         {fileList.map((file, index) => (
-                                            <li key={index}>• {file.name}</li>
+                                            <li key={index}>ï¿½ {file.name}</li>
                                         ))}
                                     </ul>
                                 )}
@@ -385,7 +415,7 @@ export default function Edit({ purchaseBill, vendors, items: allItems = [], flas
                                                         <input type="number" value={item.unit_price} min="0" step="0.01" required readOnly className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white text-sm" />
                                                     </td>
                                                     <td className="px-4 py-3">
-                                                        <input type="number" value={item.discount_percentage} min="0" max="100" step="0.01" readOnly className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white text-sm" />
+                                                        <input type="number" value={item.discount_percentage} onChange={(e) => updateItem(index, 'discount_percentage', e.target.value)} min="0" max="100" step="0.01" className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" />
                                                     </td>
                                                     <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{item.gst_percentage}%</td>
                                                     <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">?{item.amount.toFixed(2)}</td>

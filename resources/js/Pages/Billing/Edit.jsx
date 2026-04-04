@@ -341,16 +341,8 @@ export default function Edit({ invoice, services, categories, products, flash })
 
 
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="mb-4">
                             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Product Items</h2>
-                            <button
-                                type="button"
-                                onClick={addProductItem}
-                                className="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
-                            >
-                                <PlusIcon className="w-4 h-4 mr-2" />
-                                Add Product
-                            </button>
                         </div>
 
                         {data.product_items.length === 0 ? (
@@ -458,6 +450,17 @@ export default function Edit({ invoice, services, categories, products, flash })
                                 ))}
                             </div>
                         )}
+
+                        <div className="mt-4 flex justify-end">
+                            <button
+                                type="button"
+                                onClick={addProductItem}
+                                className="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+                            >
+                                <PlusIcon className="w-4 h-4 mr-2" />
+                                Add Product
+                            </button>
+                        </div>
                     </div>
 
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">

@@ -60,6 +60,7 @@ class ItemController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:items',
             'category_id' => 'required|exists:categories,id',
+            'hsn_code' => 'nullable|string|max:32',
             'description' => 'nullable|string|max:1000',
             'unit_type' => 'required|string|max:50',
             'default_unit_price' => 'nullable|numeric|min:0',
@@ -108,6 +109,7 @@ class ItemController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:items,name,' . $item->id,
             'category_id' => 'required|exists:categories,id',
+            'hsn_code' => 'nullable|string|max:32',
             'description' => 'nullable|string|max:1000',
             'unit_type' => 'required|string|max:50',
             'default_unit_price' => 'nullable|numeric|min:0',
@@ -146,7 +148,7 @@ class ItemController extends Controller
         return response()->json(
             Item::active()
                 ->with('category:id,name,discount_percentage')
-                ->get(['id', 'item_code', 'name', 'category_id', 'unit_type', 'default_unit_price', 'default_discount_percentage', 'gst_percentage'])
+                ->get(['id', 'item_code', 'name', 'category_id', 'hsn_code', 'unit_type', 'default_unit_price', 'default_discount_percentage', 'gst_percentage'])
         );
     }
 }

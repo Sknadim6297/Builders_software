@@ -73,6 +73,7 @@ export default function Create({ customers, services, categories, prefillCustome
             {
                 category_id: '',
                 stock_id: '',
+                hsn_code: '',
                 quantity: '1',
                 unit_price: '',
                 discount_percentage: '',
@@ -104,6 +105,7 @@ export default function Create({ customers, services, categories, prefillCustome
         if (field === 'category_id') {
             const category = categoryMap.get(String(value));
             items[index].stock_id = '';
+            items[index].hsn_code = '';
             items[index].unit_price = '';
             items[index].discount_percentage = category ? String(category.discount_percentage ?? 0) : '0';
             items[index].discount_amount = '';
@@ -113,6 +115,7 @@ export default function Create({ customers, services, categories, prefillCustome
             const product = productMap.get(value);
             const defaultPrice = product ? (parseFloat(product.selling_price) || parseFloat(product.unit_cost) || 0) : '';
             items[index].unit_price = defaultPrice;
+            items[index].hsn_code = product?.item?.hsn_code || '';
             if (!items[index].category_id && product?.category_id) {
                 items[index].category_id = String(product.category_id);
             }
@@ -299,16 +302,8 @@ export default function Create({ customers, services, categories, prefillCustome
                     </div>
 
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                        <div className="flex items-center justify-between mb-4">
+                        <div className="mb-4">
                             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Product Items</h2>
-                            <button
-                                type="button"
-                                onClick={addProductItem}
-                                className="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
-                            >
-                                <PlusIcon className="w-4 h-4 mr-2" />
-                                Add Product
-                            </button>
                         </div>
 
                         {data.product_items.length === 0 ? (
@@ -350,6 +345,9 @@ export default function Create({ customers, services, categories, prefillCustome
                                                 ))}
                                             </select>
                                             {!item.category_id && <p className="mt-1 text-xs text-gray-500">Choose a category first.</p>}
+                                            {item.stock_id && (
+                                                <p className="mt-1 text-xs text-gray-500">HSN: {item.hsn_code || 'N/A'}</p>
+                                            )}
                                         </div>
                                         <div className="md:col-span-1">
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Qty</label>
@@ -416,6 +414,17 @@ export default function Create({ customers, services, categories, prefillCustome
                                 ))}
                             </div>
                         )}
+
+                        <div className="mt-4 flex justify-end">
+                            <button
+                                type="button"
+                                onClick={addProductItem}
+                                className="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+                            >
+                                <PlusIcon className="w-4 h-4 mr-2" />
+                                Add Product
+                            </button>
+                        </div>
                     </div>
 
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">

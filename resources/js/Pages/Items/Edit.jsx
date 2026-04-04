@@ -10,6 +10,7 @@ export default function Edit({ item, categories, flash }) {
     const { data, setData, put, processing, errors } = useForm({
         category_id: item.category_id ? String(item.category_id) : '',
         name: item.name || '',
+        hsn_code: item.hsn_code || '',
         description: item.description || '',
         unit_type: item.unit_type || 'Piece',
         default_unit_price: item.default_unit_price || '0',
@@ -76,6 +77,18 @@ export default function Edit({ item, categories, flash }) {
                                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                                 />
                                 {errors.name && <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.name}</p>}
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">HSN Code</label>
+                                <input
+                                    type="text"
+                                    value={data.hsn_code}
+                                    onChange={(e) => setData('hsn_code', e.target.value)}
+                                    placeholder="e.g., 9405"
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                />
+                                {errors.hsn_code && <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.hsn_code}</p>}
                             </div>
 
                             {/* Description */}

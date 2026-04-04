@@ -11,9 +11,38 @@ use Inertia\Inertia;
 class SettingsController extends Controller
 {
     /**
-     * Show settings form
+     * Show website settings form
      */
-    public function edit()
+    public function editWebsite()
+    {
+        // Only super admins can access settings
+        if (!Auth::user()->is_super_admin) {
+            abort(403, 'Unauthorized access');
+        }
+
+        // Company settings
+        $companyName = Setting::getValue('company_name', 'SAYAN SITA BUILDERS');
+        $companyAddress = Setting::getValue('company_address', 'Chalitapara, Ajodhya, Shyampur, Howrah – 711312');
+        $companyPhone1 = Setting::getValue('company_phone_1', '6289249399');
+        $companyPhone2 = Setting::getValue('company_phone_2', '9609142692');
+        $companyPhone3 = Setting::getValue('company_phone_3', '9732771768');
+        $companyLogo = Setting::getValue('company_logo', '/images/sayan-sita-logo.png');
+
+        return Inertia::render('Settings/Website', [
+            'company_name' => $companyName,
+            'company_address' => $companyAddress,
+            'company_phone_1' => $companyPhone1,
+            'company_phone_2' => $companyPhone2,
+            'company_phone_3' => $companyPhone3,
+            'company_logo' => $companyLogo,
+            'company_logo_url' => Setting::normalizeAssetUrl($companyLogo),
+        ]);
+    }
+
+    /**
+     * Show invoice settings form
+     */
+    public function editInvoice()
     {
         // Only super admins can access settings
         if (!Auth::user()->is_super_admin) {
@@ -32,7 +61,7 @@ class SettingsController extends Controller
         $accountType = Setting::getValue('account_type', 'Trade & Forex CURRENT ACCOUNT');
         $invoiceLogo = Setting::getValue('invoice_logo', '');
 
-        return Inertia::render('Settings/Index', [
+        return Inertia::render('Settings/Invoice', [
             'payment_tc' => $paymentTc,
             'bank_details' => $bankDetails,
             'payment_mode' => $paymentMode,
@@ -49,16 +78,74 @@ class SettingsController extends Controller
     }
 
     /**
-     * Update settings
+     * Backward-compatible old settings route
      */
-    public function update(Request $request)
+    public function edit()
     {
-        // Only super admins can update settings
+        return $this->editInvoice();
+    }
+
+    /**
+     * Update website settings only
+     */
+    public function updateWebsite(Request $request)
+    {
         if (!Auth::user()->is_super_admin) {
             abort(403, 'Unauthorized access');
         }
 
-        $validated = $request->validate([
+        $validatedWebsite = $request->validate([
+            'company_name' => 'nullable|string|max:255',
+            'company_address' => 'nullable|string|max:500',
+            'company_phone_1' => 'nullable|string|max:20',
+            'company_phone_2' => 'nullable|string|max:20',
+            'company_phone_3' => 'nullable|string|max:20',
+            'company_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
+        ]);
+
+        $companyLogoPath = Setting::getValue('company_logo', '');
+        if ($request->hasFile('company_logo')) {
+            $uploadedLogo = $request->file('company_logo')->store('company-logos', 'public');
+
+            if (!empty($companyLogoPath) && (strpos($companyLogoPath, 'storage/') !== false || strpos($companyLogoPath, '/storage/') !== false)) {
+                Storage::disk('public')->delete(str_replace(['/storage/', 'storage/'], '', $companyLogoPath));
+            }
+
+            $companyLogoPath = '/storage/' . $uploadedLogo;
+        }
+
+        if (array_key_exists('company_name', $validatedWebsite)) {
+            Setting::setValue('company_name', $validatedWebsite['company_name']);
+        }
+        if (array_key_exists('company_address', $validatedWebsite)) {
+            Setting::setValue('company_address', $validatedWebsite['company_address']);
+        }
+        if (array_key_exists('company_phone_1', $validatedWebsite)) {
+            Setting::setValue('company_phone_1', $validatedWebsite['company_phone_1']);
+        }
+        if (array_key_exists('company_phone_2', $validatedWebsite)) {
+            Setting::setValue('company_phone_2', $validatedWebsite['company_phone_2']);
+        }
+        if (array_key_exists('company_phone_3', $validatedWebsite)) {
+            Setting::setValue('company_phone_3', $validatedWebsite['company_phone_3']);
+        }
+        if (!empty($companyLogoPath)) {
+            Setting::setValue('company_logo', $companyLogoPath);
+        }
+
+        return redirect()->back()->with('success', 'Website settings updated successfully');
+    }
+
+    /**
+     * Update invoice settings only
+     */
+    public function updateInvoice(Request $request)
+    {
+        if (!Auth::user()->is_super_admin) {
+            abort(403, 'Unauthorized access');
+        }
+
+        $validatedInvoice = $request->validate([
             'payment_tc' => 'nullable|string',
             'payment_mode' => 'required|string|max:100',
             'godown' => 'required|string|max:255',
@@ -68,7 +155,7 @@ class SettingsController extends Controller
             'ifsc' => 'required|string|max:50',
             'branch' => 'required|string|max:255',
             'account_type' => 'required|string|max:255',
-            'invoice_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120'
+            'invoice_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
         ]);
 
         $invoiceLogoPath = Setting::getValue('invoice_logo', '');
@@ -82,20 +169,36 @@ class SettingsController extends Controller
             $invoiceLogoPath = $uploadedLogo;
         }
 
-        Setting::setValue('payment_terms_conditions', $validated['payment_tc'] ?? '');
-        Setting::setValue('payment_mode', $validated['payment_mode']);
-        Setting::setValue('godown', $validated['godown']);
-        Setting::setValue('transport', $validated['transport']);
-        Setting::setValue('bank', $validated['bank']);
-        Setting::setValue('account_no', $validated['account_no']);
-        Setting::setValue('ifsc', $validated['ifsc']);
-        Setting::setValue('branch', $validated['branch']);
-        Setting::setValue('account_type', $validated['account_type']);
+        Setting::setValue('payment_terms_conditions', $validatedInvoice['payment_tc'] ?? '');
+        Setting::setValue('payment_mode', $validatedInvoice['payment_mode']);
+        Setting::setValue('godown', $validatedInvoice['godown']);
+        Setting::setValue('transport', $validatedInvoice['transport']);
+        Setting::setValue('bank', $validatedInvoice['bank']);
+        Setting::setValue('account_no', $validatedInvoice['account_no']);
+        Setting::setValue('ifsc', $validatedInvoice['ifsc']);
+        Setting::setValue('branch', $validatedInvoice['branch']);
+        Setting::setValue('account_type', $validatedInvoice['account_type']);
 
         if (!empty($invoiceLogoPath)) {
             Setting::setValue('invoice_logo', $invoiceLogoPath);
         }
 
-        return redirect()->back()->with('success', 'Settings updated successfully');
+        return redirect()->back()->with('success', 'Invoice settings updated successfully');
+    }
+
+    /**
+     * Update settings
+     */
+    public function update(Request $request)
+    {
+        return $this->updateInvoice($request);
+    }
+
+    /**
+     * Get company settings (public API - no auth required)
+     */
+    public function getCompanySettings()
+    {
+        return response()->json(Setting::getCompanySettings());
     }
 }

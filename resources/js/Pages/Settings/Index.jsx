@@ -9,6 +9,12 @@ export default function SettingsIndex(props) {
     const [loading, setLoading] = useState(false);
 
     const { data, setData, patch, processing, errors, reset } = useForm({
+        company_name: props.company_name || 'SAYAN SITA BUILDERS',
+        company_address: props.company_address || 'Chalitapara, Ajodhya, Shyampur, Howrah – 711312',
+        company_phone_1: props.company_phone_1 || '6289249399',
+        company_phone_2: props.company_phone_2 || '9609142692',
+        company_phone_3: props.company_phone_3 || '9732771768',
+        company_logo: null,
         payment_tc: props.payment_tc || '',
         payment_mode: props.payment_mode || 'CREDIT',
         godown: props.godown || 'CHALITAPARA',
@@ -21,20 +27,45 @@ export default function SettingsIndex(props) {
         invoice_logo: null,
     });
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+    const submitSection = (section) => {
         setLoading(true);
 
-        patch(route('settings.update'), {
+        const payload = section === 'website'
+            ? {
+                section: 'website',
+                company_name: data.company_name,
+                company_address: data.company_address,
+                company_phone_1: data.company_phone_1,
+                company_phone_2: data.company_phone_2,
+                company_phone_3: data.company_phone_3,
+                company_logo: data.company_logo,
+            }
+            : {
+                section: 'invoice',
+                payment_tc: data.payment_tc,
+                payment_mode: data.payment_mode,
+                godown: data.godown,
+                transport: data.transport,
+                bank: data.bank,
+                account_no: data.account_no,
+                ifsc: data.ifsc,
+                branch: data.branch,
+                account_type: data.account_type,
+                invoice_logo: data.invoice_logo,
+            };
+
+        transform(() => payload).patch(route('settings.update'), {
             preserveScroll: true,
             onSuccess: () => {
                 setLoading(false);
                 window.showSuccess?.('Settings updated successfully!');
+                transform((current) => current);
             },
             onError: (errors) => {
                 console.error('Validation errors:', errors);
                 window.showError?.('Failed to update settings. Please check the form.');
                 setLoading(false);
+                transform((current) => current);
             },
         });
     };
@@ -46,15 +77,158 @@ export default function SettingsIndex(props) {
             <div className="px-6 py-8">
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                        Invoice Settings
+                        System Settings
                     </h1>
                     <p className="text-gray-600 dark:text-gray-400 mt-2">
-                        Manage payment terms, conditions, and bank details for invoices
+                        Manage company information, branding, and payment settings
                     </p>
                 </div>
 
                 <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg max-w-4xl">
-                    <form onSubmit={handleSubmit} className="p-6 space-y-8">
+                    <form onSubmit={(e) => e.preventDefault()} className="p-6 space-y-8">
+                        {/* Company Information Section */}
+                        <div className="border-b border-gray-200 dark:border-gray-700 pb-8">
+                            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                                Company Information
+                            </h2>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                                This information will be displayed on the login page and system-wide branding
+                            </p>
+
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Company Name
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={data.company_name}
+                                        onChange={(e) => setData('company_name', e.target.value)}
+                                        className="w-full border border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="e.g., SAYAN SITA BUILDERS"
+                                    />
+                                    {errors.company_name && (
+                                        <p className="text-red-500 text-sm mt-1">{errors.company_name}</p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Company Address
+                                    </label>
+                                    <textarea
+                                        value={data.company_address}
+                                        onChange={(e) => setData('company_address', e.target.value)}
+                                        rows="3"
+                                        className="w-full border border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        placeholder="e.g., Chalitapara, Ajodhya, Shyampur, Howrah – 711312"
+                                    />
+                                    {errors.company_address && (
+                                        <p className="text-red-500 text-sm mt-1">{errors.company_address}</p>
+                                    )}
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Phone Number 1
+                                        </label>
+                                        <input
+                                            type="tel"
+                                            value={data.company_phone_1}
+                                            onChange={(e) => setData('company_phone_1', e.target.value)}
+                                            className="w-full border border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="e.g., 6289249399"
+                                        />
+                                        {errors.company_phone_1 && (
+                                            <p className="text-red-500 text-sm mt-1">{errors.company_phone_1}</p>
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Phone Number 2
+                                        </label>
+                                        <input
+                                            type="tel"
+                                            value={data.company_phone_2}
+                                            onChange={(e) => setData('company_phone_2', e.target.value)}
+                                            className="w-full border border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="e.g., 9609142692"
+                                        />
+                                        {errors.company_phone_2 && (
+                                            <p className="text-red-500 text-sm mt-1">{errors.company_phone_2}</p>
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Phone Number 3
+                                        </label>
+                                        <input
+                                            type="tel"
+                                            value={data.company_phone_3}
+                                            onChange={(e) => setData('company_phone_3', e.target.value)}
+                                            className="w-full border border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="e.g., 9732771768"
+                                        />
+                                        {errors.company_phone_3 && (
+                                            <p className="text-red-500 text-sm mt-1">{errors.company_phone_3}</p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                                        Company Logo
+                                    </h3>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Company Logo (Optional)
+                                    </label>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => setData('company_logo', e.target.files?.[0] || null)}
+                                        className="w-full border border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                    {errors.company_logo && (
+                                        <p className="text-red-500 text-sm mt-1">{errors.company_logo}</p>
+                                    )}
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                        Upload a company logo to display on the login page and throughout the system. Recommended size: 500x500px
+                                    </p>
+
+                                    {props.company_logo_url && !data.company_logo && (
+                                        <div className="mt-4 flex items-center gap-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-4 py-3">
+                                            <img
+                                                src={props.company_logo_url}
+                                                alt="Current company logo"
+                                                className="h-16 w-16 object-contain rounded-md bg-white p-2 border border-gray-200"
+                                            />
+                                            <div>
+                                                <p className="text-sm font-medium text-gray-900 dark:text-white">Current logo preview</p>
+                                                <p className="text-xs text-gray-500 dark:text-gray-400">This logo appears on login page and system-wide.</p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {data.company_logo && data.company_logo instanceof File && (
+                                        <div className="mt-4 flex items-center gap-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-4 py-3">
+                                            <img
+                                                src={URL.createObjectURL(data.company_logo)}
+                                                alt="Company logo preview"
+                                                className="h-16 w-16 object-contain rounded-md bg-white p-2 border border-gray-200"
+                                            />
+                                            <div>
+                                                <p className="text-sm font-medium text-gray-900 dark:text-white">New upload preview</p>
+                                                <p className="text-xs text-gray-500 dark:text-gray-400">This will replace the current logo when you save.</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Payment T&C Section */}
                         <div className="border-b border-gray-200 dark:border-gray-700 pb-8">
                             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
@@ -268,8 +442,8 @@ export default function SettingsIndex(props) {
                             </div>
                         </div>
 
-                        {/* Submit Button */}
-                        <div className="flex justify-end gap-4">
+                        {/* Submit Buttons */}
+                        <div className="flex flex-wrap justify-end gap-4">
                             <SecondaryButton
                                 type="button"
                                 onClick={() => reset()}
@@ -278,10 +452,18 @@ export default function SettingsIndex(props) {
                                 Reset
                             </SecondaryButton>
                             <PrimaryButton
-                                type="submit"
+                                type="button"
+                                onClick={() => submitSection('website')}
                                 disabled={loading || processing}
                             >
-                                {loading || processing ? 'Saving...' : 'Save Settings'}
+                                {loading || processing ? 'Saving...' : 'Save Website Settings'}
+                            </PrimaryButton>
+                            <PrimaryButton
+                                type="button"
+                                onClick={() => submitSection('invoice')}
+                                disabled={loading || processing}
+                            >
+                                {loading || processing ? 'Saving...' : 'Save Invoice Settings'}
                             </PrimaryButton>
                         </div>
                     </form>

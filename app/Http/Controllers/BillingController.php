@@ -108,6 +108,7 @@ class BillingController extends Controller
 			'product_items.*.category_id' => 'required_with:product_items|exists:categories,id',
 			'product_items.*.quantity' => 'required_with:product_items|numeric|min:0.01',
 			'product_items.*.unit_price' => 'required_with:product_items|numeric|min:0',
+			'product_items.*.hsn_code' => 'nullable|string|max:32',
 			'product_items.*.discount_percentage' => 'nullable|numeric|min:0|max:100',
 			'product_items.*.discount_amount' => 'nullable|numeric|min:0'
 		]);
@@ -221,6 +222,7 @@ class BillingController extends Controller
 
 				$productRows[] = [
 					'stock_id' => $item['stock_id'],
+					'hsn_code' => trim((string) ($item['hsn_code'] ?? ($stock->item->hsn_code ?? ''))),
 					'category_id' => $categoryId ?: null,
 					'quantity' => $quantity,
 					'unit_price' => $unitPrice,
@@ -430,6 +432,7 @@ class BillingController extends Controller
 			'product_items.*.category_id' => 'required_with:product_items|exists:categories,id',
 			'product_items.*.quantity' => 'required_with:product_items|numeric|min:0.01',
 			'product_items.*.unit_price' => 'required_with:product_items|numeric|min:0',
+			'product_items.*.hsn_code' => 'nullable|string|max:32',
 			'product_items.*.discount_percentage' => 'nullable|numeric|min:0|max:100',
 			'product_items.*.discount_amount' => 'nullable|numeric|min:0'
 		]);
@@ -568,6 +571,7 @@ class BillingController extends Controller
 
 				$productRows[] = [
 					'stock_id' => $item['stock_id'],
+					'hsn_code' => trim((string) ($item['hsn_code'] ?? ($stock->item->hsn_code ?? ''))),
 					'category_id' => $categoryId ?: null,
 					'quantity' => $quantity,
 					'unit_price' => $unitPrice,
@@ -660,6 +664,9 @@ class BillingController extends Controller
 
 	public function download(Invoice $billing)
 	{
+		$copyType = request()->string('copy')->lower()->toString();
+		$copyType = $copyType === 'duplicate' ? 'duplicate' : 'customer';
+
 		$billing->load(['customer', 'serviceItems.service', 'productItems.stock.item.category', 'productItems.category', 'creator', 'payments']);
 
 		$invoiceDiscountPercent = (float) ($billing->discount_percentage ?? 0);
@@ -685,7 +692,7 @@ class BillingController extends Controller
 					'category' => $item->category->name ?? $item->stock->item->category->name ?? '-',
 					'description' => $item->stock->item_description ?? '-',
 					'unit' => $item->stock->unit ?? '-',
-					'hsn_code' => $item->stock->hsn_code ?? '-',
+					'hsn_code' => $item->hsn_code ?: ($item->stock->item->hsn_code ?? '-'),
 					'quantity' => $item->quantity,
 					'unit_price' => $item->unit_price,
 					'discount_percentage' => $item->discount_percentage ?? 0,
@@ -708,6 +715,7 @@ class BillingController extends Controller
 
 		$pdf = Pdf::loadView('billing.invoice-pdf', [
 			'invoice' => $billing,
+			'copy_type' => $copyType,
 			'lineItems' => $lineItems,
 			'gst_amount' => $gstAmount,
 			'cgst' => $cgst,
@@ -730,7 +738,7 @@ class BillingController extends Controller
 			'account_type' => Setting::getValue('account_type', 'Trade & Forex CURRENT ACCOUNT')
 		]);
 
-		$filename = 'invoice-' . $billing->invoice_number . '.pdf';
+		$filename = 'invoice-' . $billing->invoice_number . '-' . $copyType . '.pdf';
 		return $pdf->download($filename);
 	}
 

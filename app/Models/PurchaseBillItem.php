@@ -14,6 +14,7 @@ class PurchaseBillItem extends Model
     protected $fillable = [
         'purchase_bill_id',
         'item_id',
+        'hsn_code',
         'quantity',
         'unit_price',
         'discount_percentage',

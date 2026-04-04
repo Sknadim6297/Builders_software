@@ -16,6 +16,7 @@ export default function Create({ auth, vendors, items: allItems, flash }) {
         items: [
             {
                 item_id: '',
+                hsn_code: '',
                 quantity: '0',
                 unit_price: '0',
                 discount_percentage: '0',
@@ -85,6 +86,7 @@ export default function Create({ auth, vendors, items: allItems, flash }) {
             ...data.items,
             {
                 item_id: '',
+                hsn_code: '',
                 quantity: '0',
                 unit_price: '0',
                 discount_percentage: '0',
@@ -112,9 +114,9 @@ export default function Create({ auth, vendors, items: allItems, flash }) {
         if (field === 'item_id') {
             const item = itemMap.get(value);
             if (item) {
+                newItems[index].hsn_code = item.hsn_code || '';
                 newItems[index].gst_percentage = item.gst_percentage || 0;
                 newItems[index].unit_price = String(item.default_unit_price || 0);
-                newItems[index].discount_percentage = String(item.default_discount_percentage || 0);
             }
         }
 
@@ -130,6 +132,52 @@ export default function Create({ auth, vendors, items: allItems, flash }) {
         newItems[index].amount = Number(amount.toFixed(2));
 
         setData('items', newItems);
+    };
+
+    const handleGstTypeChange = (value) => {
+        setData((prevData) => ({
+            ...prevData,
+            gst_type: value,
+            cgst_percentage: value === 'inter' ? '0' : prevData.cgst_percentage,
+            sgst_percentage: value === 'inter' ? '0' : prevData.sgst_percentage,
+            igst_percentage: value === 'intra' ? '0' : prevData.igst_percentage,
+        }));
+    };
+
+    const validateGstSelection = () => {
+        const cgstPct = parseFloat(data.cgst_percentage) || 0;
+        const sgstPct = parseFloat(data.sgst_percentage) || 0;
+        const igstPct = parseFloat(data.igst_percentage) || 0;
+
+        const hasCgst = cgstPct > 0;
+        const hasSgst = sgstPct > 0;
+        const hasIgst = igstPct > 0;
+
+        if (!hasCgst && !hasSgst && !hasIgst) {
+            window.showError?.('Please enter either IGST or CGST & SGST.');
+            return false;
+        }
+
+        if ((hasCgst && !hasSgst) || (!hasCgst && hasSgst)) {
+            window.showError?.('Both CGST and SGST are required.');
+            return false;
+        }
+
+        if (hasIgst && (hasCgst || hasSgst)) {
+            window.showError?.('You cannot enter IGST with CGST & SGST.');
+            return false;
+        }
+
+        return true;
+    };
+
+    const validateHsnCodes = () => {
+        const hasMissingHsn = data.items.some((item) => item.item_id && !(item.hsn_code || '').trim());
+        if (hasMissingHsn) {
+            window.showError?.('HSN Code is required for this product.');
+            return false;
+        }
+        return true;
     };
 
     // Calculate totals
@@ -186,6 +234,14 @@ export default function Create({ auth, vendors, items: allItems, flash }) {
             return;
         }
 
+        if (!validateGstSelection()) {
+            return;
+        }
+
+        if (!validateHsnCodes()) {
+            return;
+        }
+
         // Prepare submission data
         const submitData = {
             po_date: data.po_date,
@@ -196,6 +252,7 @@ export default function Create({ auth, vendors, items: allItems, flash }) {
             expected_delivery: data.expected_delivery || '',
             items: data.items.map(item => ({
                 item_id: item.item_id,
+                hsn_code: (item.hsn_code || '').trim(),
                 quantity: parseFloat(item.quantity) || 0,
                 unit_price: parseFloat(item.unit_price) || 0,
                 discount_percentage: parseFloat(item.discount_percentage) || 0,
@@ -241,7 +298,7 @@ export default function Create({ auth, vendors, items: allItems, flash }) {
                 preserveScroll: false,
                 onError: (errors) => {
                     Object.keys(errors).forEach(key => {
-                        window.showError?.(`${key}: ${errors[key]}`);
+                        window.showError?.(errors[key]);
                     });
                 }
             });
@@ -252,7 +309,7 @@ export default function Create({ auth, vendors, items: allItems, flash }) {
                 preserveScroll: false,
                 onError: (errors) => {
                     Object.keys(errors).forEach(key => {
-                        window.showError?.(`${key}: ${errors[key]}`);
+                        window.showError?.(errors[key]);
                     });
                 }
             });
@@ -477,11 +534,11 @@ export default function Create({ auth, vendors, items: allItems, flash }) {
                                                         <input
                                                             type="number"
                                                             value={item.discount_percentage}
+                                                            onChange={(e) => updateItem(index, 'discount_percentage', e.target.value)}
                                                             min="0"
                                                             max="100"
                                                             step="0.01"
-                                                            readOnly
-                                                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white text-sm"
+                                                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
                                                         />
                                                     </td>
                                                     <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
@@ -535,7 +592,7 @@ export default function Create({ auth, vendors, items: allItems, flash }) {
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">GST Type</label>
-                                    <select value={data.gst_type} onChange={(e) => setData('gst_type', e.target.value)} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                    <select value={data.gst_type} onChange={(e) => handleGstTypeChange(e.target.value)} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                                         <option value="intra">INTRA (CGST+SGST)</option>
                                         <option value="inter">INTER (IGST)</option>
                                     </select>

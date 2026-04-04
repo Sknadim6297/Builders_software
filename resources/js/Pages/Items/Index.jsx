@@ -83,7 +83,9 @@ export default function Index({     items, filters }) {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Code</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Category</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Name</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">HSN</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Unit Type</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Default Discount %</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">GST %</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Status</th>
                                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 dark:text-gray-300 uppercase">Actions</th>
@@ -96,7 +98,9 @@ export default function Index({     items, filters }) {
                                         <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{item.item_code}</td>
                                         <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{item.category?.name || 'Unassigned'}</td>
                                         <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{item.name}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{item.hsn_code || '-'}</td>
                                         <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{item.unit_type}</td>
+                                        <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{parseFloat(item.default_discount_percentage || 0).toFixed(2)}%</td>
                                         <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{item.gst_percentage}%</td>
                                         <td className="px-6 py-4 text-sm">
                                             <span className={`inline-flex px-2 py-1 rounded-full text-xs font-semibold ${
@@ -122,7 +126,7 @@ export default function Index({     items, filters }) {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="7" className="px-6 py-8 text-center text-gray-600 dark:text-gray-400">
+                                    <td colSpan="9" className="px-6 py-8 text-center text-gray-600 dark:text-gray-400">
                                         No items found
                                     </td>
                                 </tr>

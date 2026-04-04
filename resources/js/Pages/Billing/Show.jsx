@@ -89,6 +89,8 @@ export default function Show({ invoice, flash }) {
 
     const dueAmountInWords = useMemo(() => amountToWords(invoice.due_amount), [invoice.due_amount]);
 
+    const getInvoiceDownloadHref = (copyType) => `${route('billing.download', invoice.id)}?copy=${copyType}`;
+
     const handleAddPayment = (e) => {
         e.preventDefault();
         post(route('billing.payments.add', invoice.id), {
@@ -124,6 +126,7 @@ export default function Show({ invoice, flash }) {
             id: `service-${item.id}`,
             type: 'Service',
             name: item.service?.name || 'Service',
+            hsn_code: item.service?.hsn_code || '-',
             description: item.service?.description || '-',
             measurement: '-',
             quantity: item.quantity,
@@ -134,6 +137,7 @@ export default function Show({ invoice, flash }) {
             id: `product-${item.id}`,
             type: 'Product',
             name: item.stock?.item_name || 'Product',
+            hsn_code: item.hsn_code || item.stock?.item?.hsn_code || '-',
             category: item.category?.name || item.stock?.item?.category?.name || '-',
             description: item.stock?.item_description || '-',
             measurement: item.stock?.unit || '-',
@@ -168,10 +172,16 @@ export default function Show({ invoice, flash }) {
                             </button>
                         )}
                         <a
-                            href={route('billing.download', invoice.id)}
+                            href={getInvoiceDownloadHref('customer')}
                             className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
                         >
-                            Download Invoice
+                            Download Customer Copy
+                        </a>
+                        <a
+                            href={getInvoiceDownloadHref('duplicate')}
+                            className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                        >
+                            Download Duplicate Copy
                         </a>
                         <Link
                             href={route('billing.index')}
@@ -231,7 +241,10 @@ export default function Show({ invoice, flash }) {
                                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                                         {lineItems.map((item) => (
                                             <tr key={item.id}>
-                                                <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{item.name}</td>
+                                                <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+                                                    <div>{item.name}</div>
+                                                    <div className="text-xs text-gray-500 dark:text-gray-400">HSN: {item.hsn_code || '-'}</div>
+                                                </td>
                                                 <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{item.category}</td>
                                                 <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{item.description}</td>
                                                 <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{parseFloat(item.quantity).toFixed(2)}</td>

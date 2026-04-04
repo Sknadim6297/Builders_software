@@ -5,9 +5,12 @@ import { route } from '@/utils/route';
 import Header from '../Components/Header/Header';
 
 export default function SidebarLayout({ children }) {
-    const { auth, permissions, allowedMenus } = usePage().props;
+    const { auth, permissions, allowedMenus, companySettings } = usePage().props;
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
+
+    const companyLogo = companySettings?.company_logo || '/images/sayan-sita-logo.png';
+    const companyName = companySettings?.company_name || 'Sayan Sita Builders';
 
     const toggleMobileSidebar = () => {
         if (!sidebarOpen) {
@@ -201,9 +204,14 @@ export default function SidebarLayout({ children }) {
                 superAdminOnly: true,
                 children: [
                     {
+                        name: 'Website Settings',
+                        href: route('settings.website.edit'),
+                        current: route().current('settings.website.*')
+                    },
+                    {
                         name: 'Invoice Settings',
-                        href: route('settings.edit'),
-                        current: route().current('settings.*')
+                        href: route('settings.invoice.edit'),
+                        current: route().current('settings.invoice.*')
                     }
                 ]
             }
@@ -317,15 +325,15 @@ export default function SidebarLayout({ children }) {
                                     boxShadow: '0 10px 30px rgba(164, 125, 181, 0.3)'
                                 }}>
                                 <img
-                                    src="/images/sayan-sita-logo.png"
-                                    alt="Sayan Sita Builders"
+                                    src={companyLogo}
+                                    alt={companyName}
                                     className="h-14 w-14 object-contain rounded-lg"
                                 />
                             </div>
                             <div className="ml-3 overflow-hidden">
                                 <span className={`text-lg font-bold text-gray-900 dark:text-white font-heading transition-all duration-500 ${sidebarOpen ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
                                     }`} style={{ transitionDelay: sidebarOpen ? '400ms' : '0ms' }}>
-                                    Sayan Sita Builders
+                                    {companyName}
                                 </span>
                                 <p className={`text-xs text-gray-600 dark:text-gray-400 transition-all duration-500 ${sidebarOpen ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
                                     }`} style={{ transitionDelay: sidebarOpen ? '500ms' : '0ms' }}>
@@ -514,13 +522,13 @@ export default function SidebarLayout({ children }) {
                         <div className="flex items-center flex-shrink-0 px-4 mb-8">
                             <div className="h-12 w-12 bg-white rounded-lg flex items-center justify-center shadow-lg p-1">
                                 <img
-                                    src="/images/sayan-sita-logo.png"
-                                    alt="Sayan Sita Builders"
+                                    src={companyLogo}
+                                    alt={companyName}
                                     className="h-full w-full object-contain rounded-lg"
                                 />
                             </div>
                             <div className="ml-3">
-                                <span className="text-lg font-bold text-gray-900 dark:text-white font-heading transition-colors duration-200">Sayan Sita Builders</span>
+                                <span className="text-lg font-bold text-gray-900 dark:text-white font-heading transition-colors duration-200">{companyName}</span>
                                 <p className="text-xs text-gray-600 dark:text-gray-400 transition-colors duration-200">Project Management</p>
                             </div>
                         </div>

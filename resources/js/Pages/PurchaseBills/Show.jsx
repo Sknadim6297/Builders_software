@@ -102,6 +102,10 @@ export default function Show({ auth, purchaseBill }) {
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">INV/CHA No.</label>
                                         <p className="text-sm text-gray-900 dark:text-gray-100">{purchaseBill.inv_cha_no || 'None'}</p>
                                     </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">HSN Code</label>
+                                        <p className="text-sm text-gray-900 dark:text-gray-100">{purchaseBill.hsn_code || 'None'}</p>
+                                    </div>
                                 </div>
                             </div>
 
@@ -140,7 +144,6 @@ export default function Show({ auth, purchaseBill }) {
                                             <tr>
                                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Sl. No</th>
                                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Description</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">HSN Code</th>
                                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Quantity</th>
                                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Unit</th>
                                                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Rate</th>
@@ -160,7 +163,6 @@ export default function Show({ auth, purchaseBill }) {
                                                     <tr key={index}>
                                                         <td className="px-4 py-3">{index + 1}</td>
                                                         <td className="px-4 py-3">{item.product || '-'}</td>
-                                                        <td className="px-4 py-3">{item.hsn_code || '-'}</td>
                                                         <td className="px-4 py-3">{quantity}</td>
                                                         <td className="px-4 py-3">{item.measurement || '-'}</td>
                                                         <td className="px-4 py-3">{formatCurrency(rate)}</td>

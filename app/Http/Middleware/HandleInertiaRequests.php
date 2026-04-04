@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -42,6 +43,7 @@ class HandleInertiaRequests extends Middleware
                 'info' => session('info'),
                 'status' => session('status'),
             ],
+            'companySettings' => fn () => Setting::getCompanySettings(),
         ];
     }
 }
