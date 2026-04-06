@@ -5,6 +5,7 @@ import { route } from '@/utils/route';
 
 export default function Index({ report, filters }) {
     const [filterType, setFilterType] = useState(filters?.filter_type || 'daily');
+    const [reportType, setReportType] = useState(filters?.report_type || 'all');
     const [reportDate, setReportDate] = useState(filters?.report_date || '');
     const [reportMonth, setReportMonth] = useState(filters?.report_month || '');
     const [fromDate, setFromDate] = useState(filters?.from_date || '');
@@ -12,11 +13,12 @@ export default function Index({ report, filters }) {
 
     const payload = useMemo(() => ({
         filter_type: filterType,
+        report_type: reportType,
         report_date: filterType === 'daily' ? reportDate : '',
         report_month: filterType === 'monthly' ? reportMonth : '',
         from_date: filterType === 'custom' ? fromDate : '',
         to_date: filterType === 'custom' ? toDate : '',
-    }), [filterType, reportDate, reportMonth, fromDate, toDate]);
+    }), [filterType, reportType, reportDate, reportMonth, fromDate, toDate]);
 
     const formatCurrency = (value) => {
         const num = Number(value || 0);
@@ -26,6 +28,29 @@ export default function Index({ report, filters }) {
             maximumFractionDigits: 2,
         }).format(num);
     };
+
+    const formatPaymentMethodLabel = (value) => {
+        switch (String(value || '').toLowerCase()) {
+            case 'cash':
+                return 'Cash';
+            case 'card':
+                return 'Card';
+            case 'upi':
+                return 'UPI';
+            case 'bank_transfer':
+                return 'Bank Transfer';
+            case 'cheque':
+                return 'Cheque';
+            case 'other':
+                return 'Other';
+            default:
+                return value || '-';
+        }
+    };
+
+    const periodLabel = report?.period?.from === 'All Time' && report?.period?.to === 'All Time'
+        ? 'All Time'
+        : `${report?.period?.from || '-'} to ${report?.period?.to || '-'}`;
 
     const applyFilters = (e) => {
         e.preventDefault();
@@ -37,6 +62,7 @@ export default function Index({ report, filters }) {
 
     const resetFilters = () => {
         setFilterType('daily');
+        setReportType('all');
         setReportDate('');
         setReportMonth('');
         setFromDate('');
@@ -63,7 +89,7 @@ export default function Index({ report, filters }) {
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Daily Reports</h1>
                         <p className="mt-1 text-gray-600 dark:text-gray-300">
-                            Purchase, Sales, Due and Daily Cash tracking
+                            Purchase, Sales, Due and payment method tracking
                         </p>
                     </div>
                     <button
@@ -87,6 +113,22 @@ export default function Index({ report, filters }) {
                                 <option value="daily">Daily</option>
                                 <option value="monthly">Monthly</option>
                                 <option value="custom">Custom Range</option>
+                                <option value="all_time">All Time</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Report Type</label>
+                            <select
+                                value={reportType}
+                                onChange={(e) => setReportType(e.target.value)}
+                                className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                            >
+                                <option value="all">All Reports</option>
+                                <option value="purchase">Purchase Report</option>
+                                <option value="sales">Sales Report</option>
+                                <option value="due">Due Report</option>
+                                <option value="payments">Payment Report</option>
                             </select>
                         </div>
 
@@ -146,7 +188,7 @@ export default function Index({ report, filters }) {
 
                         <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                     <div className="text-sm text-gray-600 dark:text-gray-300">
-                        Report Period: {report?.period?.from || '-'} to {report?.period?.to || '-'}
+                                Report Period: {periodLabel}
                     </div>
                 </div>
 
@@ -167,13 +209,14 @@ export default function Index({ report, filters }) {
                         <p className="text-xs text-gray-500 dark:text-gray-400">Due Invoices: {report?.due?.count || 0}</p>
                     </div>
                     <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                        <p className="text-sm text-gray-600 dark:text-gray-300">Closing Cash</p>
-                        <p className="text-2xl font-bold text-blue-400">{formatCurrency(report?.cash?.closing_balance)}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">Opening: {formatCurrency(report?.cash?.opening_balance)}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">Total Payments</p>
+                        <p className="text-2xl font-bold text-blue-400">{formatCurrency(report?.payments?.total_amount)}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Payments: {report?.payments?.count || 0}</p>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    {(reportType === 'all' || reportType === 'purchase') && (
                     <div className="rounded-lg border border-gray-200 bg-white overflow-x-auto shadow-sm dark:border-gray-700 dark:bg-gray-800">
                         <div className="px-4 py-3 border-b border-gray-200 font-semibold text-gray-900 dark:border-gray-700 dark:text-white">Purchase Report</div>
                         <table className="min-w-full text-sm">
@@ -201,7 +244,9 @@ export default function Index({ report, filters }) {
                             </tbody>
                         </table>
                     </div>
+                    )}
 
+                    {(reportType === 'all' || reportType === 'sales') && (
                     <div className="rounded-lg border border-gray-200 bg-white overflow-x-auto shadow-sm dark:border-gray-700 dark:bg-gray-800">
                         <div className="px-4 py-3 border-b border-gray-200 font-semibold text-gray-900 dark:border-gray-700 dark:text-white">Sales Report</div>
                         <table className="min-w-full text-sm">
@@ -229,7 +274,9 @@ export default function Index({ report, filters }) {
                             </tbody>
                         </table>
                     </div>
+                    )}
 
+                    {(reportType === 'all' || reportType === 'due') && (
                     <div className="rounded-lg border border-gray-200 bg-white overflow-x-auto shadow-sm dark:border-gray-700 dark:bg-gray-800">
                         <div className="px-4 py-3 border-b border-gray-200 font-semibold text-gray-900 dark:border-gray-700 dark:text-white">Due Report</div>
                         <table className="min-w-full text-sm">
@@ -257,20 +304,67 @@ export default function Index({ report, filters }) {
                             </tbody>
                         </table>
                     </div>
+                    )}
 
+                    {(reportType === 'all' || reportType === 'payments') && (
                     <div className="rounded-lg border border-gray-200 bg-white overflow-x-auto shadow-sm dark:border-gray-700 dark:bg-gray-800">
-                        <div className="px-4 py-3 border-b border-gray-200 font-semibold text-gray-900 dark:border-gray-700 dark:text-white">Daily Cash Report</div>
-                        <div className="p-4 grid grid-cols-2 gap-3 text-sm">
-                            <div className="text-gray-600 dark:text-gray-300">Opening Cash</div>
-                            <div className="text-right font-semibold">{formatCurrency(report?.cash?.opening_balance)}</div>
-                            <div className="text-gray-600 dark:text-gray-300">Cash Received</div>
-                            <div className="text-right font-semibold text-green-400">{formatCurrency(report?.cash?.cash_received)}</div>
-                            <div className="text-gray-600 dark:text-gray-300">Cash Paid</div>
-                            <div className="text-right font-semibold text-red-400">{formatCurrency(report?.cash?.cash_paid)}</div>
-                            <div className="text-gray-600 dark:text-gray-300">Closing Cash</div>
-                            <div className="text-right font-semibold text-blue-400">{formatCurrency(report?.cash?.closing_balance)}</div>
-                        </div>
+                        <div className="px-4 py-3 border-b border-gray-200 font-semibold text-gray-900 dark:border-gray-700 dark:text-white">Payment Method Report</div>
+                        <table className="min-w-full text-sm">
+                            <thead className="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    <th className="px-4 py-2 text-left text-gray-700 dark:text-gray-200">Method</th>
+                                    <th className="px-4 py-2 text-right text-gray-700 dark:text-gray-200">Payments</th>
+                                    <th className="px-4 py-2 text-right text-gray-700 dark:text-gray-200">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {(report?.payments?.method_breakdown || []).length === 0 ? (
+                                    <tr><td colSpan="3" className="px-4 py-3 text-center text-gray-500 dark:text-gray-400">No payment records</td></tr>
+                                ) : (
+                                    report.payments.method_breakdown.map((row, idx) => (
+                                        <tr key={idx} className="border-t border-gray-100 dark:border-gray-700">
+                                            <td className="px-4 py-2 text-gray-700 dark:text-gray-200">{formatPaymentMethodLabel(row.payment_method_label || row.payment_method)}</td>
+                                            <td className="px-4 py-2 text-right text-gray-700 dark:text-gray-200">{row.count}</td>
+                                            <td className="px-4 py-2 text-right text-gray-900 dark:text-white">{formatCurrency(row.total_amount)}</td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
                     </div>
+                    )}
+                </div>
+
+                <div className="rounded-lg border border-gray-200 bg-white overflow-x-auto shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div className="px-4 py-3 border-b border-gray-200 font-semibold text-gray-900 dark:border-gray-700 dark:text-white">Payment Details</div>
+                    <table className="min-w-full text-sm">
+                        <thead className="bg-gray-50 dark:bg-gray-700">
+                            <tr>
+                                <th className="px-4 py-2 text-left text-gray-700 dark:text-gray-200">Payment No.</th>
+                                <th className="px-4 py-2 text-left text-gray-700 dark:text-gray-200">Date</th>
+                                <th className="px-4 py-2 text-left text-gray-700 dark:text-gray-200">Invoice</th>
+                                <th className="px-4 py-2 text-left text-gray-700 dark:text-gray-200">Customer</th>
+                                <th className="px-4 py-2 text-left text-gray-700 dark:text-gray-200">Method</th>
+                                <th className="px-4 py-2 text-right text-gray-700 dark:text-gray-200">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {(report?.payments?.details || []).length === 0 ? (
+                                <tr><td colSpan="6" className="px-4 py-3 text-center text-gray-500 dark:text-gray-400">No payment records</td></tr>
+                            ) : (
+                                report.payments.details.map((row, idx) => (
+                                    <tr key={idx} className="border-t border-gray-100 dark:border-gray-700">
+                                        <td className="px-4 py-2 text-gray-700 dark:text-gray-200">{row.payment_number}</td>
+                                        <td className="px-4 py-2 text-gray-700 dark:text-gray-200">{row.payment_date}</td>
+                                        <td className="px-4 py-2 text-gray-700 dark:text-gray-200">{row.invoice_number}</td>
+                                        <td className="px-4 py-2 text-gray-700 dark:text-gray-200">{row.customer_name}</td>
+                                        <td className="px-4 py-2 text-gray-700 dark:text-gray-200">{formatPaymentMethodLabel(row.payment_method_label || row.payment_method)}</td>
+                                        <td className="px-4 py-2 text-right text-gray-900 dark:text-white">{formatCurrency(row.amount)}</td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
                 </div>
 
                 <div className="rounded-lg border border-gray-200 bg-white overflow-x-auto shadow-sm dark:border-gray-700 dark:bg-gray-800">

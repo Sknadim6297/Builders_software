@@ -14,7 +14,8 @@ class DailyReportController extends Controller
     public function index(Request $request)
     {
         $request->validate([
-            'filter_type' => 'nullable|in:daily,monthly,custom',
+            'filter_type' => 'nullable|in:daily,monthly,custom,all_time',
+            'report_type' => 'nullable|in:all,purchase,sales,due,payments',
             'report_date' => 'nullable|date',
             'report_month' => ['nullable', 'regex:/^\d{4}-\d{2}$/'],
             'from_date' => 'nullable|date',
@@ -32,6 +33,7 @@ class DailyReportController extends Controller
             'report' => $reportData,
             'filters' => [
                 'filter_type' => $filterType,
+                'report_type' => $request->input('report_type', 'all'),
                 'report_date' => $request->input('report_date', Carbon::today()->format('Y-m-d')),
                 'report_month' => $request->input('report_month', Carbon::today()->format('Y-m')),
                 'from_date' => $request->input('from_date'),
@@ -43,7 +45,7 @@ class DailyReportController extends Controller
     public function export(Request $request)
     {
         $request->validate([
-            'filter_type' => 'nullable|in:daily,monthly,custom',
+            'filter_type' => 'nullable|in:daily,monthly,custom,all_time',
             'report_date' => 'nullable|date',
             'report_month' => ['nullable', 'regex:/^\d{4}-\d{2}$/'],
             'from_date' => 'nullable|date',
@@ -58,7 +60,9 @@ class DailyReportController extends Controller
         $report = $this->buildReportData($fromDate, $toDate);
 
         $csv = $this->generateCsv($report, $fromDate, $toDate);
-        $filename = 'daily-reports-' . $fromDate->format('Ymd') . '-to-' . $toDate->format('Ymd') . '.csv';
+        $filename = $fromDate && $toDate
+            ? 'daily-reports-' . $fromDate->format('Ymd') . '-to-' . $toDate->format('Ymd') . '.csv'
+            : 'daily-reports-all-time.csv';
 
         return response($csv, 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
@@ -68,6 +72,13 @@ class DailyReportController extends Controller
 
     private function resolveDateRange(Request $request, string $filterType): array
     {
+        if ($filterType === 'all_time') {
+            return [
+                'from' => null,
+                'to' => null,
+            ];
+        }
+
         if ($filterType === 'daily') {
             $date = $request->filled('report_date')
                 ? Carbon::parse($request->report_date)
@@ -96,13 +107,17 @@ class DailyReportController extends Controller
         ];
     }
 
-    private function buildReportData(Carbon $fromDate, Carbon $toDate): array
+    private function buildReportData(?Carbon $fromDate, ?Carbon $toDate): array
     {
         $purchaseQuery = PurchaseBill::with('vendor')
-            ->whereDate('po_date', '>=', $fromDate->toDateString())
-            ->whereDate('po_date', '<=', $toDate->toDateString())
-            ->where('status', '!=', 'cancelled')
-            ->orderBy('po_date');
+            ->where('status', '!=', 'cancelled');
+
+        if ($fromDate && $toDate) {
+            $purchaseQuery->whereDate('po_date', '>=', $fromDate->toDateString())
+                ->whereDate('po_date', '<=', $toDate->toDateString());
+        }
+
+        $purchaseQuery->orderBy('po_date');
 
         $purchases = $purchaseQuery->get();
         $purchaseTotal = (float) $purchases->sum(fn ($bill) => (float) ($bill->total ?? 0));
@@ -119,24 +134,33 @@ class DailyReportController extends Controller
             ->values();
 
         $salesQuery = Invoice::with('customer')
-            ->whereDate('invoice_date', '>=', $fromDate->toDateString())
-            ->whereDate('invoice_date', '<=', $toDate->toDateString())
-            ->where('payment_status', '!=', 'cancelled')
-            ->orderBy('invoice_date');
+            ->where('payment_status', '!=', 'cancelled');
+
+        if ($fromDate && $toDate) {
+            $salesQuery->whereDate('invoice_date', '>=', $fromDate->toDateString())
+                ->whereDate('invoice_date', '<=', $toDate->toDateString());
+        }
+
+        $salesQuery->orderBy('invoice_date');
 
         $sales = $salesQuery->get();
         $salesTotal = (float) $sales->sum(fn ($invoice) => (float) ($invoice->total ?? 0));
 
-        $dueInvoices = Invoice::with('customer')
+        $dueInvoicesQuery = Invoice::with('customer')
             ->where('due_amount', '>', 0)
-            ->whereIn('payment_status', ['unpaid', 'partial'])
-            ->whereDate('invoice_date', '<=', $toDate->toDateString())
-            ->orderBy('invoice_date')
-            ->get();
+            ->whereIn('payment_status', ['unpaid', 'partial']);
 
-        $dueDetails = $dueInvoices->map(function ($invoice) use ($toDate) {
+        if ($toDate) {
+            $dueInvoicesQuery->whereDate('invoice_date', '<=', $toDate->toDateString());
+        }
+
+        $dueInvoices = $dueInvoicesQuery->orderBy('invoice_date')->get();
+
+        $dueReferenceDate = $toDate ?? Carbon::today();
+
+        $dueDetails = $dueInvoices->map(function ($invoice) use ($dueReferenceDate) {
             $invoiceDate = Carbon::parse($invoice->invoice_date);
-            $daysOverdue = $invoiceDate->diffInDays($toDate);
+            $daysOverdue = $invoiceDate->diffInDays($dueReferenceDate);
 
             return [
                 'invoice_number' => $invoice->invoice_number,
@@ -152,23 +176,51 @@ class DailyReportController extends Controller
 
         $dueTotal = (float) $dueDetails->sum('due_amount');
 
-        $cashReceivedInRange = Payment::whereDate('payment_date', '>=', $fromDate->toDateString())
-            ->whereDate('payment_date', '<=', $toDate->toDateString())
+        $paymentQuery = Payment::with('invoice.customer');
+
+        if ($fromDate && $toDate) {
+            $paymentQuery->whereDate('payment_date', '>=', $fromDate->toDateString())
+                ->whereDate('payment_date', '<=', $toDate->toDateString());
+        }
+
+        $payments = $paymentQuery->orderBy('payment_date')->get();
+        $paymentTotal = (float) $payments->sum(fn ($payment) => (float) ($payment->amount ?? 0));
+
+        $paymentMethodBreakdown = $payments
+            ->groupBy(fn ($payment) => $payment->payment_method ?: 'other')
+            ->map(fn ($group, $method) => [
+                'payment_method' => $method,
+                'payment_method_label' => $this->formatPaymentMethodLabel($method),
+                'count' => $group->count(),
+                'total_amount' => round((float) $group->sum(fn ($payment) => (float) ($payment->amount ?? 0)), 2),
+            ])
+            ->values()
+            ->sortByDesc('total_amount')
+            ->values();
+
+        $cashReceivedInRange = (float) $payments
             ->where('payment_method', 'cash')
             ->sum('amount');
 
-        $cashPaidInRange = PurchaseBill::whereDate('po_date', '>=', $fromDate->toDateString())
-            ->whereDate('po_date', '<=', $toDate->toDateString())
-            ->where('status', '!=', 'cancelled')
-            ->sum('total');
+        $cashPaidQuery = PurchaseBill::where('status', '!=', 'cancelled');
+        if ($fromDate && $toDate) {
+            $cashPaidQuery->whereDate('po_date', '>=', $fromDate->toDateString())
+                ->whereDate('po_date', '<=', $toDate->toDateString());
+        }
+        $cashPaidInRange = (float) $cashPaidQuery->sum('total');
 
-        $cashReceivedBefore = Payment::whereDate('payment_date', '<', $fromDate->toDateString())
-            ->where('payment_method', 'cash')
-            ->sum('amount');
+        $cashReceivedBefore = 0.0;
+        $cashPaidBefore = 0.0;
 
-        $cashPaidBefore = PurchaseBill::whereDate('po_date', '<', $fromDate->toDateString())
-            ->where('status', '!=', 'cancelled')
-            ->sum('total');
+        if ($fromDate) {
+            $cashReceivedBefore = (float) Payment::whereDate('payment_date', '<', $fromDate->toDateString())
+                ->where('payment_method', 'cash')
+                ->sum('amount');
+
+            $cashPaidBefore = (float) PurchaseBill::whereDate('po_date', '<', $fromDate->toDateString())
+                ->where('status', '!=', 'cancelled')
+                ->sum('total');
+        }
 
         $openingCash = (float) $cashReceivedBefore - (float) $cashPaidBefore;
         $cashReceived = (float) $cashReceivedInRange;
@@ -177,8 +229,8 @@ class DailyReportController extends Controller
 
         return [
             'period' => [
-                'from' => $fromDate->format('Y-m-d'),
-                'to' => $toDate->format('Y-m-d'),
+                'from' => $fromDate ? $fromDate->format('Y-m-d') : 'All Time',
+                'to' => $toDate ? $toDate->format('Y-m-d') : 'All Time',
             ],
             'purchase' => [
                 'total_amount' => round($purchaseTotal, 2),
@@ -209,21 +261,39 @@ class DailyReportController extends Controller
                 'count' => $dueDetails->count(),
                 'details' => $dueDetails,
             ],
-            'cash' => [
+            'payments' => [
+                'total_amount' => round($paymentTotal, 2),
+                'count' => $payments->count(),
+                'method_breakdown' => $paymentMethodBreakdown,
+                'details' => $payments->map(fn ($payment) => [
+                    'payment_number' => $payment->payment_number,
+                    'payment_date' => optional($payment->payment_date)->format('Y-m-d'),
+                    'invoice_number' => $payment->invoice->invoice_number ?? '-',
+                    'customer_name' => $payment->invoice->customer->name ?? 'Unknown Customer',
+                    'payment_method' => $payment->payment_method ?: 'other',
+                    'payment_method_label' => $this->formatPaymentMethodLabel($payment->payment_method ?: 'other'),
+                    'amount' => round((float) ($payment->amount ?? 0), 2),
+                    'transaction_reference' => $payment->transaction_reference ?? '-',
+                ])->values(),
+            ],
+            'cash_flow' => [
                 'opening_balance' => round($openingCash, 2),
                 'cash_received' => round($cashReceived, 2),
                 'cash_paid' => round($cashPaid, 2),
                 'closing_balance' => round($closingCash, 2),
-                'received_details' => Payment::with('invoice')
-                    ->whereDate('payment_date', '>=', $fromDate->toDateString())
-                    ->whereDate('payment_date', '<=', $toDate->toDateString())
+                'received_details' => Payment::with('invoice.customer')
                     ->where('payment_method', 'cash')
+                    ->when($fromDate && $toDate, function ($query) use ($fromDate, $toDate) {
+                        $query->whereDate('payment_date', '>=', $fromDate->toDateString())
+                            ->whereDate('payment_date', '<=', $toDate->toDateString());
+                    })
                     ->orderBy('payment_date')
                     ->get()
                     ->map(fn ($payment) => [
                         'payment_number' => $payment->payment_number,
                         'payment_date' => optional($payment->payment_date)->format('Y-m-d'),
                         'invoice_number' => $payment->invoice->invoice_number ?? '-',
+                        'customer_name' => $payment->invoice->customer->name ?? 'Unknown Customer',
                         'amount' => round((float) ($payment->amount ?? 0), 2),
                     ])
                     ->values(),
@@ -237,12 +307,12 @@ class DailyReportController extends Controller
         ];
     }
 
-    private function generateCsv(array $report, Carbon $fromDate, Carbon $toDate): string
+    private function generateCsv(array $report, ?Carbon $fromDate, ?Carbon $toDate): string
     {
         $rows = [];
 
         $rows[] = ['Daily Reports'];
-        $rows[] = ['Period', $fromDate->format('Y-m-d') . ' to ' . $toDate->format('Y-m-d')];
+        $rows[] = ['Period', $fromDate && $toDate ? $fromDate->format('Y-m-d') . ' to ' . $toDate->format('Y-m-d') : 'All Time'];
         $rows[] = [];
 
         $rows[] = ['Purchase Summary'];
@@ -260,11 +330,16 @@ class DailyReportController extends Controller
         $rows[] = ['Total Outstanding', $report['due']['total_outstanding']];
         $rows[] = [];
 
-        $rows[] = ['Cash Summary'];
-        $rows[] = ['Opening Balance', $report['cash']['opening_balance']];
-        $rows[] = ['Cash Received', $report['cash']['cash_received']];
-        $rows[] = ['Cash Paid', $report['cash']['cash_paid']];
-        $rows[] = ['Closing Balance', $report['cash']['closing_balance']];
+        $rows[] = ['Payment Summary'];
+        $rows[] = ['Total Payments', $report['payments']['count']];
+        $rows[] = ['Total Payment Amount', $report['payments']['total_amount']];
+        $rows[] = [];
+
+        $rows[] = ['Payment Method Breakdown'];
+        $rows[] = ['Payment Method', 'Count', 'Amount'];
+        foreach ($report['payments']['method_breakdown'] as $row) {
+            $rows[] = [$row['payment_method_label'], $row['count'], $row['total_amount']];
+        }
         $rows[] = [];
 
         $rows[] = ['Purchase Details'];
@@ -287,6 +362,13 @@ class DailyReportController extends Controller
             $rows[] = [$row['invoice_number'], $row['invoice_date'], $row['customer_name'], $row['total_amount'], $row['amount_paid'], $row['due_amount'], $row['days_overdue']];
         }
 
+        $rows[] = [];
+        $rows[] = ['Payment Details'];
+        $rows[] = ['Payment Number', 'Date', 'Invoice', 'Customer', 'Method', 'Amount', 'Reference'];
+        foreach ($report['payments']['details'] as $row) {
+            $rows[] = [$row['payment_number'], $row['payment_date'], $row['invoice_number'], $row['customer_name'], $row['payment_method_label'], $row['amount'], $row['transaction_reference']];
+        }
+
         $stream = fopen('php://temp', 'r+');
         foreach ($rows as $row) {
             fputcsv($stream, $row);
@@ -296,5 +378,18 @@ class DailyReportController extends Controller
         fclose($stream);
 
         return (string) $csv;
+    }
+
+    private function formatPaymentMethodLabel(?string $paymentMethod): string
+    {
+        return match ($paymentMethod) {
+            'cash' => 'Cash',
+            'card' => 'Card',
+            'upi' => 'UPI',
+            'bank_transfer' => 'Bank Transfer',
+            'cheque' => 'Cheque',
+            'other' => 'Other',
+            default => ucfirst(str_replace('_', ' ', (string) $paymentMethod)),
+        };
     }
 }
