@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 
 export default function Show({ invoice, flash }) {
     const [showPaymentModal, setShowPaymentModal] = useState(false);
-    
+
     const { data, setData, post, processing, errors, reset } = useForm({
         amount: '',
         payment_date: new Date().toISOString().split('T')[0],
@@ -221,6 +221,10 @@ export default function Show({ invoice, flash }) {
                                     <p className="text-gray-500">Address</p>
                                     <p className="text-gray-900 dark:text-white">{invoice.customer?.address}</p>
                                 </div>
+                                <div>
+                                    <p className="text-gray-500">Delivery Address</p>
+                                    <p className="text-gray-900 dark:text-white">{invoice.customer?.delivery_address || '-'}</p>
+                                </div>
                             </div>
                         </div>
 
@@ -279,8 +283,8 @@ export default function Show({ invoice, flash }) {
                                     <span className="text-gray-900 dark:text-white">{formatCurrency((parseFloat(invoice.subtotal || 0) * (parseFloat(invoice.sgst_percentage || 0) || 0)) / 100)}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                    <span className="text-gray-600 dark:text-gray-400">Total GST ({parseFloat(invoice.gst_percentage || ((parseFloat(invoice.cgst_percentage || 0)+parseFloat(invoice.sgst_percentage || 0))) ).toFixed(2)}%)</span>
-                                    <span className="text-gray-900 dark:text-white">{formatCurrency((parseFloat(invoice.subtotal || 0) * (parseFloat(invoice.gst_percentage || ((parseFloat(invoice.cgst_percentage || 0)+parseFloat(invoice.sgst_percentage || 0))) ) || 0)) / 100)}</span>
+                                    <span className="text-gray-600 dark:text-gray-400">Total GST ({parseFloat(invoice.gst_percentage || ((parseFloat(invoice.cgst_percentage || 0) + parseFloat(invoice.sgst_percentage || 0)))).toFixed(2)}%)</span>
+                                    <span className="text-gray-900 dark:text-white">{formatCurrency((parseFloat(invoice.subtotal || 0) * (parseFloat(invoice.gst_percentage || ((parseFloat(invoice.cgst_percentage || 0) + parseFloat(invoice.sgst_percentage || 0)))) || 0)) / 100)}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-600 dark:text-gray-400">Discount ({parseFloat(invoice.invoice_discount_percent || 0).toFixed(2)}%)</span>
@@ -294,11 +298,10 @@ export default function Show({ invoice, flash }) {
                                     <span className="font-medium">Amount Paid</span>
                                     <span className="font-semibold">{formatCurrency(invoice.amount_paid)}</span>
                                 </div>
-                                <div className={`flex justify-between text-base font-bold border-t border-gray-200 dark:border-gray-700 pt-2 ${
-                                    invoice.due_amount > 0 
-                                        ? 'text-orange-600 dark:text-orange-400' 
+                                <div className={`flex justify-between text-base font-bold border-t border-gray-200 dark:border-gray-700 pt-2 ${invoice.due_amount > 0
+                                        ? 'text-orange-600 dark:text-orange-400'
                                         : 'text-green-600 dark:text-green-400'
-                                }`}>
+                                    }`}>
                                     <span>Due Amount</span>
                                     <span>{invoice.due_amount > 0 ? formatCurrency(invoice.due_amount) : 'No Pending'}</span>
                                 </div>

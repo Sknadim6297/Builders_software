@@ -62,6 +62,17 @@ export default function Create({ customers, services, categories, prefillCustome
         return map;
     }, [categories]);
 
+    const selectedCustomer = useMemo(() => {
+        if (!data.customer_id) {
+            return null;
+        }
+
+        return customers.find((customer) => String(customer.id) === String(data.customer_id)) || null;
+    }, [customers, data.customer_id]);
+
+    const selectedCustomerMainAddress = selectedCustomer?.address || '';
+    const selectedCustomerDeliveryAddress = selectedCustomer?.delivery_address || '';
+
     const getCategoryProducts = (categoryId) => {
         const category = categoryMap.get(String(categoryId));
         return category?.items || [];
@@ -238,6 +249,26 @@ export default function Create({ customers, services, categories, prefillCustome
                                     ))}
                                 </select>
                                 {errors.customer_id && <div className="text-red-600 text-sm mt-1">{errors.customer_id}</div>}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Main Address</label>
+                                <textarea
+                                    value={selectedCustomerMainAddress}
+                                    readOnly
+                                    rows={3}
+                                    className="w-full border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 dark:text-gray-300 rounded-md"
+                                    placeholder="Select a customer to fetch main address"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Delivery Address</label>
+                                <textarea
+                                    value={selectedCustomerDeliveryAddress}
+                                    readOnly
+                                    rows={3}
+                                    className="w-full border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 dark:text-gray-300 rounded-md"
+                                    placeholder="Select a customer to fetch delivery address"
+                                />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">C G.S.T %</label>

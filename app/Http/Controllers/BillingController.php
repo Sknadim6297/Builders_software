@@ -61,7 +61,7 @@ class BillingController extends Controller
 
 	public function create(Request $request)
 	{
-		$customers = Customer::select('id', 'name', 'mobile_number')->orderBy('name')->get();
+		$customers = Customer::select('id', 'name', 'mobile_number', 'address', 'delivery_address', 'pincode', 'location')->orderBy('name')->get();
 		$services = Service::select('id', 'name', 'final_price')->where('is_active', true)->orderBy('name')->get();
 		$categories = Category::with(['items' => function ($query) {
 			$query->active()->orderBy('name')->with(['stocks' => function ($stockQuery) {

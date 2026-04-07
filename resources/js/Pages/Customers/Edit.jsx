@@ -8,6 +8,7 @@ export default function Edit({ customer, flash }) {
         name: customer.name || '',
         mobile_number: customer.mobile_number || '',
         address: customer.address || '',
+        delivery_address: customer.delivery_address || '',
         pincode: customer.pincode || '',
         location: customer.location || '',
         alternate_mobile: customer.alternate_mobile || '',
@@ -117,6 +118,23 @@ export default function Edit({ customer, flash }) {
                                     />
                                     {errors.address && (
                                         <p className="text-red-500 text-sm mt-1">{errors.address}</p>
+                                    )}
+                                </div>
+
+                                {/* Delivery Address */}
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Delivery Address
+                                    </label>
+                                    <textarea
+                                        value={data.delivery_address}
+                                        onChange={(e) => setData('delivery_address', e.target.value)}
+                                        rows="3"
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                        placeholder="Enter delivery address for billing invoices"
+                                    />
+                                    {errors.delivery_address && (
+                                        <p className="text-red-500 text-sm mt-1">{errors.delivery_address}</p>
                                     )}
                                 </div>
 

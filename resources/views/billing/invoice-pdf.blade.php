@@ -4,450 +4,372 @@
     <meta charset="UTF-8">
     <title>Invoice {{ $invoice->invoice_number }}</title>
     <style>
-        * {
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
         body {
-            font-family: "DejaVu Sans", Helvetica, Arial, sans-serif;
-            color: #1f2933;
-            margin: 10px;
+            font-family: "DejaVu Sans", Arial, sans-serif;
             font-size: 11px;
-            background: #f3f6fb;
+            color: #111827;
+            margin: 12px;
+        }
+        .header-top {
+            text-align: center;
+            border-bottom: 1px solid #111827;
+            padding-bottom: 8px;
             position: relative;
         }
-        .page {
-            background: #ffffff;
-            border: 1px solid #dbe4f0;
-            position: relative;
-            z-index: 1;
-        }
-        .top-bar {
-            height: 10px;
-            background: #0f2a43;
-        }
-        .header {
-            display: table;
-            width: 100%;
-            margin-bottom: 14px;
-            padding: 12px 14px 8px 14px;
-            border-bottom: 1px solid #dbe4f0;
-            box-sizing: border-box;
-        }
-        .header-left,
-        .header-right {
-            display: table-cell;
-            vertical-align: top;
-        }
-        .header-left {
-            width: 68%;
-        }
-        .header-right {
-            width: 32%;
-            text-align: right;
-        }
-        .invoice-label {
-            font-size: 15px;
+        .title {
+            font-size: 18px;
             font-weight: bold;
-            text-transform: uppercase;
             letter-spacing: 0.8px;
-            color: #0f2a43;
             margin-bottom: 4px;
         }
-        .duplicate-label {
-            display: inline-block;
-            margin-top: 2px;
-            padding: 3px 8px;
-            border: 1px solid #b91c1c;
-            color: #b91c1c;
+        .duplicate {
+            position: absolute;
+            right: 0;
+            top: 0;
             font-size: 10px;
             font-weight: bold;
-            letter-spacing: 0.7px;
-            text-transform: uppercase;
-            border-radius: 999px;
+            border: 1px solid #b91c1c;
+            color: #b91c1c;
+            padding: 2px 8px;
         }
-        .company-name {
-            font-size: 14px;
-            font-weight: bold;
-            color: #0f2a43;
-            margin-bottom: 3px;
+        .line {
+            margin-top: 4px;
+            font-size: 10px;
         }
-        h1 {
-            margin: 4px 0 0 0;
-            font-size: 20px;
-            letter-spacing: 0.4px;
-            color: #0f2a43;
+        .company {
+            margin-top: 8px;
+            line-height: 1.5;
+            font-size: 10px;
         }
-        .muted {
-            color: #6b7280;
-        }
-        .section {
-            margin-top: 12px;
-            padding: 0 12px;
-            box-sizing: border-box;
-        }
-        .section-title {
-            font-size: 13px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            margin-bottom: 6px;
-            color: #0f2a43;
-        }
-        .info-grid {
+        .two-col {
             width: 100%;
             border-collapse: collapse;
+            margin-top: 10px;
         }
-        .info-grid td {
-            padding: 3px 0;
+        .two-col td {
+            vertical-align: top;
+            padding: 0;
         }
-        table.items {
+        .buyer-col {
+            width: 20%;
+            padding-right: 10px;
+        }
+        .logo-col {
+            width: 16%; 
+            text-align: center;
+            vertical-align: middle;
+            padding: 0 6px;
+        }
+        .meta-col {
+            width: 42%;
+            padding-left: 10px;
+        }
+        .block-title {
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+        .meta-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 6px;
+            font-size: 10px;
+        }
+        .meta-table td {
+            padding: 2px 0;
+        }
+        .items {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
             table-layout: fixed;
         }
-        table.items th,
-        table.items td {
-            border: 1px solid #d9e2ec;
+        .items th,
+        .items td {
+            border: 1px solid #6b7280;
             padding: 5px 4px;
             vertical-align: top;
+            font-size: 9px;
             word-wrap: break-word;
             overflow-wrap: anywhere;
         }
-        table.items th {
-            background-color: #0f2a43;
-            color: #ffffff;
-            font-size: 9px;
+        .items th {
             text-transform: uppercase;
-            letter-spacing: 0.4px;
-        }
-        table.items tbody tr:nth-child(even) td {
-            background: #f8fbff;
-        }
-        .chip {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 999px;
-            font-size: 10px;
             font-weight: bold;
-            background: #e8f3ff;
-            color: #0f4c81;
+            text-align: left;
         }
-        .card {
-            border: 1px solid #dbe4f0;
-            background: #ffffff;
-            border-radius: 10px;
-            padding: 10px;
-        }
-        .text-right {
+        .right {
             text-align: right;
         }
-        .totals {
-            margin-top: 12px;
+        .summary-wrap {
             width: 100%;
+            margin-top: 8px;
             border-collapse: collapse;
         }
-        .totals td {
-            padding: 5px 0;
+        .summary-wrap td {
+            vertical-align: top;
         }
-        .total-amount {
-            font-size: 14px;
+        .summary-wrap td:first-child {
+            width: 35%;
+            padding-right: 10px;
+        }
+        .summary-wrap td:last-child {
+            width: 65%;
+        }
+        .summary {
+            width: 92%;
+            margin-left: auto;
+            border-collapse: collapse;
+            font-size: 10px;
+        }
+        .summary td {
+            padding: 3px 0;
+            border-bottom: 1px solid #d1d5db;
+        }
+        .summary td:first-child {
+            white-space: nowrap;
+            padding-right: 10px;
+        }
+        .summary .final td {
             font-weight: bold;
-            color: #0f2a43;
+            border-top: 1px solid #111827;
+            border-bottom: 1px solid #111827;
+        }
+        .amount-words {
+            margin-top: 8px;
+            font-size: 10px;
+        }
+        .terms {
+            margin-top: 14px;
+            border-top: 1px solid #111827;
+            padding-top: 8px;
+            font-size: 10px;
+            line-height: 1.45;
+        }
+        .page-break {
+            page-break-before: always;
+            break-before: page;
+        }
+        .terms ul {
+            margin: 4px 0 0 16px;
+            padding: 0;
         }
         .notes {
             margin-top: 10px;
-            padding: 10px;
-            border: 1px solid #dbe4f0;
-            background-color: #f8fbff;
-            border-radius: 10px;
-        }
-        .terms-list {
-            margin: 0;
-            padding-left: 16px;
-        }
-        .terms-list li {
-            margin-bottom: 4px;
-            line-height: 1.45;
-        }
-        .footer {
-            margin-top: 14px;
-            padding: 0 12px 12px 12px;
-            text-align: center;
             font-size: 10px;
-            color: #6b7280;
         }
-        .summary-grid {
+        .sign {
             width: 100%;
+            margin-top: 20px;
             border-collapse: collapse;
         }
-        .summary-grid td {
-            vertical-align: top;
+        .sign td {
             width: 50%;
-        }
-        .jurisdiction {
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px dashed #dbe4f0;
-            font-size: 9px;
-            font-weight: bold;
             text-align: center;
-            letter-spacing: 0.4px;
-            color: #0f2a43;
+            padding-top: 34px;
+            font-size: 10px;
+            border-top: 1px solid #111827;
         }
-        .declaration {
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px dashed #dbe4f0;
+        .footer {
+            margin-top: 10px;
+            text-align: center;
             font-size: 9px;
-            line-height: 1.5;
-            color: #4b5563;
-            text-align: justify;
-        }
-        .watermark {
-            position: fixed;
-            top: 44%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-28deg);
-            font-size: 68px;
-            font-weight: bold;
-            color: rgba(185, 28, 28, 0.12);
-            letter-spacing: 5px;
-            z-index: 0;
-            pointer-events: none;
-            white-space: nowrap;
-        }
-        .content {
-            position: relative;
-            z-index: 1;
+            color: #6b7280;
         }
     </style>
 </head>
 <body>
-    @if(($copy_type ?? 'customer') === 'duplicate')
-        <div class="watermark">DUPLICATE</div>
-    @endif
-    <div class="page">
-        <div class="top-bar"></div>
-
-        <div class="content">
-            <div class="header">
-                <div class="header-left">
-                    <div class="invoice-label">GST INVOICE</div>
-                    @if(($copy_type ?? 'customer') === 'duplicate')
-                        <div class="duplicate-label">DUPLICATE</div>
-                    @endif
-                    <div class="company-name">Sayan Sita Builders</div>
-                    <div class="muted" style="margin-top: 3px;">CHALITAPARA, AJODHYA, SHYAMPUR, HOWRAH, 711312</div>
-                    <div class="muted">GSTIN/UIN: 19DJZPM9953H1ZZ | STATE NAME: WEST BENGAL, CODE: 19</div>
-                    <div class="muted">CONTACT: 6289249399 / 9609142692 / 9732771768 | EMAIL: sayansitabui912@gmail.com</div>
-                    <div class="declaration">
-                        We hereby certify that the amount indicated in this tax invoice represents the price actually charged by us and that there is no additional consideration flowing directly or indirectly from such sales over and above what has been declared in the header.
-                    </div>
-                    <div class="jurisdiction">
-                        SUBJECT TO EXCLUSIVE JURISDICTION AT HOWRAH
-                    </div>
-                </div>
-                <div class="header-right">
-                    <div class="card" style="display: inline-block; min-width: 190px; text-align: left;">
-                        <div style="font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Invoice Summary</div>
-                        <div style="margin-top: 6px;"><strong>Invoice Date:</strong> {{ optional($invoice->invoice_date)->format('d/m/Y') }}</div>
-                        <div style="margin-top: 4px;"><strong>Invoice No:</strong> {{ $invoice->invoice_number }}</div>
-                        <div style="margin-top: 4px;"><strong>Status:</strong> <span class="chip">{{ strtoupper($invoice->payment_status ?? 'N/A') }}</span></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="section">
-                <table class="summary-grid">
-                    <tr>
-                        <td style="padding-right: 6px; width: 52%;">
-                            <div class="card">
-                                <div class="section-title">Bill To</div>
-                                <table class="info-grid">
-                                    <tr><td><strong>{{ $invoice->customer->name ?? 'N/A' }}</strong></td></tr>
-                                    <tr><td>{{ $invoice->customer->address ?? 'N/A' }}</td></tr>
-                                    <tr><td>Mobile: {{ $invoice->customer->mobile_number ?? 'N/A' }}</td></tr>
-                                    <tr><td>GSTIN/UIN: {{ $invoice->customer->gstin ?? 'N/A' }}</td></tr>
-                                    <tr><td>Email: {{ $invoice->customer->email ?? 'N/A' }}</td></tr>
-                                </table>
-                                @if(!empty($buyer_logo) && file_exists(public_path('storage/' . $buyer_logo)))
-                                    <div style="margin-top: 10px; border-top: 1px dashed #dbe4f0; padding-top: 10px;">
-                                        <img src="{{ public_path('storage/' . $buyer_logo) }}" alt="Buyer Logo" style="max-height: 70px; max-width: 100%; object-fit: contain;" />
-                                    </div>
-                                @endif
-                            </div>
-                        </td>
-                        <td style="padding-left: 6px; width: 48%;">
-                            <div class="card">
-                                <div class="section-title">Invoice Details</div>
-                                <table class="info-grid">
-                                    <tr><td><strong>Gross Total</strong></td><td class="text-right">₹ {{ number_format($gross_total ?? $invoice->subtotal ?? 0, 2) }}</td></tr>
-                                    <tr><td><strong>Delivery Charges</strong></td><td class="text-right">₹ {{ number_format($delivery_charges ?? 0, 2) }}</td></tr>
-                                    <tr><td><strong>Discount @ {{ number_format($invoice_discount_percent ?? 0, 2) }}%</strong></td><td class="text-right">- ₹ {{ number_format($invoice->discount ?? 0, 2) }}</td></tr>
-                                    <tr><td><strong>CGST @ {{ number_format(($invoice->cgst_percentage ?? (($invoice->gst_percentage ?? 0) / 2)), 2) }}%</strong></td><td class="text-right">₹ {{ number_format($cgst ?? 0, 2) }}</td></tr>
-                                    <tr><td><strong>SGST @ {{ number_format(($invoice->sgst_percentage ?? (($invoice->gst_percentage ?? 0) / 2)), 2) }}%</strong></td><td class="text-right">₹ {{ number_format($sgst ?? 0, 2) }}</td></tr>
-                                </table>
-                                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #dbe4f0;">
-                                    <div class="total-amount" style="display: table; width: 100%;">
-                                        <div style="display: table-cell;">Net Payable</div>
-                                        <div style="display: table-cell; text-align: right;">₹ {{ number_format($net_value ?? $invoice->total ?? 0, 2) }}</div>
-                                    </div>
-                                    <div style="margin-top: 8px; font-size: 10px; color: #6b7280;">{{ $amount_in_words ?? '' }}</div>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-
-            <div class="section">
-                <div class="card">
-                    <div class="section-title">Invoice Items</div>
-                    <table class="items">
-                        <thead>
-                            <tr>
-                                <th style="width: 5%;">S.No</th>
-                                <th style="width: 30%;">Particular Item</th>
-                                <th style="width: 12%;">Category</th>
-                                <th style="width: 9%;">Unit</th>
-                                <th style="width: 11%;">HSN Code</th>
-                                <th class="text-right" style="width: 8%;">Qty</th>
-                                <th class="text-right" style="width: 14%;">Rate/Unit</th>
-                                <th class="text-right" style="width: 10%;">Discount</th>
-                                <th class="text-right" style="width: 10%;">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($lineItems as $index => $item)
-                                <tr>
-                                    <td>{{ $index + 1 }}</td>
-                                    <td>
-                                        <strong>{{ $item['name'] }}</strong>
-                                        @if(!empty($item['description']) && $item['description'] !== '-')
-                                            <div class="muted" style="font-size: 9px; margin-top: 2px;">{{ $item['description'] }}</div>
-                                        @endif
-                                    </td>
-                                    <td>{{ $item['category'] ?? '-' }}</td>
-                                    <td>{{ $item['unit'] ?? '-' }}</td>
-                                    <td>{{ $item['hsn_code'] ?? '-' }}</td>
-                                    <td class="text-right">{{ number_format($item['quantity'], 2) }}</td>
-                                    <td class="text-right">₹ {{ number_format($item['unit_price'], 2) }}</td>
-                                    <td class="text-right">
-                                        {{ number_format($item['discount_percentage'] ?? 0, 2) }}% / ₹ {{ number_format($item['discount_amount'] ?? 0, 2) }}
-                                    </td>
-                                    <td class="text-right"><strong>₹ {{ number_format($item['total'], 2) }}</strong></td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="8" class="muted" style="text-align: center; padding: 14px;">No items found</td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            @if(!empty($invoice->payments) && count($invoice->payments) > 0)
-                <div class="section">
-                    <div class="card">
-                        <div class="section-title">Payment History</div>
-                        <table class="items">
-                            <thead>
-                                <tr>
-                                    <th>Payment No.</th>
-                                    <th>Date</th>
-                                    <th>Method</th>
-                                    <th>Reference</th>
-                                    <th class="text-right">Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($invoice->payments as $payment)
-                                    <tr>
-                                        <td>{{ $payment->payment_number }}</td>
-                                        <td>{{ optional($payment->payment_date)->format('M j, Y') }}</td>
-                                        <td>{{ strtoupper(str_replace('_', ' ', $payment->payment_method)) }}</td>
-                                        <td>{{ $payment->transaction_reference ?? '-' }}</td>
-                                        <td class="text-right">₹ {{ number_format($payment->amount, 2) }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            @endif
-
-            @if(!empty($invoice->notes))
-                <div class="section">
-                    <div class="notes">
-                        <div class="section-title">Notes</div>
-                        <div style="line-height: 1.5;">{{ $invoice->notes }}</div>
-                    </div>
-                </div>
-            @endif
-
-            <div class="section">
-                <div class="notes">
-                    <div class="section-title">Payment Terms & Conditions</div>
-                    @php
-                        $rawTerms = trim((string) ($payment_tc ?? ''));
-                        $rawTerms = preg_replace('/\r\n|\r/', "\n", $rawTerms);
-
-                        if (strpos($rawTerms, "\n") === false) {
-                            $rawTerms = preg_replace('/\s+/', ' ', $rawTerms);
-                            $rawTerms = preg_replace('/\s*(After\s+\d+\s*(?:days?|months?)\s*[—-])/', "\n$1", $rawTerms);
-                            $rawTerms = preg_replace('/\s*(Interest\s*@)/', "\n$1", $rawTerms);
-                            $rawTerms = preg_replace('/\s*(Any\s+dispute)/i', "\n$1", $rawTerms);
-                        }
-
-                        $paymentTermsLines = array_values(array_filter(array_map('trim', explode("\n", $rawTerms)), function ($line) {
-                            return $line !== '';
-                        }));
-                    @endphp
-
-                    @if(count($paymentTermsLines) > 0)
-                        <ul class="terms-list" style="font-size: 10px;">
-                            @foreach($paymentTermsLines as $termLine)
-                                <li>{{ $termLine }}</li>
-                            @endforeach
-                        </ul>
-                    @else
-                        <div style="font-size: 10px; line-height: 1.5;">N/A</div>
-                    @endif
-                    <table style="width: 100%; margin-top: 10px; border-collapse: collapse; font-size: 10px;">
-                        <tr>
-                            <td style="width: 50%; vertical-align: top; padding-right: 10px;">
-                                <strong>Payment Mode:</strong> {{ $payment_mode ?? 'CREDIT' }}<br>
-                                <strong>Godown:</strong> {{ $godown ?? 'CHALITAPARA' }}<br>
-                                <strong>Transport:</strong> {{ $transport ?? 'VAN (SELF)' }}
-                            </td>
-                            <td style="width: 50%; vertical-align: top; padding-left: 10px;">
-                                <strong>Bank:</strong> {{ $bank ?? 'Development Bank of Singapore' }}<br>
-                                <strong>Account No:</strong> {{ $account_no ?? '8828210000007429' }}<br>
-                                <strong>IFSC:</strong> {{ $ifsc ?? 'DBSS0IN0828' }}<br>
-                                <strong>Branch:</strong> {{ $branch ?? 'KOLKATA MAIN BRANCH' }}<br>
-                                <strong>Account Type:</strong> {{ $account_type ?? 'Trade & Forex CURRENT ACCOUNT' }}
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-
-            <div class="section">
-                <table style="width: 100%; border-collapse: collapse; margin-top: 8px;">
-                    <tr>
-                        <td style="width: 50%; text-align: center; padding: 12px 10px; border: 1px solid #dbe4f0; font-weight: bold; border-radius: 10px;">CUSTOMER'S SEAL & SIGNATURE</td>
-                        <td style="width: 50%; text-align: center; padding: 12px 10px; border: 1px solid #dbe4f0; font-weight: bold; border-radius: 10px;">AUTHORISED SIGNATORY</td>
-                    </tr>
-                </table>
-            </div>
-
-            <div class="footer">
-                Generated on {{ date('M j, Y \a\t g:i A') }} | Thank you for your business.
-            </div>
+    <div class="header-top">
+        @if(($copy_type ?? 'customer') === 'duplicate')
+            <div class="duplicate">DUPLICATE</div>
+        @else
+            <div class="duplicate" style="border-color:#111827;color:#111827;">ORIGINAL</div>
+        @endif
+        <div class="title">GST INVOICE</div>
+        <div class="line"><strong>SUBJECT TO EXCLUSIVE JURISDICTION AT HOWRAH</strong></div>
+        <div class="line">We hereby certify that the amount indicated in this tax invoice represents the price actually charged by us and that there is no additional consideration flowing directly or indirectly from such sales over and above what has been declared.</div>
+        <div class="company">
+            <strong>Sayan Sita Builders</strong><br>
+            CHALITAPARA, AJODHYA, SHYAMPUR, HOWRAH, 711312<br>
+            GSTIN/UIN: 19DJZPM9953H1ZZ | STATE NAME: WEST BENGAL, CODE: 19<br>
+            CONTACT: 6289249399 / 9609142692 / 9732771768 | EMAIL: sayansitabui912@gmail.com
         </div>
+    </div>
+
+    <table class="two-col">
+        <tr>
+            <td class="buyer-col">
+                <div class="block-title">Buyer (Bill To)</div>
+                <table class="meta-table">
+                    <tr><td><strong>{{ $invoice->customer->name ?? 'N/A' }}</strong></td></tr>
+                    <tr><td>Main Address: {{ $invoice->customer->address ?? 'N/A' }}</td></tr>
+                    <tr><td>Delivery Address: {{ $invoice->customer->delivery_address ?? 'N/A' }}</td></tr>
+                    <tr><td>Mobile: {{ $invoice->customer->mobile_number ?? 'N/A' }}</td></tr>
+                    <tr><td>GSTIN/UIN: {{ $invoice->customer->gst_number ?? $invoice->customer->gstin ?? 'N/A' }}</td></tr>
+                    <tr><td>Email: {{ $invoice->customer->email ?? 'N/A' }}</td></tr>
+                </table>
+            </td>
+            <td class="logo-col">
+                @if(!empty($buyer_logo) && file_exists(public_path('storage/' . $buyer_logo)))
+                    <img src="{{ public_path('storage/' . $buyer_logo) }}" alt="Buyer Logo" style="max-height: 70px; max-width: 100px;" />
+                @endif
+            </td>
+            <td class="meta-col">
+                <div class="block-title">Invoice Meta</div>
+                <table class="meta-table">
+                    <tr><td><strong>Invoice Date:</strong> {{ optional($invoice->invoice_date)->format('d/m/Y') }}</td></tr>
+                    <tr><td><strong>Invoice No:</strong> {{ $invoice->invoice_number }}</td></tr>
+                    <tr><td><strong>Status:</strong> {{ strtoupper($invoice->payment_status ?? 'N/A') }}</td></tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <table class="items">
+        <thead>
+            <tr>
+                <th style="width: 5%;">SL No.</th>
+                <th style="width: 30%;">Item Description</th>
+                <th style="width: 11%;">Category</th>
+                <th style="width: 8%;">Unit</th>
+                <th style="width: 11%;">HSN Code</th>
+                <th class="right" style="width: 8%;">Qty</th>
+                <th class="right" style="width: 12%;">Rate/Unit</th>
+                <th class="right" style="width: 8%;">Disc %</th>
+                <th class="right" style="width: 11%;">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($lineItems as $index => $item)
+                <tr>
+                    <td>{{ $index + 1 }}</td>
+                    <td>
+                        <strong>{{ $item['name'] }}</strong>
+                        @if(!empty($item['description']) && $item['description'] !== '-')
+                            <div style="margin-top: 2px; color: #6b7280;">{{ $item['description'] }}</div>
+                        @endif
+                    </td>
+                    <td>{{ $item['category'] ?? '-' }}</td>
+                    <td>{{ $item['unit'] ?? '-' }}</td>
+                    <td>{{ $item['hsn_code'] ?? '-' }}</td>
+                    <td class="right">{{ number_format($item['quantity'], 2) }}</td>
+                    <td class="right">₹ {{ number_format($item['unit_price'], 2) }}</td>
+                    <td class="right">{{ number_format($item['discount_percentage'] ?? 0, 2) }}</td>
+                    <td class="right"><strong>₹ {{ number_format($item['total'], 2) }}</strong></td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="9" style="text-align: center;">No items found</td>
+                </tr>
+            @endforelse
+        </tbody>
+    </table>
+
+    <table class="summary-wrap">
+        <tr>
+            <td>
+                <div class="amount-words"><strong>Amount in Words:</strong> {{ $amount_in_words ?? '' }}</div>
+            </td>
+            <td>
+                <table class="summary">
+                    <tr><td>Gross Total</td><td class="right">₹ {{ number_format($gross_total ?? $invoice->subtotal ?? 0, 2) }}</td></tr>
+                    <tr><td>Delivery Charges</td><td class="right">₹ {{ number_format($delivery_charges ?? 0, 2) }}</td></tr>
+                    <tr><td>Discount ({{ number_format($invoice_discount_percent ?? 0, 2) }}%)</td><td class="right">- ₹ {{ number_format($invoice->discount ?? 0, 2) }}</td></tr>
+                    <tr><td>CGST ({{ number_format(($invoice->cgst_percentage ?? (($invoice->gst_percentage ?? 0) / 2)), 2) }}%)</td><td class="right">₹ {{ number_format($cgst ?? 0, 2) }}</td></tr>
+                    <tr><td>SGST ({{ number_format(($invoice->sgst_percentage ?? (($invoice->gst_percentage ?? 0) / 2)), 2) }}%)</td><td class="right">₹ {{ number_format($sgst ?? 0, 2) }}</td></tr>
+                    <tr class="final"><td>Net Value</td><td class="right">₹ {{ number_format($net_value ?? $invoice->total ?? 0, 2) }}</td></tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    @if(!empty($invoice->notes))
+        <div class="notes"><strong>Notes:</strong> {{ $invoice->notes }}</div>
+    @endif
+
+    @if(!empty($invoice->payments) && count($invoice->payments) > 0)
+        <div style="margin-top: 12px;">
+            <div class="block-title">Payment History</div>
+            <table class="items" style="margin-top: 4px;">
+                <thead>
+                    <tr>
+                        <th style="width: 20%;">Payment No.</th>
+                        <th style="width: 20%;">Date</th>
+                        <th style="width: 20%;">Method</th>
+                        <th style="width: 20%;">Reference</th>
+                        <th class="right" style="width: 20%;">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($invoice->payments as $payment)
+                        <tr>
+                            <td>{{ $payment->payment_number }}</td>
+                            <td>{{ optional($payment->payment_date)->format('d/m/Y') }}</td>
+                            <td>{{ strtoupper(str_replace('_', ' ', $payment->payment_method)) }}</td>
+                            <td>{{ $payment->transaction_reference ?? '-' }}</td>
+                            <td class="right">₹ {{ number_format($payment->amount, 2) }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @endif
+
+    <div class="terms page-break">
+        <strong>Payment Terms & Conditions</strong>
+        @php
+            $rawTerms = trim((string) ($payment_tc ?? ''));
+            $rawTerms = preg_replace('/\r\n|\r/', "\n", $rawTerms);
+
+            if (strpos($rawTerms, "\n") === false) {
+                $rawTerms = preg_replace('/\s+/', ' ', $rawTerms);
+                $rawTerms = preg_replace('/\s*(After\s+\d+\s*(?:days?|months?)\s*[—-])/', "\n$1", $rawTerms);
+                $rawTerms = preg_replace('/\s*(Interest\s*@)/', "\n$1", $rawTerms);
+                $rawTerms = preg_replace('/\s*(Any\s+dispute)/i', "\n$1", $rawTerms);
+            }
+
+            $paymentTermsLines = array_values(array_filter(array_map('trim', explode("\n", $rawTerms)), function ($line) {
+                return $line !== '';
+            }));
+        @endphp
+
+        @if(count($paymentTermsLines) > 0)
+            <ul>
+                @foreach($paymentTermsLines as $termLine)
+                    <li>{{ $termLine }}</li>
+                @endforeach
+            </ul>
+        @else
+            <div>N/A</div>
+        @endif
+
+        <table class="meta-table" style="margin-top: 8px;">
+            <tr>
+                <td style="width: 50%; vertical-align: top;">
+                    <strong>Payment Mode:</strong> {{ $payment_mode ?? 'CREDIT' }}<br>
+                    <strong>Godown:</strong> {{ $godown ?? 'CHALITAPARA' }}<br>
+                    <strong>Transport:</strong> {{ $transport ?? 'VAN (SELF)' }}
+                </td>
+                <td style="width: 50%; vertical-align: top;">
+                    <strong>Bank:</strong> {{ $bank ?? 'Development Bank of Singapore' }}<br>
+                    <strong>Account No:</strong> {{ $account_no ?? '8828210000007429' }}<br>
+                    <strong>IFSC:</strong> {{ $ifsc ?? 'DBSS0IN0828' }}<br>
+                    <strong>Branch:</strong> {{ $branch ?? 'KOLKATA MAIN BRANCH' }}<br>
+                    <strong>Account Type:</strong> {{ $account_type ?? 'Trade & Forex CURRENT ACCOUNT' }}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <table class="sign">
+        <tr>
+            <td>CUSTOMER'S SEAL & SIGNATURE</td>
+            <td>AUTHORISED SIGNATORY</td>
+        </tr>
+    </table>
+
+    <div class="footer">
+        Generated on {{ date('M j, Y \a\t g:i A') }} | Thank you for your business.
     </div>
 </body>
 </html>

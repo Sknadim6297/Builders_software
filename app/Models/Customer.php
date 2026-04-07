@@ -17,6 +17,7 @@ class Customer extends Model
         'name',
         'mobile_number',
         'address',
+        'delivery_address',
         'pincode',
         'location',
         'alternate_mobile',

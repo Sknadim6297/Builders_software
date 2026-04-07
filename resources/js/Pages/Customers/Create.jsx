@@ -8,6 +8,7 @@ export default function Create({ flash }) {
         name: '',
         mobile_number: '',
         address: '',
+        delivery_address: '',
         pincode: '',
         location: '',
         alternate_mobile: '',
@@ -146,6 +147,22 @@ export default function Create({ flash }) {
                                     placeholder="Customer's full address"
                                 />
                                 {errors.address && <div className="text-red-600 text-sm mt-1">{errors.address}</div>}
+                            </div>
+
+                            {/* Delivery Address */}
+                            <div className="md:col-span-2">
+                                <label htmlFor="delivery_address" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Delivery Address
+                                </label>
+                                <textarea
+                                    id="delivery_address"
+                                    value={data.delivery_address}
+                                    rows={3}
+                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 rounded-md shadow-sm"
+                                    onChange={(e) => setData('delivery_address', e.target.value)}
+                                    placeholder="Optional delivery address for invoice billing"
+                                />
+                                {errors.delivery_address && <div className="text-red-600 text-sm mt-1">{errors.delivery_address}</div>}
                             </div>
 
                             {/* Pincode */}

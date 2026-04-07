@@ -120,6 +120,17 @@ export default function Show({ customer }) {
                                             </p>
                                         </div>
 
+                                        {customer.delivery_address && (
+                                            <div className="md:col-span-2">
+                                                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                                                    Delivery Address
+                                                </label>
+                                                <p className="mt-1 text-gray-900 dark:text-white">
+                                                    {customer.delivery_address}
+                                                </p>
+                                            </div>
+                                        )}
+
                                         <div>
                                             <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
                                                 Pincode
