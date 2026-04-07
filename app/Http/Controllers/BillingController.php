@@ -416,7 +416,7 @@ class BillingController extends Controller
 		}
 
 		$validated = $request->validate([
-			'invoice_date' => 'required|date',
+			'invoice_date' => 'nullable|date',
 			'cgst_percentage' => 'nullable|numeric|min:0|max:100',
 			'sgst_percentage' => 'nullable|numeric|min:0|max:100',
 			'gst_percentage' => 'nullable|numeric|min:0|max:100',
@@ -589,8 +589,12 @@ class BillingController extends Controller
 			$discount = ($subtotal * $discountPercent) / 100;
 			$totalAmount = $subtotal + $gstAmount - $discount;
 
+			$effectiveInvoiceDate = $validated['invoice_date']
+				?? optional($billing->invoice_date)->format('Y-m-d')
+				?? now()->toDateString();
+
 			$billing->update([
-				'invoice_date' => $validated['invoice_date'],
+				'invoice_date' => $effectiveInvoiceDate,
 				'subtotal' => $subtotal,
 				'gst_percentage' => $gstPercentage,
 				'cgst_percentage' => $cgstPercentage,

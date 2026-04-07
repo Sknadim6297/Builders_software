@@ -37,8 +37,8 @@ export default function Edit({ invoice, services, categories, products, flash })
         total: parseFloat(item.total) || 0
     }));
 
-    const { data, setData, put, processing, errors } = useForm({
-        invoice_date: toDateInput(invoice.invoice_date),
+    const { data, setData, post, processing, errors, transform } = useForm({
+        invoice_date: toDateInput(invoice.invoice_date) || toDateInput(invoice.created_at) || new Date().toISOString().split('T')[0],
         customer_id: invoice.customer_id || '',
         cgst_percentage: invoice.cgst_percentage != null ? String(invoice.cgst_percentage) : '',
         sgst_percentage: invoice.sgst_percentage != null ? String(invoice.sgst_percentage) : '',
@@ -224,7 +224,13 @@ export default function Edit({ invoice, services, categories, products, flash })
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        put(route('billing.update', invoice.id), {
+        transform((payload) => ({
+            ...payload,
+            _method: 'put',
+            service_items: JSON.stringify(payload.service_items || []),
+            product_items: JSON.stringify(payload.product_items || []),
+        }));
+        post(route('billing.update', invoice.id), {
             forceFormData: true
         });
     };
