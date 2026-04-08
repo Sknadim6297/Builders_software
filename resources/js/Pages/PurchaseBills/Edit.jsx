@@ -5,6 +5,41 @@ import { ArrowLeftIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { route } from '@/utils/route';
 
 export default function Edit({ purchaseBill, vendors, items: allItems = [], flash }) {
+    const getItemLabel = (item) => `${item.item_code} - ${item.name}`;
+    const getFilteredItemsForRow = (row) => {
+        let filteredItems = allItems.filter((itm) => !row.category_id || String(itm.category_id) === String(row.category_id));
+        const searchTerm = (row.item_search || '').trim().toLowerCase();
+
+        if (searchTerm !== '') {
+            filteredItems = filteredItems.filter((itm) => (`${itm.item_code} ${itm.name}`).toLowerCase().includes(searchTerm));
+        }
+
+        return filteredItems;
+    };
+    const getItemLabelById = (id) => {
+        const matchedItem = allItems.find((item) => String(item.id) === String(id));
+        return matchedItem ? getItemLabel(matchedItem) : '';
+    };
+
+    const getCategoryIdByItemId = (id) => {
+        const matchedItem = allItems.find((item) => String(item.id) === String(id));
+        return matchedItem?.category_id ? String(matchedItem.category_id) : '';
+    };
+
+    const categoryOptions = useMemo(() => {
+        const categoryMap = new Map();
+        allItems.forEach((item) => {
+            if (item.category_id && item.category?.name) {
+                categoryMap.set(String(item.category_id), {
+                    id: String(item.category_id),
+                    name: item.category.name,
+                });
+            }
+        });
+
+        return Array.from(categoryMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+    }, [allItems]);
+
     const { data, setData, put, processing, errors } = useForm({
         po_date: purchaseBill.po_date || new Date().toISOString().split('T')[0],
         inv_cha_no: purchaseBill.inv_cha_no || '',
@@ -16,7 +51,9 @@ export default function Edit({ purchaseBill, vendors, items: allItems = [], flas
         attachments: [],
         items: (purchaseBill.items || []).length
             ? (purchaseBill.items || []).map((item) => ({
+                category_id: item.item_id ? getCategoryIdByItemId(item.item_id) : '',
                 item_id: item.item_id ? String(item.item_id) : '',
+                item_search: item.item_id ? getItemLabelById(item.item_id) : '',
                 hsn_code: item.hsn_code || '',
                 quantity: String(item.quantity ?? '0'),
                 unit_price: String(item.unit_price ?? '0'),
@@ -25,7 +62,7 @@ export default function Edit({ purchaseBill, vendors, items: allItems = [], flas
                 amount: parseFloat(item.amount ?? 0),
                 gst_percentage: parseFloat(item.gst_percentage ?? 0),
             }))
-            : [{ item_id: '', hsn_code: '', quantity: '0', unit_price: '0', discount_percentage: '0', net_rate: 0, amount: 0, gst_percentage: 0 }],
+            : [{ category_id: '', item_id: '', item_search: '', hsn_code: '', quantity: '0', unit_price: '0', discount_percentage: '0', net_rate: 0, amount: 0, gst_percentage: 0 }],
         subtotal: String(purchaseBill.subtotal ?? '0'),
         delivery_charges: String(purchaseBill.delivery_charges ?? '0'),
         gst_type: purchaseBill.gst_type || 'intra',
@@ -82,7 +119,7 @@ export default function Edit({ purchaseBill, vendors, items: allItems = [], flas
     const addItem = () => {
         setData('items', [
             ...data.items,
-            { item_id: '', hsn_code: '', quantity: '0', unit_price: '0', discount_percentage: '0', net_rate: 0, amount: 0, gst_percentage: 0 },
+            { category_id: '', item_id: '', item_search: '', hsn_code: '', quantity: '0', unit_price: '0', discount_percentage: '0', net_rate: 0, amount: 0, gst_percentage: 0 },
         ]);
     };
 
@@ -98,10 +135,23 @@ export default function Edit({ purchaseBill, vendors, items: allItems = [], flas
         if (field === 'item_id') {
             const selected = itemMap.get(value);
             if (selected) {
+                newItems[index].category_id = selected.category_id ? String(selected.category_id) : '';
                 newItems[index].hsn_code = selected.hsn_code || '';
                 newItems[index].gst_percentage = parseFloat(selected.gst_percentage || 0);
                 newItems[index].unit_price = String(selected.default_unit_price || 0);
+            } else {
+                newItems[index].hsn_code = '';
+                newItems[index].gst_percentage = 0;
+                newItems[index].unit_price = '0';
             }
+        }
+
+        if (field === 'category_id') {
+            newItems[index].item_id = '';
+            newItems[index].item_search = '';
+            newItems[index].hsn_code = '';
+            newItems[index].gst_percentage = 0;
+            newItems[index].unit_price = '0';
         }
 
         const qty = parseFloat(newItems[index].quantity) || 0;
@@ -370,12 +420,8 @@ export default function Edit({ purchaseBill, vendors, items: allItems = [], flas
                         </div>
 
                         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                            <div className="flex justify-between items-center mb-6">
+                            <div className="mb-6">
                                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Items from Master</h2>
-                                <button type="button" onClick={addItem} className="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg">
-                                    <PlusIcon className="w-4 h-4 mr-2" />
-                                    Add Item
-                                </button>
                             </div>
 
                             <div className="overflow-x-auto">
@@ -383,7 +429,9 @@ export default function Edit({ purchaseBill, vendors, items: allItems = [], flas
                                     <thead className="bg-blue-600 text-white">
                                         <tr>
                                             <th className="px-4 py-3 text-left text-xs font-medium uppercase">Sl. No</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium uppercase">Category *</th>
                                             <th className="px-4 py-3 text-left text-xs font-medium uppercase">Item Master *</th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium uppercase">HSN</th>
                                             <th className="px-4 py-3 text-left text-xs font-medium uppercase">Unit Type</th>
                                             <th className="px-4 py-3 text-left text-xs font-medium uppercase">Quantity *</th>
                                             <th className="px-4 py-3 text-left text-xs font-medium uppercase">Unit Price *</th>
@@ -400,12 +448,49 @@ export default function Edit({ purchaseBill, vendors, items: allItems = [], flas
                                                 <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                                                     <td className="px-4 py-3 text-sm">{index + 1}</td>
                                                     <td className="px-4 py-3">
-                                                        <select value={item.item_id} onChange={(e) => updateItem(index, 'item_id', e.target.value)} required className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
-                                                            <option value="">Select Item</option>
-                                                            {allItems.map((itm) => (
-                                                                <option key={itm.id} value={itm.id}>{itm.item_code} - {itm.name}</option>
+                                                        <select
+                                                            value={item.category_id || ''}
+                                                            onChange={(e) => updateItem(index, 'category_id', e.target.value)}
+                                                            required
+                                                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                                                        >
+                                                            <option value="">Select Category</option>
+                                                            {categoryOptions.map((category) => (
+                                                                <option key={category.id} value={category.id}>{category.name}</option>
                                                             ))}
                                                         </select>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <div className="space-y-2">
+                                                            <input
+                                                                type="text"
+                                                                value={item.item_search || ''}
+                                                                onChange={(e) => updateItem(index, 'item_search', e.target.value)}
+                                                                placeholder="Search product"
+                                                                disabled={!item.category_id}
+                                                                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white disabled:bg-gray-100 dark:bg-gray-700 dark:disabled:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                                                            />
+                                                            <select
+                                                                value={item.item_id}
+                                                                onChange={(e) => updateItem(index, 'item_id', e.target.value)}
+                                                                required
+                                                                disabled={!item.category_id}
+                                                                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white disabled:bg-gray-100 dark:bg-gray-700 dark:disabled:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                                                            >
+                                                                <option value="">{item.category_id ? 'Select Item' : 'Select category first'}</option>
+                                                                {getFilteredItemsForRow(item).map((itm) => (
+                                                                    <option key={itm.id} value={itm.id}>{getItemLabel(itm)}</option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <input
+                                                            type="text"
+                                                            value={item.hsn_code || ''}
+                                                            readOnly
+                                                            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white text-sm"
+                                                        />
                                                     </td>
                                                     <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{selectedItem?.unit_type || '-'}</td>
                                                     <td className="px-4 py-3">
@@ -431,6 +516,17 @@ export default function Edit({ purchaseBill, vendors, items: allItems = [], flas
                                         })}
                                     </tbody>
                                 </table>
+                            </div>
+
+                            <div className="mt-4 flex justify-end">
+                                <button
+                                    type="button"
+                                    onClick={addItem}
+                                    className="inline-flex items-center px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+                                >
+                                    <PlusIcon className="w-4 h-4 mr-2" />
+                                    Add Item
+                                </button>
                             </div>
                         </div>
 

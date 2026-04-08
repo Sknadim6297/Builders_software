@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, router } from '@inertiajs/react';
 import SidebarLayout from '@/Layouts/SidebarLayout';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
@@ -24,18 +24,44 @@ export default function InvoiceSettings(props) {
         e.preventDefault();
         setLoading(true);
 
-        patch(route('settings.invoice.update'), {
-            preserveScroll: true,
-            onSuccess: () => {
-                setLoading(false);
-                window.showSuccess?.('Invoice settings updated successfully!');
+        // Build the data object with all fields
+        const formPayload = {
+            payment_tc: data.payment_tc || '',
+            payment_mode: data.payment_mode || '',
+            godown: data.godown || '',
+            transport: data.transport || '',
+            bank: data.bank || '',
+            account_no: data.account_no || '',
+            ifsc: data.ifsc || '',
+            branch: data.branch || '',
+            account_type: data.account_type || '',
+        };
+
+        console.log('Form Data being sent:', formPayload);
+
+        // Laravel/PHP can drop multipart PATCH bodies; use POST + _method for reliable validation payload.
+        router.post(
+            route('settings.invoice.update'),
+            {
+                ...formPayload,
+                _method: 'patch',
+                invoice_logo: data.invoice_logo || null,
             },
-            onError: (formErrors) => {
-                console.error('Validation errors:', formErrors);
-                window.showError?.('Failed to update invoice settings.');
-                setLoading(false);
-            },
-        });
+            {
+                preserveScroll: true,
+                forceFormData: true,
+                onSuccess: () => {
+                    setLoading(false);
+                    setData('invoice_logo', null);
+                    window.showSuccess?.('Invoice settings updated successfully!');
+                },
+                onError: (errors) => {
+                    console.error('Validation errors:', errors);
+                    window.showError?.('Failed to update invoice settings.');
+                    setLoading(false);
+                },
+            }
+        );
     };
 
     return (

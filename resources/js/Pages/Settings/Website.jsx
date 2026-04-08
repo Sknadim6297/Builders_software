@@ -11,9 +11,12 @@ export default function WebsiteSettings(props) {
     const { data, setData, post, processing, errors, reset, transform } = useForm({
         company_name: props.company_name || 'SAYAN SITA BUILDERS',
         company_address: props.company_address || 'Chalitapara, Ajodhya, Shyampur, Howrah - 711312',
+        company_address_2: props.company_address_2 || '',
         company_phone_1: props.company_phone_1 || '6289249399',
         company_phone_2: props.company_phone_2 || '9609142692',
         company_phone_3: props.company_phone_3 || '9732771768',
+        company_email: props.company_email || '',
+        company_gstin: props.company_gstin || '19DJZPM9953H1ZZ',
         company_logo: null,
     });
 
@@ -96,6 +99,17 @@ export default function WebsiteSettings(props) {
                                 {errors.company_address && <p className="text-red-500 text-sm mt-1">{errors.company_address}</p>}
                             </div>
 
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Company Address 2 (Optional)</label>
+                                <textarea
+                                    value={data.company_address_2}
+                                    onChange={(e) => setData('company_address_2', e.target.value)}
+                                    rows="2"
+                                    className="w-full border border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                {errors.company_address_2 && <p className="text-red-500 text-sm mt-1">{errors.company_address_2}</p>}
+                            </div>
+
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Phone Number 1</label>
@@ -129,6 +143,30 @@ export default function WebsiteSettings(props) {
                                     />
                                     {errors.company_phone_3 && <p className="text-red-500 text-sm mt-1">{errors.company_phone_3}</p>}
                                 </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Company Email (Optional)</label>
+                                <input
+                                    type="email"
+                                    value={data.company_email}
+                                    onChange={(e) => setData('company_email', e.target.value)}
+                                    placeholder="company@example.com"
+                                    className="w-full border border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                {errors.company_email && <p className="text-red-500 text-sm mt-1">{errors.company_email}</p>}
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">GSTIN/UIN</label>
+                                <input
+                                    type="text"
+                                    value={data.company_gstin}
+                                    onChange={(e) => setData('company_gstin', e.target.value.toUpperCase())}
+                                    placeholder="19DJZPM9953H1ZZ"
+                                    className="w-full border border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                {errors.company_gstin && <p className="text-red-500 text-sm mt-1">{errors.company_gstin}</p>}
                             </div>
 
                             <div>

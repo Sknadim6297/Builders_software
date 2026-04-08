@@ -51,17 +51,11 @@
             padding: 0;
         }
         .buyer-col {
-            width: 20%;
+            width: 45%;
             padding-right: 10px;
         }
-        .logo-col {
-            width: 16%; 
-            text-align: center;
-            vertical-align: middle;
-            padding: 0 6px;
-        }
         .meta-col {
-            width: 42%;
+            width: 55%;
             padding-left: 10px;
         }
         .block-title {
@@ -77,6 +71,21 @@
         }
         .meta-table td {
             padding: 2px 0;
+        }
+        .meta-logo {
+            margin-top: 8px;
+            text-align: left;
+        }
+        .meta-logo img {
+            max-height: 95px;
+            max-width: 170px;
+        }
+        .account-type-logo {
+            margin-top: 8px;
+        }
+        .account-type-logo img {
+            max-height: 100px;
+            max-width: 190px;
         }
         .items {
             width: 100%;
@@ -188,11 +197,25 @@
         <div class="title">GST INVOICE</div>
         <div class="line"><strong>SUBJECT TO EXCLUSIVE JURISDICTION AT HOWRAH</strong></div>
         <div class="line">We hereby certify that the amount indicated in this tax invoice represents the price actually charged by us and that there is no additional consideration flowing directly or indirectly from such sales over and above what has been declared.</div>
+        @php
+            $companyPhones = array_values(array_filter([
+                trim((string) ($company_phone_1 ?? '')),
+                trim((string) ($company_phone_2 ?? '')),
+                trim((string) ($company_phone_3 ?? '')),
+            ], function ($phone) {
+                return $phone !== '';
+            }));
+            $companyContactLine = count($companyPhones) > 0 ? implode(' / ', $companyPhones) : 'N/A';
+            $companyEmailLine = trim((string) ($company_email ?? ''));
+        @endphp
         <div class="company">
-            <strong>Sayan Sita Builders</strong><br>
-            CHALITAPARA, AJODHYA, SHYAMPUR, HOWRAH, 711312<br>
-            GSTIN/UIN: 19DJZPM9953H1ZZ | STATE NAME: WEST BENGAL, CODE: 19<br>
-            CONTACT: 6289249399 / 9609142692 / 9732771768 | EMAIL: sayansitabui912@gmail.com
+            <strong>{{ $company_name ?? 'SAYAN SITA BUILDERS' }}</strong><br>
+            {{ $company_address ?? 'Chalitapara, Ajodhya, Shyampur, Howrah – 711312' }}<br>
+            @if(!empty($company_address_2))
+                {{ $company_address_2 }}<br>
+            @endif
+            GSTIN/UIN: {{ $company_gstin ?? '19DJZPM9953H1ZZ' }} | STATE NAME: WEST BENGAL, CODE: 19<br>
+            CONTACT: {{ $companyContactLine }}@if($companyEmailLine !== '') | EMAIL: {{ $companyEmailLine }}@endif
         </div>
     </div>
 
@@ -209,11 +232,6 @@
                     <tr><td>Email: {{ $invoice->customer->email ?? 'N/A' }}</td></tr>
                 </table>
             </td>
-            <td class="logo-col">
-                @if(!empty($buyer_logo) && file_exists(public_path('storage/' . $buyer_logo)))
-                    <img src="{{ public_path('storage/' . $buyer_logo) }}" alt="Buyer Logo" style="max-height: 70px; max-width: 100px;" />
-                @endif
-            </td>
             <td class="meta-col">
                 <div class="block-title">Invoice Meta</div>
                 <table class="meta-table">
@@ -221,6 +239,20 @@
                     <tr><td><strong>Invoice No:</strong> {{ $invoice->invoice_number }}</td></tr>
                     <tr><td><strong>Status:</strong> {{ strtoupper($invoice->payment_status ?? 'N/A') }}</td></tr>
                 </table>
+                @php
+                    $buyerLogoPath = trim((string) ($buyer_logo ?? ''));
+                    if (str_starts_with($buyerLogoPath, '/storage/')) {
+                        $buyerLogoPath = substr($buyerLogoPath, 9);
+                    } elseif (str_starts_with($buyerLogoPath, 'storage/')) {
+                        $buyerLogoPath = substr($buyerLogoPath, 8);
+                    }
+                @endphp
+                @if($buyerLogoPath !== '' && file_exists(public_path('storage/' . $buyerLogoPath)))
+                    <div class="meta-logo">
+                        <div style="font-size: 10px; font-weight: bold; margin-bottom: 4px;">Buyer Logo</div>
+                        <img src="{{ public_path('storage/' . $buyerLogoPath) }}" alt="Buyer Logo" />
+                    </div>
+                @endif
             </td>
         </tr>
     </table>
@@ -356,6 +388,19 @@
                     <strong>IFSC:</strong> {{ $ifsc ?? 'DBSS0IN0828' }}<br>
                     <strong>Branch:</strong> {{ $branch ?? 'KOLKATA MAIN BRANCH' }}<br>
                     <strong>Account Type:</strong> {{ $account_type ?? 'Trade & Forex CURRENT ACCOUNT' }}
+                    @php
+                        $invoiceLogoPath = trim((string) ($invoice_logo ?? ''));
+                        if (str_starts_with($invoiceLogoPath, '/storage/')) {
+                            $invoiceLogoPath = substr($invoiceLogoPath, 9);
+                        } elseif (str_starts_with($invoiceLogoPath, 'storage/')) {
+                            $invoiceLogoPath = substr($invoiceLogoPath, 8);
+                        }
+                    @endphp
+                    @if($invoiceLogoPath !== '' && file_exists(public_path('storage/' . $invoiceLogoPath)))
+                        <div class="account-type-logo">
+                            <img src="{{ public_path('storage/' . $invoiceLogoPath) }}" alt="Invoice Logo" />
+                        </div>
+                    @endif
                 </td>
             </tr>
         </table>

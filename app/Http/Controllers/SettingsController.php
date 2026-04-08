@@ -23,17 +23,23 @@ class SettingsController extends Controller
         // Company settings
         $companyName = Setting::getValue('company_name', 'SAYAN SITA BUILDERS');
         $companyAddress = Setting::getValue('company_address', 'Chalitapara, Ajodhya, Shyampur, Howrah – 711312');
+        $companyAddress2 = Setting::getValue('company_address_2', '');
         $companyPhone1 = Setting::getValue('company_phone_1', '6289249399');
         $companyPhone2 = Setting::getValue('company_phone_2', '9609142692');
         $companyPhone3 = Setting::getValue('company_phone_3', '9732771768');
+        $companyEmail = Setting::getValue('company_email', '');
+        $companyGstin = Setting::getValue('company_gstin', '19DJZPM9953H1ZZ');
         $companyLogo = Setting::getValue('company_logo', '/images/sayan-sita-logo.png');
 
         return Inertia::render('Settings/Website', [
             'company_name' => $companyName,
             'company_address' => $companyAddress,
+            'company_address_2' => $companyAddress2,
             'company_phone_1' => $companyPhone1,
             'company_phone_2' => $companyPhone2,
             'company_phone_3' => $companyPhone3,
+            'company_email' => $companyEmail,
+            'company_gstin' => $companyGstin,
             'company_logo' => $companyLogo,
             'company_logo_url' => Setting::normalizeAssetUrl($companyLogo),
         ]);
@@ -97,9 +103,12 @@ class SettingsController extends Controller
         $validatedWebsite = $request->validate([
             'company_name' => 'nullable|string|max:255',
             'company_address' => 'nullable|string|max:500',
+            'company_address_2' => 'nullable|string|max:500',
             'company_phone_1' => 'nullable|string|max:20',
             'company_phone_2' => 'nullable|string|max:20',
             'company_phone_3' => 'nullable|string|max:20',
+            'company_email' => 'nullable|email|max:255',
+            'company_gstin' => 'nullable|string|max:30',
             'company_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
         ]);
 
@@ -120,6 +129,9 @@ class SettingsController extends Controller
         if (array_key_exists('company_address', $validatedWebsite)) {
             Setting::setValue('company_address', $validatedWebsite['company_address']);
         }
+        if (array_key_exists('company_address_2', $validatedWebsite)) {
+            Setting::setValue('company_address_2', $validatedWebsite['company_address_2']);
+        }
         if (array_key_exists('company_phone_1', $validatedWebsite)) {
             Setting::setValue('company_phone_1', $validatedWebsite['company_phone_1']);
         }
@@ -128,6 +140,12 @@ class SettingsController extends Controller
         }
         if (array_key_exists('company_phone_3', $validatedWebsite)) {
             Setting::setValue('company_phone_3', $validatedWebsite['company_phone_3']);
+        }
+        if (array_key_exists('company_email', $validatedWebsite)) {
+            Setting::setValue('company_email', $validatedWebsite['company_email']);
+        }
+        if (array_key_exists('company_gstin', $validatedWebsite)) {
+            Setting::setValue('company_gstin', strtoupper(trim($validatedWebsite['company_gstin'] ?? '')));
         }
         if (!empty($companyLogoPath)) {
             Setting::setValue('company_logo', $companyLogoPath);

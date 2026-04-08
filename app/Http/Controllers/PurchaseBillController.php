@@ -114,7 +114,9 @@ class PurchaseBillController extends Controller
     {
         $vendors = Vendor::select('id', 'name', 'address')->orderBy('name')->get();
         $customers = Customer::select('id', 'name', 'address')->orderBy('name')->get();
-        $items = Item::active()->get(['id', 'item_code', 'name', 'hsn_code', 'unit_type', 'default_unit_price', 'default_discount_percentage', 'gst_percentage']);
+        $items = Item::active()
+            ->with('category:id,name')
+            ->get(['id', 'item_code', 'name', 'category_id', 'hsn_code', 'unit_type', 'default_unit_price', 'default_discount_percentage', 'gst_percentage']);
 
         return Inertia::render('PurchaseBills/CreateNew', [
             'vendors' => $vendors,
@@ -338,7 +340,9 @@ class PurchaseBillController extends Controller
     {
         $purchaseBill = PurchaseBill::with(['vendor'])->findOrFail($id);
         $vendors = Vendor::select('id', 'name', 'address')->orderBy('name')->get();
-        $items = Item::active()->get(['id', 'item_code', 'name', 'hsn_code', 'unit_type', 'default_unit_price', 'default_discount_percentage', 'gst_percentage']);
+        $items = Item::active()
+            ->with('category:id,name')
+            ->get(['id', 'item_code', 'name', 'category_id', 'hsn_code', 'unit_type', 'default_unit_price', 'default_discount_percentage', 'gst_percentage']);
 
         return Inertia::render('PurchaseBills/Edit', [
             'purchaseBill' => $purchaseBill,

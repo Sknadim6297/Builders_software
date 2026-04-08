@@ -58,9 +58,12 @@ class Setting extends Model
         return [
             'company_name' => self::getValue('company_name', 'SAYAN SITA BUILDERS'),
             'company_address' => self::getValue('company_address', 'Chalitapara, Ajodhya, Shyampur, Howrah – 711312'),
+            'company_address_2' => self::getValue('company_address_2', ''),
             'company_phone_1' => self::getValue('company_phone_1', '6289249399'),
             'company_phone_2' => self::getValue('company_phone_2', '9609142692'),
             'company_phone_3' => self::getValue('company_phone_3', '9732771768'),
+            'company_email' => self::getValue('company_email', ''),
+            'company_gstin' => self::getValue('company_gstin', '19DJZPM9953H1ZZ'),
             'company_logo' => self::normalizeAssetUrl($companyLogo),
         ];
     }
