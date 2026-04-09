@@ -164,9 +164,13 @@ export default function Create({ customers, services, categories, prefillCustome
     };
 
     const subtotal = useMemo(() => {
+        const serviceTotal = (data.service_items || []).reduce((sum, item) => {
+            const lineTotal = (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0);
+            return sum + lineTotal;
+        }, 0);
         const productTotal = data.product_items.reduce((sum, item) => sum + (parseFloat(item.total) || 0), 0);
-        return productTotal;
-    }, [data.product_items]);
+        return serviceTotal + productTotal;
+    }, [data.service_items, data.product_items]);
 
     const roundToTwo = (value) => Math.round((parseFloat(value) || 0) * 100) / 100;
 

@@ -6,12 +6,14 @@
 
     export default function Create({ auth, vendors, items: allItems, flash }) {
         const getItemLabel = (item) => `${item.item_code} - ${item.name}`;
+        const getItemSearchText = (item) => `${item.item_code} ${item.name} ${item.default_unit_price ?? ''} ${item.unit_price ?? ''}`.toLowerCase();
+        const formatCurrency = (value) => `Rs. ${parseFloat(value || 0).toFixed(2)}`;
         const getFilteredItemsForRow = (row) => {
             let filteredItems = allItems.filter((itm) => !row.category_id || String(itm.category_id) === String(row.category_id));
             const searchTerm = (row.item_search || '').trim().toLowerCase();
 
             if (searchTerm !== '') {
-                filteredItems = filteredItems.filter((itm) => (`${itm.item_code} ${itm.name}`).toLowerCase().includes(searchTerm));
+                filteredItems = filteredItems.filter((itm) => getItemSearchText(itm).includes(searchTerm));
             }
 
             return filteredItems;
@@ -44,6 +46,7 @@
                     category_id: '',
                     item_id: '',
                     item_search: '',
+                    item_picker_open: true,
                     hsn_code: '',
                     quantity: '0',
                     unit_price: '0',
@@ -116,6 +119,7 @@
                     category_id: '',
                     item_id: '',
                     item_search: '',
+                    item_picker_open: true,
                     hsn_code: '',
                     quantity: '0',
                     unit_price: '0',
@@ -145,10 +149,14 @@
                 const item = itemMap.get(value);
                 if (item) {
                     newItems[index].category_id = item.category_id ? String(item.category_id) : '';
+                    newItems[index].item_search = getItemLabel(item);
+                    newItems[index].item_picker_open = false;
                     newItems[index].hsn_code = item.hsn_code || '';
                     newItems[index].gst_percentage = item.gst_percentage || 0;
                     newItems[index].unit_price = String(item.default_unit_price || 0);
                 } else {
+                    newItems[index].item_search = '';
+                    newItems[index].item_picker_open = true;
                     newItems[index].hsn_code = '';
                     newItems[index].gst_percentage = 0;
                     newItems[index].unit_price = '0';
@@ -158,6 +166,7 @@
             if (field === 'category_id') {
                 newItems[index].item_id = '';
                 newItems[index].item_search = '';
+                newItems[index].item_picker_open = true;
                 newItems[index].hsn_code = '';
                 newItems[index].gst_percentage = 0;
                 newItems[index].unit_price = '0';
@@ -509,21 +518,22 @@
                                         <thead className="bg-blue-600 text-white">
                                             <tr>
                                                 <th className="px-4 py-3 text-left text-xs font-medium uppercase">Sl. No</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium uppercase">Category *</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium uppercase">Item Master *</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium uppercase">HSN</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium uppercase">Unit Type</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium uppercase">Quantity *</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium uppercase">Unit Price *</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium uppercase">Discount %</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium uppercase">GST %</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium uppercase">Amount</th>
-                                                <th className="px-4 py-3 text-center text-xs font-medium uppercase">Action</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium uppercase min-w-56">Category *</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium uppercase min-w-[26rem]">Item Master *</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium uppercase min-w-32">HSN</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium uppercase min-w-32">Unit Type</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium uppercase min-w-32">Quantity *</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium uppercase min-w-36">Unit Price *</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium uppercase min-w-32">Discount %</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium uppercase min-w-24">GST %</th>
+                                                <th className="px-4 py-3 text-left text-xs font-medium uppercase min-w-36">Amount</th>
+                                                <th className="px-4 py-3 text-center text-xs font-medium uppercase min-w-20">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                                             {data.items.map((item, index) => {
                                                 const selectedItem = itemMap.get(item.item_id);
+                                                const selectedItemLabel = selectedItem ? getItemLabel(selectedItem) : 'Selected item';
                                                 return (
                                                     <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                                                         <td className="px-4 py-3 text-sm">{index + 1}</td>
@@ -532,7 +542,7 @@
                                                                 value={item.category_id || ''}
                                                                 onChange={(e) => updateItem(index, 'category_id', e.target.value)}
                                                                 required
-                                                                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                                                                className="w-56 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
                                                             >
                                                                 <option value="">Select Category</option>
                                                                 {categoryOptions.map((category) => (
@@ -541,30 +551,44 @@
                                                             </select>
                                                         </td>
                                                         <td className="px-4 py-3">
-                                                            <div className="space-y-2">
-                                                                <input
-                                                                    type="text"
-                                                                    value={item.item_search || ''}
-                                                                    onChange={(e) => updateItem(index, 'item_search', e.target.value)}
-                                                                    placeholder="Search product"
-                                                                    disabled={!item.category_id}
-                                                                    className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white disabled:bg-gray-100 dark:bg-gray-700 dark:disabled:bg-gray-800 text-gray-900 dark:text-white text-sm"
-                                                                />
-                                                                <select
-                                                                    value={item.item_id}
-                                                                    onChange={(e) => updateItem(index, 'item_id', e.target.value)}
-                                                                    required
-                                                                    disabled={!item.category_id}
-                                                                    className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white disabled:bg-gray-100 dark:bg-gray-700 dark:disabled:bg-gray-800 text-gray-900 dark:text-white text-sm"
-                                                                >
-                                                                    <option value="">{item.category_id ? 'Select Item' : 'Select category first'}</option>
-                                                                    {getFilteredItemsForRow(item).map((itm) => (
-                                                                        <option key={itm.id} value={itm.id}>{getItemLabel(itm)}</option>
-                                                                    ))}
-                                                                </select>
-                                                            </div>
+                                                            {item.item_id && !item.item_picker_open ? (
+                                                                <div className="flex items-center justify-between gap-2 w-[26rem]">
+                                                                    <p className="text-sm text-gray-900 dark:text-white truncate font-medium">
+                                                                        {item.item_search || selectedItemLabel}
+                                                                    </p>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => updateItem(index, 'item_picker_open', true)}
+                                                                        className="text-xs px-2 py-1 rounded border border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-300 dark:hover:bg-blue-900/20"
+                                                                    >
+                                                                        Change
+                                                                    </button>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="space-y-2 w-[26rem]">
+                                                                    <input
+                                                                        type="text"
+                                                                        value={item.item_search || ''}
+                                                                        onChange={(e) => updateItem(index, 'item_search', e.target.value)}
+                                                                        placeholder="Search by code, name or rate"
+                                                                        disabled={!item.category_id}
+                                                                        className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white disabled:bg-gray-100 dark:bg-gray-700 dark:disabled:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                                                                    />
+                                                                    <select
+                                                                        value={item.item_id}
+                                                                        onChange={(e) => updateItem(index, 'item_id', e.target.value)}
+                                                                        disabled={!item.category_id}
+                                                                        className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white disabled:bg-gray-100 dark:bg-gray-700 dark:disabled:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                                                                    >
+                                                                        <option value="">{item.category_id ? 'Select Item' : 'Select category first'}</option>
+                                                                        {getFilteredItemsForRow(item).map((itm) => (
+                                                                            <option key={itm.id} value={itm.id}>{`${getItemLabel(itm)} (Rs. ${parseFloat(itm.default_unit_price || itm.unit_price || 0).toFixed(2)})`}</option>
+                                                                        ))}
+                                                                    </select>
+                                                                </div>
+                                                            )}
                                                         </td>
-                                                        <td className="px-4 py-3">
+                                                        <td className="px-4 py-3 min-w-32">
                                                             <input
                                                                 type="text"
                                                                 value={item.hsn_code || ''}
@@ -572,10 +596,10 @@
                                                                 className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white text-sm"
                                                             />
                                                         </td>
-                                                        <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                                                        <td className="px-4 py-3 min-w-32 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
                                                             {selectedItem?.unit_type || '-'}
                                                         </td>
-                                                        <td className="px-4 py-3">
+                                                        <td className="px-4 py-3 min-w-32">
                                                             <input
                                                                 type="number"
                                                                 value={item.quantity}
@@ -583,10 +607,10 @@
                                                                 min="0"
                                                                 step="0.01"
                                                                 required
-                                                                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                                                                className="w-28 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
                                                             />
                                                         </td>
-                                                        <td className="px-4 py-3">
+                                                        <td className="px-4 py-3 min-w-36">
                                                             <input
                                                                 type="number"
                                                                 value={item.unit_price}
@@ -594,10 +618,10 @@
                                                                 step="0.01"
                                                                 required
                                                                 readOnly
-                                                                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white text-sm"
+                                                                className="w-32 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white text-sm"
                                                             />
                                                         </td>
-                                                        <td className="px-4 py-3">
+                                                        <td className="px-4 py-3 min-w-32">
                                                             <input
                                                                 type="number"
                                                                 value={item.discount_percentage}
@@ -605,16 +629,16 @@
                                                                 min="0"
                                                                 max="100"
                                                                 step="0.01"
-                                                                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                                                                className="w-28 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
                                                             />
                                                         </td>
-                                                        <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                                                        <td className="px-4 py-3 min-w-24 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
                                                             {item.gst_percentage}%
                                                         </td>
-                                                        <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
-                                                            ₹{item.amount.toFixed(2)}
+                                                        <td className="px-4 py-3 min-w-36 text-sm font-medium text-gray-900 dark:text-white whitespace-nowrap">
+                                                            {formatCurrency(item.amount)}
                                                         </td>
-                                                        <td className="px-4 py-3 text-center">
+                                                        <td className="px-4 py-3 min-w-20 text-center">
                                                             {data.items.length > 1 && (
                                                                 <button
                                                                     type="button"
@@ -651,7 +675,7 @@
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Subtotal</label>
-                                        <input type="text" value={`₹${parseFloat(data.subtotal || 0).toFixed(2)}`} readOnly className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white" />
+                                        <input type="text" value={formatCurrency(data.subtotal)} readOnly className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-600 text-gray-900 dark:text-white" />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Delivery Charges</label>
@@ -697,19 +721,19 @@
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
                                     <div>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">Gross Amount</p>
-                                        <p className="text-xl font-bold text-gray-900 dark:text-white">₹{parseFloat(data.gross_amount || 0).toFixed(2)}</p>
+                                        <p className="text-xl font-bold text-gray-900 dark:text-white">{formatCurrency(data.gross_amount)}</p>
                                     </div>
                                     <div>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">GST Amount</p>
-                                        <p className="text-xl font-bold text-gray-900 dark:text-white">₹{(parseFloat(data.cgst_amount || 0) + parseFloat(data.sgst_amount || 0) + parseFloat(data.igst_amount || 0)).toFixed(2)}</p>
+                                        <p className="text-xl font-bold text-gray-900 dark:text-white">{formatCurrency((parseFloat(data.cgst_amount || 0) + parseFloat(data.sgst_amount || 0) + parseFloat(data.igst_amount || 0)))}</p>
                                     </div>
                                     <div>
                                         <p className="text-sm text-gray-600 dark:text-gray-400">TCS Amount</p>
-                                        <p className="text-xl font-bold text-gray-900 dark:text-white">₹{parseFloat(data.tcs_amount || 0).toFixed(2)}</p>
+                                        <p className="text-xl font-bold text-gray-900 dark:text-white">{formatCurrency(data.tcs_amount)}</p>
                                     </div>
                                     <div className="border-l-2 border-blue-600 pl-4">
                                         <p className="text-sm text-gray-600 dark:text-gray-400">Total Amount</p>
-                                        <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">₹{parseFloat(data.total || 0).toFixed(2)}</p>
+                                        <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{formatCurrency(data.total)}</p>
                                     </div>
                                 </div>
                             </div>

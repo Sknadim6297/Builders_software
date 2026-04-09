@@ -1,4 +1,5 @@
 import InputError from '@/Components/InputError';
+import CompanyLogo from '@/Components/CompanyLogo';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { Head, useForm } from '@inertiajs/react';
@@ -61,13 +62,10 @@ export default function Login({ status }) {
                 <div className="max-w-md w-full space-y-8">
                     {/* Header */}
                     <div className="text-center">
-                        <div className="mx-auto h-28 w-28 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-lg p-2">
-                            <img 
-                                src={companySettings?.company_logo || "/images/sayan-sita-logo.png"} 
-                                alt="Company Logo" 
-                                className="h-full w-full object-contain rounded-xl"
-                            />
-                        </div>
+                        <CompanyLogo
+                            alt="Company Logo"
+                            className="mx-auto mb-6 h-32 w-auto max-w-full object-contain"
+                        />
                     </div>
 
                     {/* Status Message */}

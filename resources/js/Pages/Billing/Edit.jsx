@@ -200,9 +200,13 @@ export default function Edit({ invoice, services, categories, products, flash })
     };
 
     const subtotal = useMemo(() => {
+        const serviceTotal = (data.service_items || []).reduce((sum, item) => {
+            const lineTotal = (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0);
+            return sum + lineTotal;
+        }, 0);
         const productTotal = data.product_items.reduce((sum, item) => sum + (parseFloat(item.total) || 0), 0);
-        return productTotal;
-    }, [data.product_items]);
+        return serviceTotal + productTotal;
+    }, [data.service_items, data.product_items]);
 
     const discountAmount = useMemo(() => {
         const percent = parseFloat(data.discount_percentage) || 0;

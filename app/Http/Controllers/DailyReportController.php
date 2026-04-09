@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\PurchaseBill;
+use App\Models\Setting;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -46,18 +48,46 @@ class DailyReportController extends Controller
     {
         $request->validate([
             'filter_type' => 'nullable|in:daily,monthly,custom,all_time',
+            'report_type' => 'nullable|in:all,purchase,sales,due,payments',
             'report_date' => 'nullable|date',
             'report_month' => ['nullable', 'regex:/^\d{4}-\d{2}$/'],
             'from_date' => 'nullable|date',
             'to_date' => 'nullable|date',
-            'format' => 'nullable|in:csv',
+            'format' => 'nullable|in:csv,pdf',
         ]);
 
         $filterType = $request->input('filter_type', 'monthly');
+        $reportType = $request->input('report_type', 'all');
         $range = $this->resolveDateRange($request, $filterType);
         $fromDate = $range['from'];
         $toDate = $range['to'];
         $report = $this->buildReportData($fromDate, $toDate);
+        $format = $request->input('format', 'csv');
+
+        if ($format === 'pdf') {
+            $filename = $fromDate && $toDate
+                ? 'daily-reports-' . $fromDate->format('Ymd') . '-to-' . $toDate->format('Ymd') . '.pdf'
+                : 'daily-reports-all-time.pdf';
+
+            $companySettings = Setting::getCompanySettings();
+            $companyLogoForPdf = $this->resolveCompanyLogoForPdf(Setting::getValue('company_logo', ''));
+
+            $pdf = Pdf::loadView('daily-reports.pdf', [
+                'report' => $report,
+                'companySettings' => $companySettings,
+                'companyLogoForPdf' => $companyLogoForPdf,
+                'filters' => [
+                    'filter_type' => $filterType,
+                    'report_type' => $reportType,
+                    'report_date' => $request->input('report_date', Carbon::today()->format('Y-m-d')),
+                    'report_month' => $request->input('report_month', Carbon::today()->format('Y-m')),
+                    'from_date' => $request->input('from_date'),
+                    'to_date' => $request->input('to_date'),
+                ],
+            ]);
+
+            return $pdf->download($filename);
+        }
 
         $csv = $this->generateCsv($report, $fromDate, $toDate);
         $filename = $fromDate && $toDate
@@ -169,7 +199,7 @@ class DailyReportController extends Controller
                 'total_amount' => round((float) ($invoice->total ?? 0), 2),
                 'amount_paid' => round((float) ($invoice->amount_paid ?? 0), 2),
                 'due_amount' => round((float) ($invoice->due_amount ?? 0), 2),
-                'days_overdue' => $daysOverdue,
+                'days_overdue' => (int) round($daysOverdue),
                 'payment_status' => $invoice->payment_status,
             ];
         })->values();
@@ -305,6 +335,29 @@ class DailyReportController extends Controller
                 ])->values(),
             ],
         ];
+    }
+
+    private function resolveCompanyLogoForPdf(?string $logoPath): string
+    {
+        $logoPath = trim((string) $logoPath);
+
+        if ($logoPath === '') {
+            return public_path('images/sayan-sita-logo.png');
+        }
+
+        if (str_starts_with($logoPath, 'http://') || str_starts_with($logoPath, 'https://')) {
+            return $logoPath;
+        }
+
+        if (str_starts_with($logoPath, '/storage/') || str_starts_with($logoPath, 'storage/')) {
+            return public_path(ltrim(str_replace('/storage/', 'storage/', $logoPath), '/'));
+        }
+
+        if (str_starts_with($logoPath, '/')) {
+            return public_path(ltrim($logoPath, '/'));
+        }
+
+        return public_path($logoPath);
     }
 
     private function generateCsv(array $report, ?Carbon $fromDate, ?Carbon $toDate): string

@@ -48,6 +48,11 @@ export default function Index({ report, filters }) {
         }
     };
 
+    const formatWholeNumber = (value) => {
+        const num = Number(value || 0);
+        return Number.isFinite(num) ? Math.round(num).toLocaleString('en-IN') : '0';
+    };
+
     const periodLabel = report?.period?.from === 'All Time' && report?.period?.to === 'All Time'
         ? 'All Time'
         : `${report?.period?.from || '-'} to ${report?.period?.to || '-'}`;
@@ -80,6 +85,12 @@ export default function Index({ report, filters }) {
         window.location.href = `${route('daily-reports.export')}?${query.toString()}`;
     };
 
+    const downloadPdf = () => {
+        const query = new URLSearchParams(payload);
+        query.set('format', 'pdf');
+        window.location.href = `${route('daily-reports.export')}?${query.toString()}`;
+    };
+
     return (
         <SidebarLayout>
             <Head title="Daily Reports" />
@@ -92,13 +103,22 @@ export default function Index({ report, filters }) {
                             Purchase, Sales, Due and payment method tracking
                         </p>
                     </div>
-                    <button
-                        type="button"
-                        onClick={downloadCsv}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                    >
-                        Export CSV
-                    </button>
+                    <div className="flex flex-wrap gap-2">
+                        <button
+                            type="button"
+                            onClick={downloadCsv}
+                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                        >
+                            Export CSV
+                        </button>
+                        <button
+                            type="button"
+                            onClick={downloadPdf}
+                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                        >
+                            Export PDF
+                        </button>
+                    </div>
                 </div>
 
                 <div className="rounded-lg border border-gray-200 bg-white p-4 sm:p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
@@ -205,7 +225,7 @@ export default function Index({ report, filters }) {
                     </div>
                     <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                         <p className="text-sm text-gray-600 dark:text-gray-300">Outstanding Due</p>
-                        <p className="text-2xl font-bold text-amber-400">{formatCurrency(report?.due?.total_outstanding)}</p>
+                        <p className="text-2xl font-bold text-red-500">{formatCurrency(report?.due?.total_outstanding)}</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Due Invoices: {report?.due?.count || 0}</p>
                     </div>
                     <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
@@ -296,8 +316,8 @@ export default function Index({ report, filters }) {
                                         <tr key={idx} className="border-t border-gray-100 dark:border-gray-700">
                                             <td className="px-4 py-2 text-gray-700 dark:text-gray-200">{row.invoice_number}</td>
                                             <td className="px-4 py-2 text-gray-700 dark:text-gray-200">{row.customer_name}</td>
-                                            <td className="px-4 py-2 text-right text-gray-900 dark:text-white">{formatCurrency(row.due_amount)}</td>
-                                            <td className="px-4 py-2 text-right text-gray-700 dark:text-gray-200">{row.days_overdue}</td>
+                                            <td className="px-4 py-2 text-right text-red-600 dark:text-red-400 font-semibold">{formatCurrency(row.due_amount)}</td>
+                                            <td className="px-4 py-2 text-right text-gray-700 dark:text-gray-200">{formatWholeNumber(row.days_overdue)}</td>
                                         </tr>
                                     ))
                                 )}

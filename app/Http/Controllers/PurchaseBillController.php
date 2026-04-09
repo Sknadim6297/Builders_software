@@ -204,6 +204,7 @@ class PurchaseBillController extends Controller
         $igstPercentage = $gstData['igst_percentage'];
         $tcsPercentage = (float) ($validated['tcs_percentage'] ?? 0);
         $roundOff = (float) ($validated['round_off'] ?? 0);
+        $discountAmount = (float) ($validated['discount'] ?? 0);
 
         $baseInvoiceAmount = $grossAmount + $deliveryCharges;
         $cgstAmount = 0;
@@ -220,8 +221,8 @@ class PurchaseBillController extends Controller
         $gstTotal = $cgstAmount + $sgstAmount + $igstAmount;
         $tcsAmount = round(($baseInvoiceAmount + $gstTotal) * ($tcsPercentage / 100), 2);
 
-        $netAmount = $baseInvoiceAmount + $gstTotal + $tcsAmount + $roundOff;
-        $netAmount = round($netAmount, 2);
+        $netAmount = $baseInvoiceAmount + $gstTotal + $tcsAmount + $roundOff - $discountAmount;
+        $netAmount = round(max(0, $netAmount), 2);
 
         $taxField = $gstTotal;
         $computedTotal = $netAmount;
@@ -257,7 +258,7 @@ class PurchaseBillController extends Controller
                 'tcs_amount' => $tcsAmount,
                 'round_off' => $roundOff,
                 'gross_amount' => $baseInvoiceAmount,
-                'discount' => $validated['discount'] ?? 0,
+                'discount' => $discountAmount,
                 'total' => $computedTotal,
                 'net_amount' => $netAmount,
                 'terms' => $validated['terms'],
@@ -426,6 +427,7 @@ class PurchaseBillController extends Controller
         $igstPercentage = $gstData['igst_percentage'];
         $tcsPercentage = (float) ($validated['tcs_percentage'] ?? 0);
         $roundOff = (float) ($validated['round_off'] ?? 0);
+        $discountAmount = (float) ($validated['discount'] ?? 0);
 
         $baseInvoiceAmount = $grossAmount + $deliveryCharges;
         $cgstAmount = 0;
@@ -442,7 +444,7 @@ class PurchaseBillController extends Controller
         $gstTotal = $cgstAmount + $sgstAmount + $igstAmount;
         $tcsAmount = round(($baseInvoiceAmount + $gstTotal) * ($tcsPercentage / 100), 2);
 
-        $netAmount = round($baseInvoiceAmount + $gstTotal + $tcsAmount + $roundOff, 2);
+        $netAmount = round(max(0, $baseInvoiceAmount + $gstTotal + $tcsAmount + $roundOff - $discountAmount), 2);
         $taxField = $gstTotal;
 
         DB::beginTransaction();
@@ -471,7 +473,7 @@ class PurchaseBillController extends Controller
                 'tcs_amount' => $tcsAmount,
                 'round_off' => $roundOff,
                 'gross_amount' => $baseInvoiceAmount,
-                'discount' => $validated['discount'] ?? 0,
+                'discount' => $discountAmount,
                 'total' => $netAmount,
                 'net_amount' => $netAmount,
                 'terms' => $validated['terms'],

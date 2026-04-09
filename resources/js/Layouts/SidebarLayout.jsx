@@ -3,14 +3,12 @@ import { Link, usePage } from '@inertiajs/react';
 import { router } from '@inertiajs/react';
 import { route } from '@/utils/route';
 import Header from '../Components/Header/Header';
+import CompanyLogo from '@/Components/CompanyLogo';
 
 export default function SidebarLayout({ children }) {
-    const { auth, permissions, allowedMenus, companySettings } = usePage().props;
+    const { auth, permissions, allowedMenus } = usePage().props;
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
-
-    const companyLogo = companySettings?.company_logo || '/images/sayan-sita-logo.png';
-    const companyName = companySettings?.company_name || 'Sayan Sita Builders';
 
     const toggleMobileSidebar = () => {
         if (!sidebarOpen) {
@@ -317,29 +315,12 @@ export default function SidebarLayout({ children }) {
                     </div>
                     <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto relative">
                         {/* Logo/Brand section with enhanced animations */}
-                        <div className={`flex-shrink-0 flex items-center px-4 mb-8 transition-all duration-700 ease-out transform ${sidebarOpen ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-8 opacity-0 scale-90'
+                        <div className={`flex-shrink-0 flex items-center justify-center px-4 mb-8 transition-all duration-700 ease-out transform ${sidebarOpen ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-8 opacity-0 scale-90'
                             }`} style={{ transitionDelay: sidebarOpen ? '200ms' : '0ms' }}>
-                            <div className={`h-16 w-16 bg-white rounded-xl flex items-center justify-center shadow-lg transform transition-all duration-500 hover:scale-110 hover:rotate-3 hover:shadow-xl ${sidebarOpen ? 'animate-pulse' : ''
-                                }`} style={{
-                                    animation: sidebarOpen ? 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' : 'none',
-                                    boxShadow: '0 10px 30px rgba(164, 125, 181, 0.3)'
-                                }}>
-                                <img
-                                    src={companyLogo}
-                                    alt={companyName}
-                                    className="h-14 w-14 object-contain rounded-lg"
-                                />
-                            </div>
-                            <div className="ml-3 overflow-hidden">
-                                <span className={`text-lg font-bold text-gray-900 dark:text-white font-heading transition-all duration-500 ${sidebarOpen ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
-                                    }`} style={{ transitionDelay: sidebarOpen ? '400ms' : '0ms' }}>
-                                    {companyName}
-                                </span>
-                                <p className={`text-xs text-gray-600 dark:text-gray-400 transition-all duration-500 ${sidebarOpen ? 'translate-x-0 opacity-100' : 'translate-x-4 opacity-0'
-                                    }`} style={{ transitionDelay: sidebarOpen ? '500ms' : '0ms' }}>
-                                    Project Management System
-                                </p>
-                            </div>
+                            <CompanyLogo
+                                alt="Company Logo"
+                                className="h-24 w-auto max-w-[220px] object-contain"
+                            />
                         </div>
 
                         {/* Floating particles effect */}
@@ -519,18 +500,11 @@ export default function SidebarLayout({ children }) {
             <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
                 <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-lg transition-colors duration-200">
                     <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-                        <div className="flex items-center flex-shrink-0 px-4 mb-8">
-                            <div className="h-12 w-12 bg-white rounded-lg flex items-center justify-center shadow-lg p-1">
-                                <img
-                                    src={companyLogo}
-                                    alt={companyName}
-                                    className="h-full w-full object-contain rounded-lg"
-                                />
-                            </div>
-                            <div className="ml-3">
-                                <span className="text-lg font-bold text-gray-900 dark:text-white font-heading transition-colors duration-200">{companyName}</span>
-                                <p className="text-xs text-gray-600 dark:text-gray-400 transition-colors duration-200">Project Management</p>
-                            </div>
+                        <div className="flex items-center justify-center flex-shrink-0 px-4 mb-8">
+                            <CompanyLogo
+                                alt="Company Logo"
+                                className="h-28 w-auto max-w-[220px] object-contain"
+                            />
                         </div>
                         <nav className="flex-1 px-2 space-y-2">
                             {navigation.map((item) => (
