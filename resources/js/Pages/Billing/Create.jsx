@@ -4,10 +4,12 @@ import SidebarLayout from '@/Layouts/SidebarLayout';
 import { ArrowLeftIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { route } from '@/utils/route';
 
-export default function Create({ customers, services, categories, prefillCustomerId, flash }) {
+export default function Create({ customers, services, categories, companyAddressOptions = [], prefillCustomerId, flash }) {
     const { data, setData, post, processing, errors } = useForm({
         invoice_date: new Date().toISOString().split('T')[0],
         customer_id: prefillCustomerId || '',
+        selected_company_address: '',
+        selected_company_address_label: '',
         cgst_percentage: '',
         sgst_percentage: '',
         gst_percentage: '',
@@ -36,6 +38,16 @@ export default function Create({ customers, services, categories, prefillCustome
             setData('gst_percentage', String(sum));
         }
     }, [data.cgst_percentage, data.sgst_percentage]);
+
+    useEffect(() => {
+        if (!data.selected_company_address && companyAddressOptions.length > 0) {
+            setData((prev) => ({
+                ...prev,
+                selected_company_address: companyAddressOptions[0].value,
+                selected_company_address_label: companyAddressOptions[0].label,
+            }));
+        }
+    }, [companyAddressOptions, data.selected_company_address]);
 
     const categoryMap = useMemo(() => {
         const map = new Map();
@@ -72,6 +84,12 @@ export default function Create({ customers, services, categories, prefillCustome
 
     const selectedCustomerMainAddress = selectedCustomer?.address || '';
     const selectedCustomerDeliveryAddress = selectedCustomer?.delivery_address || '';
+    const selectedCompanyAddress = useMemo(() => {
+        if (!data.selected_company_address) {
+            return null;
+        }
+        return companyAddressOptions.find((option) => option.value === data.selected_company_address) || null;
+    }, [companyAddressOptions, data.selected_company_address]);
 
     const getCategoryProducts = (categoryId) => {
         const category = categoryMap.get(String(categoryId));
@@ -316,6 +334,38 @@ export default function Create({ customers, services, categories, prefillCustome
                                         src={URL.createObjectURL(data.buyer_logo)}
                                         alt="Buyer logo preview"
                                         className="h-16 mt-2 object-contain"
+                                    />
+                                )}
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Company Billing Address</label>
+                                <select
+                                    value={data.selected_company_address}
+                                    onChange={(e) => {
+                                        const selected = companyAddressOptions.find((option) => option.value === e.target.value);
+                                        setData((prev) => ({
+                                            ...prev,
+                                            selected_company_address: e.target.value,
+                                            selected_company_address_label: selected?.label || '',
+                                        }));
+                                    }}
+                                    className="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md"
+                                    required
+                                >
+                                    <option value="">Select company address</option>
+                                    {companyAddressOptions.map((option, index) => (
+                                        <option key={`${option.label}-${index}`} value={option.value}>
+                                            {option.display}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.selected_company_address && <div className="text-red-600 text-sm mt-1">{errors.selected_company_address}</div>}
+                                {selectedCompanyAddress && (
+                                    <textarea
+                                        value={selectedCompanyAddress.value}
+                                        readOnly
+                                        rows={3}
+                                        className="mt-2 w-full border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 dark:text-gray-300 rounded-md"
                                     />
                                 )}
                             </div>

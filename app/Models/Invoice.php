@@ -26,6 +26,8 @@ class Invoice extends Model
         'invoice_number',
         'invoice_date',
         'customer_id',
+        'selected_company_address',
+        'selected_company_address_label',
         'subtotal',
         'gst_percentage',
         'cgst_percentage',

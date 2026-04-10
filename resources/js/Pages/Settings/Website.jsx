@@ -3,22 +3,79 @@ import { Head, useForm } from '@inertiajs/react';
 import SidebarLayout from '@/Layouts/SidebarLayout';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
+import { PlusIcon, PencilIcon, TrashIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 export default function WebsiteSettings(props) {
     const [loading, setLoading] = useState(false);
     const [selectedLogoPreview, setSelectedLogoPreview] = useState(null);
+    const [showAddressModal, setShowAddressModal] = useState(false);
+    const [editingAddressIndex, setEditingAddressIndex] = useState(null);
+    const [editingAddressText, setEditingAddressText] = useState('');
+    const [savedAddresses, setSavedAddresses] = useState([]);
 
     const { data, setData, post, processing, errors, reset, transform } = useForm({
         company_name: props.company_name || 'SAYAN SITA BUILDERS',
         company_address: props.company_address || 'Chalitapara, Ajodhya, Shyampur, Howrah - 711312',
         company_address_2: props.company_address_2 || '',
+        company_addresses: props.company_addresses || '',
         company_phone_1: props.company_phone_1 || '6289249399',
         company_phone_2: props.company_phone_2 || '9609142692',
         company_phone_3: props.company_phone_3 || '9732771768',
         company_email: props.company_email || '',
         company_gstin: props.company_gstin || '19DJZPM9953H1ZZ',
+        invoice_certification_text: props.invoice_certification_text || '',
         company_logo: null,
     });
+
+    // Initialize saved addresses from the form data (newline-separated)
+    useEffect(() => {
+        const addressList = data.company_addresses
+            .split('\n')
+            .map(addr => addr.trim())
+            .filter(addr => addr !== '');
+        setSavedAddresses(addressList);
+    }, []);
+
+    const openAddAddressModal = () => {
+        setEditingAddressIndex(null);
+        setEditingAddressText('');
+        setShowAddressModal(true);
+    };
+
+    const openEditAddressModal = (index) => {
+        setEditingAddressIndex(index);
+        setEditingAddressText(savedAddresses[index]);
+        setShowAddressModal(true);
+    };
+
+    const handleSaveAddress = () => {
+        const trimmedText = editingAddressText.trim();
+        if (!trimmedText) {
+            window.showError?.('Address cannot be empty');
+            return;
+        }
+
+        let updatedAddresses = [...savedAddresses];
+        if (editingAddressIndex !== null) {
+            updatedAddresses[editingAddressIndex] = trimmedText;
+        } else {
+            updatedAddresses.push(trimmedText);
+        }
+
+        setSavedAddresses(updatedAddresses);
+        setData('company_addresses', updatedAddresses.join('\n'));
+        setShowAddressModal(false);
+        window.showSuccess?.(`Address ${editingAddressIndex !== null ? 'updated' : 'added'} successfully!`);
+    };
+
+    const handleDeleteAddress = (index) => {
+        if (window.confirm('Are you sure you want to delete this address?')) {
+            const updatedAddresses = savedAddresses.filter((_, i) => i !== index);
+            setSavedAddresses(updatedAddresses);
+            setData('company_addresses', updatedAddresses.join('\n'));
+            window.showSuccess?.('Address deleted successfully!');
+        }
+    };
 
     useEffect(() => {
         return () => {
@@ -110,6 +167,72 @@ export default function WebsiteSettings(props) {
                                 {errors.company_address_2 && <p className="text-red-500 text-sm mt-1">{errors.company_address_2}</p>}
                             </div>
 
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">Company Addresses</label>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                                    These addresses will appear as options in billing so you can choose one before generating the invoice.
+                                </p>
+
+                                {/* Address List */}
+                                {savedAddresses.length > 0 ? (
+                                    <div className="space-y-3 mb-4">
+                                        {savedAddresses.map((address, index) => (
+                                            <div
+                                                key={index}
+                                                className="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg"
+                                            >
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                                                        Address {index + 1}
+                                                    </p>
+                                                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed overflow-wrap">
+                                                        {address}
+                                                    </p>
+                                                </div>
+                                                <div className="flex gap-2 flex-shrink-0">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => openEditAddressModal(index)}
+                                                        className="p-2 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900 rounded-md transition"
+                                                        title="Edit address"
+                                                    >
+                                                        <PencilIcon className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDeleteAddress(index)}
+                                                        className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900 rounded-md transition"
+                                                        title="Delete address"
+                                                    >
+                                                        <TrashIcon className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="p-4 bg-gray-50 dark:bg-gray-900 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg mb-4">
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                                            No addresses added yet. Click "Add Address" to get started.
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* Add Address Button */}
+                                <button
+                                    type="button"
+                                    onClick={openAddAddressModal}
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition"
+                                >
+                                    <PlusIcon className="w-5 h-5" />
+                                    Add Address
+                                </button>
+
+                                {errors.company_addresses && (
+                                    <p className="text-red-500 text-sm mt-2">{errors.company_addresses}</p>
+                                )}
+                            </div>
+
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Phone Number 1</label>
@@ -170,6 +293,21 @@ export default function WebsiteSettings(props) {
                             </div>
 
                             <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Invoice Certification Text (Optional)</label>
+                                <textarea
+                                    value={data.invoice_certification_text}
+                                    onChange={(e) => setData('invoice_certification_text', e.target.value)}
+                                    rows="4"
+                                    placeholder="e.g., SUBJECT TO EXCLUSIVE JURISDICTION AT HOWRAH&#10;We hereby certify that the amount indicated in this tax invoice represents the price actually charged by us..."
+                                    className="w-full border border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    This text will appear on all invoices before the signature section. Use this for certification, disclaimers, or legal statements.
+                                </p>
+                                {errors.invoice_certification_text && <p className="text-red-500 text-sm mt-1">{errors.invoice_certification_text}</p>}
+                            </div>
+
+                            <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Company Logo</label>
                                 <input
                                     type="file"
@@ -207,6 +345,56 @@ export default function WebsiteSettings(props) {
                         </div>
                     </form>
                 </div>
+
+                {/* Add/Edit Address Modal */}
+                {showAddressModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 dark:bg-opacity-70">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full mx-4">
+                            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                    {editingAddressIndex !== null ? 'Edit Address' : 'Add New Address'}
+                                </h3>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAddressModal(false)}
+                                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                >
+                                    <XMarkIcon className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <div className="p-6 space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Address
+                                    </label>
+                                    <textarea
+                                        value={editingAddressText}
+                                        onChange={(e) => setEditingAddressText(e.target.value)}
+                                        rows="4"
+                                        placeholder="Enter the complete address..."
+                                        className="w-full border border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
+                                <SecondaryButton
+                                    type="button"
+                                    onClick={() => setShowAddressModal(false)}
+                                >
+                                    Cancel
+                                </SecondaryButton>
+                                <PrimaryButton
+                                    type="button"
+                                    onClick={handleSaveAddress}
+                                >
+                                    {editingAddressIndex !== null ? 'Update Address' : 'Add Address'}
+                                </PrimaryButton>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </SidebarLayout>
     );

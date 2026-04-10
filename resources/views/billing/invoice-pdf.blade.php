@@ -319,6 +319,12 @@
         <div class="notes"><strong>Notes:</strong> {{ $invoice->notes }}</div>
     @endif
 
+    @if(!empty($invoice_certification_text))
+        <div class="certification" style="margin-top: 12px; padding: 8px; border: 1px solid #ddd; background-color: #f9fafb; font-size: 10px; line-height: 1.6;">
+            {{ nl2br($invoice_certification_text) }}
+        </div>
+    @endif
+
     @if(!empty($invoice->payments) && count($invoice->payments) > 0)
         <div style="margin-top: 12px;">
             <div class="block-title">Payment History</div>

@@ -24,17 +24,20 @@ class SettingsController extends Controller
         $companyName = Setting::getValue('company_name', 'SAYAN SITA BUILDERS');
         $companyAddress = Setting::getValue('company_address', 'Chalitapara, Ajodhya, Shyampur, Howrah – 711312');
         $companyAddress2 = Setting::getValue('company_address_2', '');
+        $companyAddresses = Setting::getCompanyAddresses();
         $companyPhone1 = Setting::getValue('company_phone_1', '6289249399');
         $companyPhone2 = Setting::getValue('company_phone_2', '9609142692');
         $companyPhone3 = Setting::getValue('company_phone_3', '9732771768');
         $companyEmail = Setting::getValue('company_email', '');
         $companyGstin = Setting::getValue('company_gstin', '19DJZPM9953H1ZZ');
         $companyLogo = Setting::getValue('company_logo', '/images/sayan-sita-logo.png');
+        $invoiceCertificationText = Setting::getValue('invoice_certification_text', '');
 
         return Inertia::render('Settings/Website', [
             'company_name' => $companyName,
             'company_address' => $companyAddress,
             'company_address_2' => $companyAddress2,
+            'company_addresses' => implode("\n", $companyAddresses),
             'company_phone_1' => $companyPhone1,
             'company_phone_2' => $companyPhone2,
             'company_phone_3' => $companyPhone3,
@@ -42,6 +45,7 @@ class SettingsController extends Controller
             'company_gstin' => $companyGstin,
             'company_logo' => $companyLogo,
             'company_logo_url' => Setting::normalizeAssetUrl($companyLogo),
+            'invoice_certification_text' => $invoiceCertificationText,
         ]);
     }
 
@@ -104,11 +108,13 @@ class SettingsController extends Controller
             'company_name' => 'nullable|string|max:255',
             'company_address' => 'nullable|string|max:500',
             'company_address_2' => 'nullable|string|max:500',
+            'company_addresses' => 'nullable|string|max:5000',
             'company_phone_1' => 'nullable|string|max:20',
             'company_phone_2' => 'nullable|string|max:20',
             'company_phone_3' => 'nullable|string|max:20',
             'company_email' => 'nullable|email|max:255',
             'company_gstin' => 'nullable|string|max:30',
+            'invoice_certification_text' => 'nullable|string|max:2000',
             'company_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120',
         ]);
 
@@ -132,6 +138,31 @@ class SettingsController extends Controller
         if (array_key_exists('company_address_2', $validatedWebsite)) {
             Setting::setValue('company_address_2', $validatedWebsite['company_address_2']);
         }
+        if (array_key_exists('company_addresses', $validatedWebsite)) {
+            $addressLines = preg_split('/\r\n|\r|\n/', (string) ($validatedWebsite['company_addresses'] ?? '')) ?: [];
+            $normalizedAddresses = array_values(array_filter(array_map(function ($line) {
+                return trim((string) $line);
+            }, $addressLines), function ($line) {
+                return $line !== '';
+            }));
+
+            if (empty($normalizedAddresses)) {
+                $legacyAddress1 = trim((string) ($validatedWebsite['company_address'] ?? ''));
+                $legacyAddress2 = trim((string) ($validatedWebsite['company_address_2'] ?? ''));
+                if ($legacyAddress1 !== '') {
+                    $normalizedAddresses[] = $legacyAddress1;
+                }
+                if ($legacyAddress2 !== '') {
+                    $normalizedAddresses[] = $legacyAddress2;
+                }
+            }
+
+            Setting::setValue('company_addresses', json_encode($normalizedAddresses));
+
+            // Keep legacy keys in sync for old screens and reports.
+            Setting::setValue('company_address', $normalizedAddresses[0] ?? '');
+            Setting::setValue('company_address_2', $normalizedAddresses[1] ?? '');
+        }
         if (array_key_exists('company_phone_1', $validatedWebsite)) {
             Setting::setValue('company_phone_1', $validatedWebsite['company_phone_1']);
         }
@@ -146,6 +177,9 @@ class SettingsController extends Controller
         }
         if (array_key_exists('company_gstin', $validatedWebsite)) {
             Setting::setValue('company_gstin', strtoupper(trim($validatedWebsite['company_gstin'] ?? '')));
+        }
+        if (array_key_exists('invoice_certification_text', $validatedWebsite)) {
+            Setting::setValue('invoice_certification_text', $validatedWebsite['invoice_certification_text']);
         }
         if (!empty($companyLogoPath)) {
             Setting::setValue('company_logo', $companyLogoPath);

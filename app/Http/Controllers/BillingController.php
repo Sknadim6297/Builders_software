@@ -63,6 +63,7 @@ class BillingController extends Controller
 	{
 		$customers = Customer::select('id', 'name', 'mobile_number', 'address', 'delivery_address', 'pincode', 'location')->orderBy('name')->get();
 		$services = Service::select('id', 'name', 'final_price')->where('is_active', true)->orderBy('name')->get();
+		$companyAddressOptions = $this->getCompanyAddressOptions();
 		$categories = Category::with(['items' => function ($query) {
 			$query->active()->orderBy('name')->with(['stocks' => function ($stockQuery) {
 				$stockQuery->orderBy('id');
@@ -73,6 +74,7 @@ class BillingController extends Controller
 			'customers' => $customers,
 			'services' => $services,
 			'categories' => $categories,
+			'companyAddressOptions' => $companyAddressOptions,
 			'prefillCustomerId' => $request->get('customer_id')
 		]);
 	}
@@ -91,6 +93,8 @@ class BillingController extends Controller
 		$validated = $request->validate([
 			'customer_id' => 'required|exists:customers,id',
 			'invoice_date' => 'required|date',
+			'selected_company_address' => 'nullable|string|max:1000',
+			'selected_company_address_label' => 'nullable|string|max:100',
 			'cgst_percentage' => 'nullable|numeric|min:0|max:100',
 			'sgst_percentage' => 'nullable|numeric|min:0|max:100',
 			'gst_percentage' => 'nullable|numeric|min:0|max:100',
@@ -120,6 +124,14 @@ class BillingController extends Controller
 
 		$serviceItems = $validated['service_items'] ?? [];
 		$productItems = $validated['product_items'] ?? [];
+		$selectedCompanyAddress = trim((string) ($validated['selected_company_address'] ?? ''));
+		$selectedCompanyAddressLabel = trim((string) ($validated['selected_company_address_label'] ?? ''));
+		if ($selectedCompanyAddress === '') {
+			$selectedCompanyAddress = trim((string) (Setting::getCompanyAddresses()[0] ?? Setting::getValue('company_address', '')));
+		}
+		if ($selectedCompanyAddressLabel === '') {
+			$selectedCompanyAddressLabel = 'Address 1';
+		}
 
 		if (empty($productItems)) {
 			return back()->withErrors(['items' => 'Please add at least one product item.']);
@@ -253,6 +265,8 @@ class BillingController extends Controller
 				'invoice_number' => 'TEMP-' . uniqid(),
 				'invoice_date' => $validated['invoice_date'],
 				'customer_id' => $validated['customer_id'],
+				'selected_company_address' => $selectedCompanyAddress,
+				'selected_company_address_label' => $selectedCompanyAddressLabel,
 				'subtotal' => $subtotal,
 				'gst_percentage' => $gstPercentage,
 				'cgst_percentage' => $cgstPercentage,
@@ -373,6 +387,7 @@ class BillingController extends Controller
 	{
 		$billing->load(['customer', 'serviceItems.service', 'productItems.stock.item.category', 'productItems.category']);
 		$services = Service::select('id', 'name', 'final_price')->where('is_active', true)->orderBy('name')->get();
+		$companyAddressOptions = $this->getCompanyAddressOptions();
 		$existingCategoryIds = $billing->productItems->pluck('category_id')->filter()->unique()->values();
 		$categories = Category::with(['items' => function ($query) {
 			$query->active()->orderBy('name')->with(['stocks' => function ($stockQuery) {
@@ -395,7 +410,8 @@ class BillingController extends Controller
 			'invoice' => $billing,
 			'services' => $services,
 			'categories' => $categories,
-			'products' => $products
+			'products' => $products,
+			'companyAddressOptions' => $companyAddressOptions
 		]);
 	}
 
@@ -417,6 +433,8 @@ class BillingController extends Controller
 
 		$validated = $request->validate([
 			'invoice_date' => 'nullable|date',
+			'selected_company_address' => 'nullable|string|max:1000',
+			'selected_company_address_label' => 'nullable|string|max:100',
 			'cgst_percentage' => 'nullable|numeric|min:0|max:100',
 			'sgst_percentage' => 'nullable|numeric|min:0|max:100',
 			'gst_percentage' => 'nullable|numeric|min:0|max:100',
@@ -439,6 +457,14 @@ class BillingController extends Controller
 
 		$serviceItems = $validated['service_items'] ?? [];
 		$productItems = $validated['product_items'] ?? [];
+		$selectedCompanyAddress = trim((string) ($validated['selected_company_address'] ?? ''));
+		$selectedCompanyAddressLabel = trim((string) ($validated['selected_company_address_label'] ?? ''));
+		if ($selectedCompanyAddress === '') {
+			$selectedCompanyAddress = trim((string) ($billing->selected_company_address ?? (Setting::getCompanyAddresses()[0] ?? Setting::getValue('company_address', ''))));
+		}
+		if ($selectedCompanyAddressLabel === '') {
+			$selectedCompanyAddressLabel = trim((string) ($billing->selected_company_address_label ?? 'Address 1'));
+		}
 
 		if (empty($productItems)) {
 			return back()->withErrors(['items' => 'Please add at least one product item.']);
@@ -595,6 +621,8 @@ class BillingController extends Controller
 
 			$billing->update([
 				'invoice_date' => $effectiveInvoiceDate,
+				'selected_company_address' => $selectedCompanyAddress,
+				'selected_company_address_label' => $selectedCompanyAddressLabel,
 				'subtotal' => $subtotal,
 				'gst_percentage' => $gstPercentage,
 				'cgst_percentage' => $cgstPercentage,
@@ -732,8 +760,8 @@ class BillingController extends Controller
 			'buyer_logo' => $billing->buyer_logo ?? null,
 			'invoice_logo' => Setting::getValue('invoice_logo', ''),
 			'company_name' => Setting::getValue('company_name', 'SAYAN SITA BUILDERS'),
-			'company_address' => Setting::getValue('company_address', 'Chalitapara, Ajodhya, Shyampur, Howrah – 711312'),
-			'company_address_2' => Setting::getValue('company_address_2', ''),
+			'company_address' => $billing->selected_company_address ?: Setting::getValue('company_address', 'Chalitapara, Ajodhya, Shyampur, Howrah – 711312'),
+			'company_address_2' => '',
 			'company_phone_1' => Setting::getValue('company_phone_1', '6289249399'),
 			'company_phone_2' => Setting::getValue('company_phone_2', '9609142692'),
 			'company_phone_3' => Setting::getValue('company_phone_3', '9732771768'),
@@ -747,11 +775,36 @@ class BillingController extends Controller
 			'account_no' => Setting::getValue('account_no', '8828210000007429'),
 			'ifsc' => Setting::getValue('ifsc', 'DBSS0IN0828'),
 			'branch' => Setting::getValue('branch', 'KOLKATA MAIN BRANCH'),
-			'account_type' => Setting::getValue('account_type', 'Trade & Forex CURRENT ACCOUNT')
+			'account_type' => Setting::getValue('account_type', 'Trade & Forex CURRENT ACCOUNT'),
+			'invoice_certification_text' => Setting::getValue('invoice_certification_text', '')
 		]);
 
 		$filename = 'invoice-' . $billing->invoice_number . '-' . $copyType . '.pdf';
 		return $pdf->download($filename);
+	}
+
+	private function getCompanyAddressOptions(): array
+	{
+		$addresses = Setting::getCompanyAddresses();
+		if (empty($addresses)) {
+			$addresses = [Setting::getValue('company_address', 'Chalitapara, Ajodhya, Shyampur, Howrah – 711312')];
+		}
+
+		return collect($addresses)
+			->values()
+			->map(function ($address, $index) {
+				$normalized = trim((string) $address);
+				return [
+					'label' => 'Address ' . ($index + 1),
+					'value' => $normalized,
+					'display' => 'Address ' . ($index + 1) . ': ' . $normalized,
+				];
+			})
+			->filter(function ($entry) {
+				return $entry['value'] !== '';
+			})
+			->values()
+			->toArray();
 	}
 
 	private function convertAmountToWords(float $amount): string
