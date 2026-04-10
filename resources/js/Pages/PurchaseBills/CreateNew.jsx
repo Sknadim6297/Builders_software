@@ -8,8 +8,10 @@
         const getItemLabel = (item) => `${item.item_code} - ${item.name}`;
         const getItemSearchText = (item) => `${item.item_code} ${item.name} ${item.default_unit_price ?? ''} ${item.unit_price ?? ''}`.toLowerCase();
         const formatCurrency = (value) => `Rs. ${parseFloat(value || 0).toFixed(2)}`;
+        const [liveItems, setLiveItems] = useState(allItems || []);
+
         const getFilteredItemsForRow = (row) => {
-            let filteredItems = allItems.filter((itm) => !row.category_id || String(itm.category_id) === String(row.category_id));
+            let filteredItems = liveItems.filter((itm) => !row.category_id || String(itm.category_id) === String(row.category_id));
             const searchTerm = (row.item_search || '').trim().toLowerCase();
 
             if (searchTerm !== '') {
@@ -21,7 +23,7 @@
 
         const categoryOptions = useMemo(() => {
             const categoryMap = new Map();
-            allItems.forEach((item) => {
+            liveItems.forEach((item) => {
                 if (item.category_id && item.category?.name) {
                     categoryMap.set(String(item.category_id), {
                         id: String(item.category_id),
@@ -31,7 +33,7 @@
             });
 
             return Array.from(categoryMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-        }, [allItems]);
+        }, [liveItems]);
 
         const { data, setData, post, processing, errors } = useForm({
             po_date: new Date().toISOString().split('T')[0],
@@ -79,9 +81,133 @@
         // Create item map for easy lookup
         const itemMap = useMemo(() => {
             const map = new Map();
-            allItems.forEach(item => map.set(String(item.id), item));
+            liveItems.forEach(item => map.set(String(item.id), item));
             return map;
+        }, [liveItems]);
+
+        useEffect(() => {
+            setLiveItems(allItems || []);
         }, [allItems]);
+
+        const recalculateRow = (row) => {
+            const quantity = parseFloat(row.quantity) || 0;
+            const rate = parseFloat(row.unit_price) || 0;
+            const discountPct = parseFloat(row.discount_percentage) || 0;
+            const netRate = rate - (rate * discountPct / 100);
+            const amount = netRate * quantity;
+
+            return {
+                ...row,
+                net_rate: Number(netRate.toFixed(2)),
+                amount: Number(amount.toFixed(2)),
+            };
+        };
+
+        const refreshItems = async () => {
+            try {
+                const response = await fetch(`${route('items.active')}?t=${Date.now()}`, {
+                    headers: {
+                        Accept: 'application/json',
+                        'Cache-Control': 'no-cache',
+                    },
+                });
+
+                if (!response.ok) {
+                    return;
+                }
+
+                const latestItems = await response.json();
+                if (!Array.isArray(latestItems)) {
+                    return;
+                }
+
+                setLiveItems(latestItems);
+
+                setData((prev) => {
+                    const latestMap = new Map();
+                    latestItems.forEach((itm) => latestMap.set(String(itm.id), itm));
+
+                    let changed = false;
+                    const syncedItems = prev.items.map((row) => {
+                        if (!row.item_id) {
+                            return row;
+                        }
+
+                        const latest = latestMap.get(String(row.item_id));
+                        if (!latest) {
+                            return row;
+                        }
+
+                        const nextRow = { ...row };
+                        const latestCategoryId = latest.category_id ? String(latest.category_id) : '';
+                        const latestSearch = getItemLabel(latest);
+                        const latestHsn = latest.hsn_code || '';
+                        const latestGst = parseFloat(latest.gst_percentage || 0);
+                        const latestUnitPrice = String(latest.default_unit_price ?? latest.unit_price ?? 0);
+
+                        if (nextRow.category_id !== latestCategoryId) {
+                            nextRow.category_id = latestCategoryId;
+                            changed = true;
+                        }
+                        if ((nextRow.item_search || '') !== latestSearch) {
+                            nextRow.item_search = latestSearch;
+                            changed = true;
+                        }
+                        if ((nextRow.hsn_code || '') !== latestHsn) {
+                            nextRow.hsn_code = latestHsn;
+                            changed = true;
+                        }
+                        if (parseFloat(nextRow.gst_percentage || 0) !== latestGst) {
+                            nextRow.gst_percentage = latestGst;
+                            changed = true;
+                        }
+                        if (String(nextRow.unit_price ?? '') !== latestUnitPrice) {
+                            nextRow.unit_price = latestUnitPrice;
+                            changed = true;
+                        }
+
+                        const recalculatedRow = recalculateRow(nextRow);
+                        if (
+                            recalculatedRow.net_rate !== nextRow.net_rate ||
+                            recalculatedRow.amount !== nextRow.amount
+                        ) {
+                            changed = true;
+                        }
+
+                        return recalculatedRow;
+                    });
+
+                    if (!changed) {
+                        return prev;
+                    }
+
+                    return {
+                        ...prev,
+                        items: syncedItems,
+                    };
+                });
+            } catch {
+                // Skip toast noise for background refresh.
+            }
+        };
+
+        useEffect(() => {
+            void refreshItems();
+
+            const handleFocus = () => {
+                void refreshItems();
+            };
+
+            const intervalId = window.setInterval(() => {
+                void refreshItems();
+            }, 30000);
+
+            window.addEventListener('focus', handleFocus);
+            return () => {
+                window.removeEventListener('focus', handleFocus);
+                window.clearInterval(intervalId);
+            };
+        }, []);
 
         // Show flash messages
         useEffect(() => {
@@ -173,15 +299,7 @@
             }
 
             // Recalculate amounts
-            const quantity = parseFloat(newItems[index].quantity) || 0;
-            const rate = parseFloat(newItems[index].unit_price) || 0;
-            const discountPct = parseFloat(newItems[index].discount_percentage) || 0;
-
-            const netRate = rate - (rate * discountPct / 100);
-            const amount = netRate * quantity;
-
-            newItems[index].net_rate = Number(netRate.toFixed(2));
-            newItems[index].amount = Number(amount.toFixed(2));
+            newItems[index] = recalculateRow(newItems[index]);
 
             setData('items', newItems);
         };
@@ -558,7 +676,10 @@
                                                                     </p>
                                                                     <button
                                                                         type="button"
-                                                                        onClick={() => updateItem(index, 'item_picker_open', true)}
+                                                                        onClick={() => {
+                                                                            updateItem(index, 'item_picker_open', true);
+                                                                            void refreshItems();
+                                                                        }}
                                                                         className="text-xs px-2 py-1 rounded border border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-300 dark:hover:bg-blue-900/20"
                                                                     >
                                                                         Change
@@ -570,6 +691,7 @@
                                                                         type="text"
                                                                         value={item.item_search || ''}
                                                                         onChange={(e) => updateItem(index, 'item_search', e.target.value)}
+                                                                        onFocus={() => { void refreshItems(); }}
                                                                         placeholder="Search by code, name or rate"
                                                                         disabled={!item.category_id}
                                                                         className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white disabled:bg-gray-100 dark:bg-gray-700 dark:disabled:bg-gray-800 text-gray-900 dark:text-white text-sm"
@@ -577,6 +699,7 @@
                                                                     <select
                                                                         value={item.item_id}
                                                                         onChange={(e) => updateItem(index, 'item_id', e.target.value)}
+                                                                        onFocus={() => { void refreshItems(); }}
                                                                         disabled={!item.category_id}
                                                                         className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-1 focus:ring-blue-500 bg-white disabled:bg-gray-100 dark:bg-gray-700 dark:disabled:bg-gray-800 text-gray-900 dark:text-white text-sm"
                                                                     >
