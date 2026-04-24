@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -13,20 +14,21 @@ class SuperAdminSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create super admin user if not exists
-        User::firstOrCreate(
-            ['email' => 'sknadim6297@gmail.com'],
+        $superAdminRole = Role::where('name', 'super_admin')->first();
+
+        // Keep super admin credentials deterministic for server deployment.
+        User::updateOrCreate(
+            ['email' => 'superadmin@gmail.com'],
             [
-                'name' => 'Super Administrator',
-                'email' => 'sknadim6297@gmail.com',
-                'password' => Hash::make('nadim123'),
+                'name' => 'Super Admin',
+                'password' => Hash::make('super123'),
                 'is_super_admin' => true,
-                'email_verified_at' => now(),
+                'role_id' => $superAdminRole?->id,
             ]
         );
 
         $this->command->info('Super admin user created successfully!');
-        $this->command->info('Email: sknadim6297@gmail.com');
-        $this->command->info('Password: nadim123');
+        $this->command->info('Email: superadmin@gmail.com');
+        $this->command->info('Password: super123');
     }
 }

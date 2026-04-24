@@ -4,7 +4,7 @@ import SidebarLayout from '@/Layouts/SidebarLayout';
 import { route } from '@/utils/route';
 
 export default function Index({ report, filters }) {
-    const [filterType, setFilterType] = useState(filters?.filter_type || 'daily');
+    const [filterType, setFilterType] = useState(filters?.filter_type || 'all_time');
     const [reportType, setReportType] = useState(filters?.report_type || 'all');
     const [reportDate, setReportDate] = useState(filters?.report_date || '');
     const [reportMonth, setReportMonth] = useState(filters?.report_month || '');
@@ -66,7 +66,7 @@ export default function Index({ report, filters }) {
     };
 
     const resetFilters = () => {
-        setFilterType('daily');
+        setFilterType('all_time');
         setReportType('all');
         setReportDate('');
         setReportMonth('');
@@ -221,6 +221,8 @@ export default function Index({ report, filters }) {
                     <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
                         <p className="text-sm text-gray-600 dark:text-gray-300">Total Sales</p>
                         <p className="text-2xl font-bold text-emerald-400">{formatCurrency(report?.sales?.total_amount)}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Taxable: {formatCurrency(report?.sales?.taxable_amount)}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">GST: {formatCurrency(report?.sales?.total_gst)}</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Invoices: {report?.sales?.count || 0}</p>
                     </div>
                     <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
@@ -275,18 +277,22 @@ export default function Index({ report, filters }) {
                                     <th className="px-4 py-2 text-left text-gray-700 dark:text-gray-200">Invoice No.</th>
                                     <th className="px-4 py-2 text-left text-gray-700 dark:text-gray-200">Date</th>
                                     <th className="px-4 py-2 text-left text-gray-700 dark:text-gray-200">Customer</th>
+                                    <th className="px-4 py-2 text-right text-gray-700 dark:text-gray-200">Taxable</th>
+                                    <th className="px-4 py-2 text-right text-gray-700 dark:text-gray-200">GST</th>
                                     <th className="px-4 py-2 text-right text-gray-700 dark:text-gray-200">Amount</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {(report?.sales?.details || []).length === 0 ? (
-                                    <tr><td colSpan="4" className="px-4 py-3 text-center text-gray-500 dark:text-gray-400">No sales records</td></tr>
+                                    <tr><td colSpan="6" className="px-4 py-3 text-center text-gray-500 dark:text-gray-400">No sales records</td></tr>
                                 ) : (
                                     report.sales.details.map((row, idx) => (
                                         <tr key={idx} className="border-t border-gray-100 dark:border-gray-700">
                                             <td className="px-4 py-2 text-gray-700 dark:text-gray-200">{row.invoice_number}</td>
                                             <td className="px-4 py-2 text-gray-700 dark:text-gray-200">{row.invoice_date}</td>
                                             <td className="px-4 py-2 text-gray-700 dark:text-gray-200">{row.customer_name}</td>
+                                            <td className="px-4 py-2 text-right text-gray-900 dark:text-white">{formatCurrency(row.taxable_amount)}</td>
+                                            <td className="px-4 py-2 text-right text-gray-900 dark:text-white">{formatCurrency(row.gst_amount)}</td>
                                             <td className="px-4 py-2 text-right text-gray-900 dark:text-white">{formatCurrency(row.amount)}</td>
                                         </tr>
                                     ))

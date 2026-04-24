@@ -5,10 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Invoice;
-use App\Models\Service;
 use App\Models\PurchaseBill;
 use App\Models\Customer;
 use App\Models\ActivityLog;
+use App\Models\InvoiceServiceItem;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -16,13 +16,16 @@ class DashboardController extends Controller
     public function index()
     {
         $today = Carbon::today();
+        $yesterday = Carbon::yesterday();
         
-        // Get today's revenue
+        // Get today's revenue from non-cancelled invoices
         $todayRevenue = Invoice::whereDate('invoice_date', $today)
+            ->where('payment_status', '!=', 'cancelled')
             ->sum('total');
         
         // Get yesterday's revenue for comparison
-        $yesterdayRevenue = Invoice::whereDate('invoice_date', $today->copy()->subDay())
+        $yesterdayRevenue = Invoice::whereDate('invoice_date', $yesterday)
+            ->where('payment_status', '!=', 'cancelled')
             ->sum('total');
         
         // Calculate revenue percentage change
@@ -33,18 +36,30 @@ class DashboardController extends Controller
             $revenueChange = 100;
         }
         
-        // Get today's services completed
-        $todayServicesCount = Invoice::whereDate('invoice_date', $today)->count();
+        // Get today's service quantity completed (from service line items)
+        $todayServicesCount = InvoiceServiceItem::whereHas('invoice', function ($query) use ($today) {
+                $query->whereDate('invoice_date', $today)
+                    ->where('payment_status', '!=', 'cancelled');
+            })
+            ->sum('quantity');
         
         // Get yesterday's services for comparison
-        $yesterdayServicesCount = Invoice::whereDate('invoice_date', $today->copy()->subDay())->count();
-        $servicesChange = $todayServicesCount - $yesterdayServicesCount;
+        $yesterdayServicesCount = InvoiceServiceItem::whereHas('invoice', function ($query) use ($yesterday) {
+                $query->whereDate('invoice_date', $yesterday)
+                    ->where('payment_status', '!=', 'cancelled');
+            })
+            ->sum('quantity');
+        $servicesChange = (float) $todayServicesCount - (float) $yesterdayServicesCount;
         
-        // Get today's purchase bills
-        $todayPurchasesCount = PurchaseBill::whereDate('created_at', $today)->count();
+        // Get today's purchase bills from PO Date (business date)
+        $todayPurchasesCount = PurchaseBill::whereDate('po_date', $today)
+            ->where('status', '!=', 'cancelled')
+            ->count();
         
         // Get yesterday's purchases for comparison
-        $yesterdayPurchasesCount = PurchaseBill::whereDate('created_at', $today->copy()->subDay())->count();
+        $yesterdayPurchasesCount = PurchaseBill::whereDate('po_date', $yesterday)
+            ->where('status', '!=', 'cancelled')
+            ->count();
         $purchasesChange = $todayPurchasesCount - $yesterdayPurchasesCount;
         
         // Get total customers
@@ -53,19 +68,19 @@ class DashboardController extends Controller
         // Get new customers today
         $newCustomersToday = Customer::whereDate('created_at', $today)->count();
         
-        // Get recent activities (last 5)
+        // Get recent activities
         $recentActivities = ActivityLog::with(['subject', 'causer'])
             ->latest('created_at')
-            ->limit(5)
+            ->limit(8)
             ->get()
             ->map(function ($activity) {
                 $detail = $this->getActivityDetail($activity);
                 return [
                     'id' => $activity->id,
-                    'action' => $activity->event,
+                    'action' => ucfirst((string) ($activity->event ?: 'activity')),
                     'detail' => $detail,
                     'time' => $activity->created_at->diffForHumans(),
-                    'type' => $this->getActivityType($activity->log_name),
+                    'type' => $this->getActivityType($activity),
                 ];
             });
         
@@ -77,7 +92,7 @@ class DashboardController extends Controller
         return Inertia::render('Dashboard', [
             'todayRevenue' => $todayRevenue,
             'revenueChange' => $revenueChange,
-            'todayServices' => $todayServicesCount,
+            'todayServices' => (float) $todayServicesCount,
             'servicesChange' => $servicesChange,
             'todayPurchases' => $todayPurchasesCount,
             'purchasesChange' => $purchasesChange,
@@ -87,21 +102,44 @@ class DashboardController extends Controller
         ]);
     }
     
-    private function getActivityType($logName)
+    private function getActivityType(ActivityLog $activity)
     {
-        $types = [
-            'invoice' => 'invoice',
-            'service' => 'create',
-            'customer' => 'customer',
-            'purchase' => 'purchase',
-            'default' => 'create'
-        ];
-        
-        return $types[$logName] ?? $types['default'];
+        $event = strtolower((string) ($activity->event ?? ''));
+        $logName = strtolower((string) ($activity->log_name ?? ''));
+
+        if ($event === 'login' || $event === 'logout') {
+            return $event;
+        }
+
+        if (str_contains($logName, 'invoice')) {
+            return 'invoice';
+        }
+
+        if (str_contains($logName, 'purchase')) {
+            return 'purchase';
+        }
+
+        if (str_contains($logName, 'customer')) {
+            return 'customer';
+        }
+
+        if (str_contains($event, 'payment')) {
+            return 'payment';
+        }
+
+        if ($event === 'updated') {
+            return 'update';
+        }
+
+        return 'create';
     }
     
     private function getActivityDetail($activity)
     {
+        if (!empty($activity->description)) {
+            return $activity->description;
+        }
+
         $subject = $activity->subject;
         
         if ($activity->log_name === 'invoice') {

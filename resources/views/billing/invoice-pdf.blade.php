@@ -195,8 +195,20 @@
             <div class="duplicate" style="border-color:#111827;color:#111827;">ORIGINAL</div>
         @endif
         <div class="title">GST INVOICE</div>
-        <div class="line"><strong>SUBJECT TO EXCLUSIVE JURISDICTION AT HOWRAH</strong></div>
-        <div class="line">We hereby certify that the amount indicated in this tax invoice represents the price actually charged by us and that there is no additional consideration flowing directly or indirectly from such sales over and above what has been declared.</div>
+        @php
+            $rawCertificationText = trim((string) ($invoice_certification_text ?? ''));
+            $certificationLines = array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', $rawCertificationText) ?: []), function ($line) {
+                return $line !== '';
+            }));
+            $certificationHeadline = $certificationLines[0] ?? '';
+            $certificationBody = count($certificationLines) > 1 ? implode(' ', array_slice($certificationLines, 1)) : '';
+        @endphp
+        @if($certificationHeadline !== '')
+            <div class="line"><strong>{{ $certificationHeadline }}</strong></div>
+        @endif
+        @if($certificationBody !== '')
+            <div class="line">{{ $certificationBody }}</div>
+        @endif
         @php
             $companyPhones = array_values(array_filter([
                 trim((string) ($company_phone_1 ?? '')),
@@ -317,12 +329,6 @@
 
     @if(!empty($invoice->notes))
         <div class="notes"><strong>Notes:</strong> {{ $invoice->notes }}</div>
-    @endif
-
-    @if(!empty($invoice_certification_text))
-        <div class="certification" style="margin-top: 12px; padding: 8px; border: 1px solid #ddd; background-color: #f9fafb; font-size: 10px; line-height: 1.6;">
-            {{ nl2br($invoice_certification_text) }}
-        </div>
     @endif
 
     @if(!empty($invoice->payments) && count($invoice->payments) > 0)

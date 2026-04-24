@@ -20,6 +20,7 @@ class CustomerController extends Controller
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%")
                   ->orWhere('cust_id', 'like', "%{$search}%")
                   ->orWhere('mobile_number', 'like', "%{$search}%")
                   ->orWhere('location', 'like', "%{$search}%")
@@ -59,6 +60,7 @@ class CustomerController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
             'mobile_number' => 'required|string|max:10',
             'address' => 'required|string',
             'delivery_address' => 'nullable|string',
@@ -72,6 +74,7 @@ class CustomerController extends Controller
 
         Customer::create([
             'name' => $request->name,
+            'email' => $request->email,
             'mobile_number' => $request->mobile_number,
             'address' => $request->address,
             'delivery_address' => $request->delivery_address,
@@ -118,6 +121,7 @@ class CustomerController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
             'mobile_number' => 'required|string|max:10',
             'address' => 'required|string',
             'delivery_address' => 'nullable|string',
@@ -131,6 +135,7 @@ class CustomerController extends Controller
 
         $customer->update([
             'name' => $request->name,
+            'email' => $request->email,
             'mobile_number' => $request->mobile_number,
             'address' => $request->address,
             'delivery_address' => $request->delivery_address,

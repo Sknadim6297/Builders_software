@@ -190,6 +190,9 @@ export default function Index({ customers, flash, filters }) {
                                         Mobile Number
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Email
+                                    </th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                         Location
                                     </th>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -206,7 +209,7 @@ export default function Index({ customers, flash, filters }) {
                             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 {customers.data.length === 0 ? (
                                     <tr>
-                                        <td colSpan="8" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                                        <td colSpan="9" className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                                             <div className="flex flex-col items-center">
                                                 <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
                                                     <PlusIcon className="w-6 h-6 text-gray-400" />
@@ -241,6 +244,9 @@ export default function Index({ customers, flash, filters }) {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                                 {customer.mobile_number}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                                {customer.email || '-'}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                                 {customer.location || '-'}

@@ -6,6 +6,7 @@ import { route } from '@/utils/route';
 export default function Edit({ customer, flash }) {
     const { data, setData, put, processing, errors } = useForm({
         name: customer.name || '',
+        email: customer.email || '',
         mobile_number: customer.mobile_number || '',
         address: customer.address || '',
         delivery_address: customer.delivery_address || '',
@@ -62,7 +63,7 @@ export default function Edit({ customer, flash }) {
                     </div>
 
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-                        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                        <form onSubmit={handleSubmit} className="p-6 space-y-6" noValidate>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {/* Customer Name */}
                                 <div>
@@ -84,6 +85,23 @@ export default function Edit({ customer, flash }) {
                                 {/* Mobile Number */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Email Address
+                                    </label>
+                                    <input
+                                        type="email"
+                                        value={data.email}
+                                        onChange={(e) => setData('email', e.target.value)}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                                        placeholder="Enter email (optional)"
+                                    />
+                                    {errors.email && (
+                                        <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                                    )}
+                                </div>
+
+                                {/* Mobile Number */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         Mobile Number *
                                     </label>
                                     <input
@@ -96,7 +114,9 @@ export default function Edit({ customer, flash }) {
                                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                                         placeholder="Enter 10-digit mobile number"
                                         maxLength="10"
-                                        pattern="[0-9]{10}"
+                                        minLength="10"
+                                        inputMode="numeric"
+                                        required
                                     />
                                     <p className="text-sm text-gray-500 mt-1">Enter exactly 10 digits</p>
                                     {errors.mobile_number && (
@@ -193,7 +213,7 @@ export default function Edit({ customer, flash }) {
                                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                                         placeholder="Enter 10-digit alternate mobile (optional)"
                                         maxLength="10"
-                                        pattern="[0-9]{10}"
+                                        inputMode="numeric"
                                     />
                                     <p className="text-sm text-gray-500 mt-1">Optional: Enter exactly 10 digits</p>
                                     {errors.alternate_mobile && (

@@ -24,7 +24,7 @@ class DailyReportController extends Controller
             'to_date' => 'nullable|date',
         ]);
 
-        $filterType = $request->input('filter_type', 'monthly');
+        $filterType = $request->input('filter_type', 'all_time');
         $range = $this->resolveDateRange($request, $filterType);
         $fromDate = $range['from'];
         $toDate = $range['to'];
@@ -56,7 +56,7 @@ class DailyReportController extends Controller
             'format' => 'nullable|in:csv,pdf',
         ]);
 
-        $filterType = $request->input('filter_type', 'monthly');
+        $filterType = $request->input('filter_type', 'all_time');
         $reportType = $request->input('report_type', 'all');
         $range = $this->resolveDateRange($request, $filterType);
         $fromDate = $range['from'];
@@ -174,7 +174,44 @@ class DailyReportController extends Controller
         $salesQuery->orderBy('invoice_date');
 
         $sales = $salesQuery->get();
-        $salesTotal = (float) $sales->sum(fn ($invoice) => (float) ($invoice->total ?? 0));
+        $salesDetails = $sales->map(function ($invoice) {
+            $subtotal = (float) ($invoice->subtotal ?? 0);
+            $cgstRate = (float) ($invoice->cgst_percentage ?? 0);
+            $sgstRate = (float) ($invoice->sgst_percentage ?? 0);
+            $gstRate = (float) ($invoice->gst_percentage ?? 0);
+
+            if ($gstRate <= 0) {
+                $gstRate = $cgstRate + $sgstRate;
+            }
+
+            if (($cgstRate <= 0 || $sgstRate <= 0) && $gstRate > 0) {
+                $cgstRate = $gstRate / 2;
+                $sgstRate = $gstRate / 2;
+            }
+
+            $cgstAmount = round($subtotal * ($cgstRate / 100), 2);
+            $sgstAmount = round($subtotal * ($sgstRate / 100), 2);
+            $totalGstAmount = round($cgstAmount + $sgstAmount, 2);
+
+            return [
+                'invoice_number' => $invoice->invoice_number,
+                'invoice_date' => optional($invoice->invoice_date)->format('Y-m-d'),
+                'customer_name' => $invoice->customer->name ?? 'Unknown Customer',
+                'payment_status' => $invoice->payment_status,
+                'taxable_amount' => round($subtotal, 2),
+                'cgst_amount' => $cgstAmount,
+                'sgst_amount' => $sgstAmount,
+                'gst_amount' => $totalGstAmount,
+                'amount' => round((float) ($invoice->total ?? 0), 2),
+                'due_amount' => round((float) ($invoice->due_amount ?? 0), 2),
+            ];
+        })->values();
+
+        $salesTotal = (float) $salesDetails->sum('amount');
+        $salesTaxableTotal = (float) $salesDetails->sum('taxable_amount');
+        $salesCgstTotal = (float) $salesDetails->sum('cgst_amount');
+        $salesSgstTotal = (float) $salesDetails->sum('sgst_amount');
+        $salesGstTotal = (float) $salesDetails->sum('gst_amount');
 
         $dueInvoicesQuery = Invoice::with('customer')
             ->where('due_amount', '>', 0)
@@ -276,15 +313,12 @@ class DailyReportController extends Controller
             ],
             'sales' => [
                 'total_amount' => round($salesTotal, 2),
+                'taxable_amount' => round($salesTaxableTotal, 2),
+                'total_cgst' => round($salesCgstTotal, 2),
+                'total_sgst' => round($salesSgstTotal, 2),
+                'total_gst' => round($salesGstTotal, 2),
                 'count' => $sales->count(),
-                'details' => $sales->map(fn ($invoice) => [
-                    'invoice_number' => $invoice->invoice_number,
-                    'invoice_date' => optional($invoice->invoice_date)->format('Y-m-d'),
-                    'customer_name' => $invoice->customer->name ?? 'Unknown Customer',
-                    'payment_status' => $invoice->payment_status,
-                    'amount' => round((float) ($invoice->total ?? 0), 2),
-                    'due_amount' => round((float) ($invoice->due_amount ?? 0), 2),
-                ])->values(),
+                'details' => $salesDetails,
             ],
             'due' => [
                 'total_outstanding' => round($dueTotal, 2),
@@ -375,6 +409,10 @@ class DailyReportController extends Controller
 
         $rows[] = ['Sales Summary'];
         $rows[] = ['Total Sales', $report['sales']['count']];
+        $rows[] = ['Total Taxable Sales', $report['sales']['taxable_amount'] ?? 0];
+        $rows[] = ['Total CGST', $report['sales']['total_cgst'] ?? 0];
+        $rows[] = ['Total SGST', $report['sales']['total_sgst'] ?? 0];
+        $rows[] = ['Total GST', $report['sales']['total_gst'] ?? 0];
         $rows[] = ['Total Sales Amount', $report['sales']['total_amount']];
         $rows[] = [];
 
@@ -403,9 +441,20 @@ class DailyReportController extends Controller
         $rows[] = [];
 
         $rows[] = ['Sales Details'];
-        $rows[] = ['Invoice Number', 'Date', 'Customer', 'Status', 'Amount', 'Due'];
+        $rows[] = ['Invoice Number', 'Date', 'Customer', 'Status', 'Taxable', 'CGST', 'SGST', 'Total GST', 'Amount', 'Due'];
         foreach ($report['sales']['details'] as $row) {
-            $rows[] = [$row['invoice_number'], $row['invoice_date'], $row['customer_name'], $row['payment_status'], $row['amount'], $row['due_amount']];
+            $rows[] = [
+                $row['invoice_number'],
+                $row['invoice_date'],
+                $row['customer_name'],
+                $row['payment_status'],
+                $row['taxable_amount'] ?? 0,
+                $row['cgst_amount'] ?? 0,
+                $row['sgst_amount'] ?? 0,
+                $row['gst_amount'] ?? 0,
+                $row['amount'],
+                $row['due_amount'],
+            ];
         }
         $rows[] = [];
 

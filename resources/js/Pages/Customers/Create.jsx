@@ -6,6 +6,7 @@ import { route } from '@/utils/route';
 export default function Create({ flash }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         name: '',
+        email: '',
         mobile_number: '',
         address: '',
         delivery_address: '',
@@ -92,6 +93,22 @@ export default function Create({ flash }) {
                                     required
                                 />
                                 {errors.name && <div className="text-red-600 text-sm mt-1">{errors.name}</div>}
+                            </div>
+
+                            {/* Mobile Number */}
+                            <div>
+                                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Email Address
+                                </label>
+                                <input
+                                    id="email"
+                                    type="email"
+                                    value={data.email}
+                                    className="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-primary-500 dark:focus:border-primary-600 focus:ring-primary-500 dark:focus:ring-primary-600 rounded-md shadow-sm"
+                                    onChange={(e) => setData('email', e.target.value)}
+                                    placeholder="Enter email (optional)"
+                                />
+                                {errors.email && <div className="text-red-600 text-sm mt-1">{errors.email}</div>}
                             </div>
 
                             {/* Mobile Number */}

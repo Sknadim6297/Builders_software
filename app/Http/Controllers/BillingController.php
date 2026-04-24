@@ -31,6 +31,7 @@ class BillingController extends Controller
 				$q->where('invoice_number', 'like', "%{$search}%")
 					->orWhereHas('customer', function ($customerQuery) use ($search) {
 						$customerQuery->where('name', 'like', "%{$search}%")
+							->orWhere('email', 'like', "%{$search}%")
 							->orWhere('mobile_number', 'like', "%{$search}%")
 							->orWhere('cust_id', 'like', "%{$search}%");
 					});
@@ -61,7 +62,7 @@ class BillingController extends Controller
 
 	public function create(Request $request)
 	{
-		$customers = Customer::select('id', 'name', 'mobile_number', 'address', 'delivery_address', 'pincode', 'location')->orderBy('name')->get();
+		$customers = Customer::select('id', 'name', 'email', 'mobile_number', 'address', 'delivery_address', 'pincode', 'location')->orderBy('name')->get();
 		$services = Service::select('id', 'name', 'final_price')->where('is_active', true)->orderBy('name')->get();
 		$companyAddressOptions = $this->getCompanyAddressOptions();
 		$categories = Category::with(['items' => function ($query) {

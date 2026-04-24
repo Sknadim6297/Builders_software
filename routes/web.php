@@ -18,8 +18,12 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
-
 use Illuminate\Support\Facades\Artisan;
+
+Route::get('/linkstorage', function () {
+    Artisan::call('storage:link');
+    return 'Storage link created!';
+});
 
 Route::get('/run-migrate', function () {
     Artisan::call('migrate', [
@@ -68,6 +72,7 @@ Route::middleware('auth')->group(function () {
     // Item Master routes
     Route::resource('items', ItemController::class);
     Route::get('items-api/active', [ItemController::class, 'getActive'])->name('items.active');
+    Route::get('items-api/check-duplicate', [ItemController::class, 'checkDuplicate']);
 
     // Purchase Bills routes - require purchase_bills permission
     Route::middleware('permission:purchase_bills')->group(function () {

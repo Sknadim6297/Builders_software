@@ -18,6 +18,8 @@ export default function Edit({ item, categories, flash }) {
         gst_percentage: item.gst_percentage || '0',
         is_active: item.is_active || true
     });
+    const [nameCheckMessage, setNameCheckMessage] = useState('');
+    const [checkingName, setCheckingName] = useState(false);
 
     useEffect(() => {
         if (flash?.success) {
@@ -28,8 +30,58 @@ export default function Edit({ item, categories, flash }) {
         }
     }, [flash]);
 
+    useEffect(() => {
+        const itemName = data.name.trim();
+
+        if (!itemName) {
+            setNameCheckMessage('');
+            setCheckingName(false);
+            return;
+        }
+
+        const abortController = new AbortController();
+        const debounceTimer = window.setTimeout(async () => {
+            setCheckingName(true);
+
+            try {
+                const params = new URLSearchParams({
+                    name: itemName,
+                    item_id: String(item.id),
+                });
+
+                const response = await fetch(`/items-api/check-duplicate?${params.toString()}`, {
+                    headers: {
+                        Accept: 'application/json',
+                    },
+                    signal: abortController.signal,
+                });
+
+                if (!response.ok) {
+                    return;
+                }
+
+                const payload = await response.json();
+                setNameCheckMessage(payload.exists ? payload.message : '');
+            } catch (error) {
+                if (error.name !== 'AbortError') {
+                    console.error(error);
+                }
+            } finally {
+                setCheckingName(false);
+            }
+        }, 400);
+
+        return () => {
+            abortController.abort();
+            window.clearTimeout(debounceTimer);
+        };
+    }, [data.name, item.id]);
+
     const handleSubmit = (e) => {
         e.preventDefault();
+        if (nameCheckMessage) {
+            return;
+        }
         put(route('items.update', item.id));
     };
 
@@ -74,9 +126,12 @@ export default function Edit({ item, categories, flash }) {
                                     type="text"
                                     value={data.name}
                                     onChange={(e) => setData('name', e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white ${errors.name || nameCheckMessage ? 'border-red-500 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
                                 />
-                                {errors.name && <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.name}</p>}
+                                {(errors.name || nameCheckMessage) && <p className="text-red-600 dark:text-red-400 text-sm mt-1">{errors.name || nameCheckMessage}</p>}
+                                {!errors.name && !nameCheckMessage && checkingName && (
+                                    <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Checking item name...</p>
+                                )}
                             </div>
 
                             <div>
@@ -177,7 +232,7 @@ export default function Edit({ item, categories, flash }) {
                             <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                                 <button
                                     type="submit"
-                                    disabled={processing}
+                                    disabled={processing || checkingName || Boolean(nameCheckMessage)}
                                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
                                 >
                                     {processing ? 'Updating...' : 'Update Item'}

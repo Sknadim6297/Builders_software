@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -13,30 +12,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // First create roles, permissions, and settings
+        // Seed core access-control and app settings data first.
         $this->call([
             PermissionSeeder::class,
             MenuSeeder::class,
             SettingsSeeder::class,
+            SuperAdminSeeder::class,
         ]);
-
-        // Update existing admin user or create super admin user
-        $user = User::where('email', 'admin@gmail.com')->first();
-        
-        if ($user) {
-            $user->update([
-                'name' => 'Super Admin',
-                'is_super_admin' => true,
-                'role_id' => 1, // super_admin role
-            ]);
-        } else {
-            User::create([
-                'name' => 'Super Admin',
-                'email' => 'admin@gmail.com',
-                'password' => bcrypt('admin123'),
-                'is_super_admin' => true,
-                'role_id' => 1, // super_admin role
-            ]);
-        }
     }
 }

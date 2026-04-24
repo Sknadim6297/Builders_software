@@ -7,7 +7,7 @@ import { CalendarIcon } from '@heroicons/react/24/outline';
 export default function Index({ gstSummary, outputGSTDetails, inputGSTDetails, outputRateSummary, inputRateSummary, filters, flash }) {
     const [showOutputDetails, setShowOutputDetails] = useState(false);
     const [showInputDetails, setShowInputDetails] = useState(false);
-    const [filterType, setFilterType] = useState(filters?.filter_type || 'monthly');
+    const [filterType, setFilterType] = useState(filters?.filter_type || 'all_time');
     const [reportDate, setReportDate] = useState(filters?.report_date || '');
     const [reportMonth, setReportMonth] = useState(filters?.report_month || '');
     const [fromDate, setFromDate] = useState(filters?.from_date || '');
@@ -42,7 +42,7 @@ export default function Index({ gstSummary, outputGSTDetails, inputGSTDetails, o
     };
 
     const clearFilters = () => {
-        setFilterType('monthly');
+        setFilterType('all_time');
         setReportDate('');
         setReportMonth('');
         setFromDate('');
@@ -82,6 +82,7 @@ export default function Index({ gstSummary, outputGSTDetails, inputGSTDetails, o
                                     <option value="daily">Daily</option>
                                     <option value="monthly">Monthly</option>
                                     <option value="custom">Custom Range</option>
+                                    <option value="all_time">All Time</option>
                                 </select>
                             </div>
 

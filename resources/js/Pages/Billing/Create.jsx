@@ -74,6 +74,29 @@ export default function Create({ customers, services, categories, companyAddress
         return map;
     }, [categories]);
 
+    const getCategoryProducts = (categoryId) => {
+        const category = categoryMap.get(String(categoryId));
+
+        return (category?.items || [])
+            .map((product) => {
+                const stocks = [...(product.stocks || [])].sort((left, right) => {
+                    return (Number(left.id) || 0) - (Number(right.id) || 0);
+                });
+                const primaryStock = stocks[0];
+
+                if (!primaryStock) {
+                    return null;
+                }
+
+                return {
+                    ...product,
+                    stock_id: String(primaryStock.id),
+                    available_stock: stocks.reduce((sum, stock) => sum + (parseFloat(stock.quantity_on_hand || 0) || 0), 0),
+                };
+            })
+            .filter(Boolean);
+    };
+
     const selectedCustomer = useMemo(() => {
         if (!data.customer_id) {
             return null;
@@ -84,17 +107,13 @@ export default function Create({ customers, services, categories, companyAddress
 
     const selectedCustomerMainAddress = selectedCustomer?.address || '';
     const selectedCustomerDeliveryAddress = selectedCustomer?.delivery_address || '';
+    const selectedCustomerEmail = selectedCustomer?.email || '';
     const selectedCompanyAddress = useMemo(() => {
         if (!data.selected_company_address) {
             return null;
         }
         return companyAddressOptions.find((option) => option.value === data.selected_company_address) || null;
     }, [companyAddressOptions, data.selected_company_address]);
-
-    const getCategoryProducts = (categoryId) => {
-        const category = categoryMap.get(String(categoryId));
-        return category?.items || [];
-    };
 
     const addProductItem = () => {
         setData('product_items', [
@@ -293,6 +312,16 @@ export default function Create({ customers, services, categories, companyAddress
                                 />
                             </div>
                             <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+                                <input
+                                    type="text"
+                                    value={selectedCustomerEmail}
+                                    readOnly
+                                    className="w-full border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 dark:text-gray-300 rounded-md"
+                                    placeholder="Select a customer to fetch email"
+                                />
+                            </div>
+                            <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">C G.S.T %</label>
                                 <input
                                     type="number"
@@ -414,6 +443,12 @@ export default function Create({ customers, services, categories, companyAddress
                                         </div>
                                         <div className="md:col-span-3">
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Product</label>
+                                            {(() => {
+                                                const categoryProducts = getCategoryProducts(item.category_id);
+                                                const currentStock = item.stock_id ? productMap.get(String(item.stock_id)) : null;
+                                                const hasCurrentStockOption = categoryProducts.some((product) => String(product.stock_id) === String(item.stock_id));
+
+                                                return (
                                             <select
                                                 value={item.stock_id}
                                                 onChange={(e) => updateProductItem(index, 'stock_id', e.target.value)}
@@ -421,14 +456,19 @@ export default function Create({ customers, services, categories, companyAddress
                                                 disabled={!item.category_id}
                                             >
                                                 <option value="">Select product</option>
-                                                {getCategoryProducts(item.category_id).map((product) => (
-                                                    (product.stocks || []).map((stock) => (
-                                                        <option key={stock.id} value={stock.id}>
-                                                            {product.name} ({product.unit_type})
-                                                        </option>
-                                                    ))
+                                                {categoryProducts.map((product) => (
+                                                    <option key={product.id} value={product.stock_id}>
+                                                        {product.name} ({product.unit_type})
+                                                    </option>
                                                 ))}
+                                                {item.stock_id && currentStock && !hasCurrentStockOption && (
+                                                    <option value={item.stock_id}>
+                                                        {currentStock.product_name} ({currentStock.product_unit_type})
+                                                    </option>
+                                                )}
                                             </select>
+                                                );
+                                            })()}
                                             {!item.category_id && <p className="mt-1 text-xs text-gray-500">Choose a category first.</p>}
                                             {item.stock_id && (
                                                 <p className="mt-1 text-xs text-gray-500">HSN: {item.hsn_code || 'N/A'}</p>

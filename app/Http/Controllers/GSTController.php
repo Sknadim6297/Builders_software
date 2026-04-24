@@ -16,7 +16,7 @@ class GSTController extends Controller
     public function index(Request $request)
     {
         $request->validate([
-            'filter_type' => 'nullable|in:daily,monthly,custom',
+            'filter_type' => 'nullable|in:daily,monthly,custom,all_time',
             'report_date' => 'nullable|date',
             'report_month' => ['nullable', 'regex:/^\d{4}-\d{2}$/'],
             'from_date' => 'nullable|date',
@@ -24,7 +24,7 @@ class GSTController extends Controller
             'gst_rate' => 'nullable|numeric|min:0|max:100'
         ]);
 
-        $filterType = $request->input('filter_type', 'monthly');
+        $filterType = $request->input('filter_type', 'all_time');
         $range = $this->resolveDateRange($request, $filterType);
         $fromDate = $range['from'];
         $toDate = $range['to'];
@@ -72,6 +72,13 @@ class GSTController extends Controller
 
     private function resolveDateRange(Request $request, string $filterType): array
     {
+        if ($filterType === 'all_time') {
+            return [
+                'from' => Carbon::create(1970, 1, 1)->startOfDay(),
+                'to' => Carbon::today()->endOfDay(),
+            ];
+        }
+
         if ($filterType === 'daily') {
             $date = $request->filled('report_date')
                 ? Carbon::parse($request->report_date)
@@ -121,6 +128,9 @@ class GSTController extends Controller
             // GST is calculated on subtotal, while discount is applied separately.
             $taxable = max(0, (float) $invoice->subtotal);
             $effectiveRate = (float) ($invoice->gst_percentage ?? 0);
+            if ($effectiveRate <= 0) {
+                $effectiveRate = (float) (($invoice->cgst_percentage ?? 0) + ($invoice->sgst_percentage ?? 0));
+            }
             $invoiceGST = round($taxable * ($effectiveRate / 100), 2);
 
             if ($gstRate !== null && $effectiveRate != (float) $gstRate) {

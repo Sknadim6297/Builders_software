@@ -98,6 +98,19 @@ export default function Show({ customer }) {
                                             </p>
                                         </div>
 
+                                        {customer.email && (
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">
+                                                    Email Address
+                                                </label>
+                                                <p className="mt-1 text-gray-900 dark:text-white">
+                                                    <a href={`mailto:${customer.email}`} className="hover:text-primary-600">
+                                                        {customer.email}
+                                                    </a>
+                                                </p>
+                                            </div>
+                                        )}
+
                                         {customer.alternate_mobile && (
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">

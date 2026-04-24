@@ -1,0 +1,1 @@
+import{J as p,j as m}from"./app-B_KUuYQo.js";function g({className:n="",alt:s="Company Logo"}){var o;const a=((o=p().props.companySettings)==null?void 0:o.company_logo)||"/images/sayan-sita-logo.png";return m.jsx("img",{src:a,alt:s,className:n})}export{g as C};

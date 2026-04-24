@@ -218,6 +218,10 @@ export default function Show({ invoice, flash }) {
                                     <p className="text-gray-900 dark:text-white">{invoice.customer?.mobile_number}</p>
                                 </div>
                                 <div>
+                                    <p className="text-gray-500">Email</p>
+                                    <p className="text-gray-900 dark:text-white">{invoice.customer?.email || '-'}</p>
+                                </div>
+                                <div>
                                     <p className="text-gray-500">Address</p>
                                     <p className="text-gray-900 dark:text-white">{invoice.customer?.address}</p>
                                 </div>
